@@ -1,3 +1,5 @@
+---@module "standalonetypes"
+
 ---@class WorldsModule
 local module = {}
 local fs = require("fs")

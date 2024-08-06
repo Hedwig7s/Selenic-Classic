@@ -64,7 +64,7 @@ module.BLOCK_IDS = {
 }
 
 ---Gets internal block name from id
----@param id BlockIDs
+---@param id number
 ---@return string
 function module.getBlockName(id)
     for k, v in pairs(module.BLOCK_IDS) do
@@ -77,10 +77,6 @@ end
 
 
 ---@class World
----@field name string
----@field size Vector3
----@field spawn Vector3
----@field blocks table<number, BlockIDs>
 local World = {}
 World.__index = World
 
@@ -100,8 +96,8 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param id BlockIDs
----@param skipSend boolean?
+---@param id number
+---@param skipSend boolean
 function World:setBlock(x, y, z, id, skipSend)
     local index = getIndex(x, y, z, self.size)
     self.blocks[index] = id
@@ -117,7 +113,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@return BlockIDs
+---@return integer
 function World:getBlock(x, y, z)
     local index = getIndex(x, y, z, self.size)
     return self.blocks[index] or module.BLOCK_IDS.AIR
@@ -187,7 +183,7 @@ end
 ---@param name string
 ---@param size Vector3
 ---@param spawn Vector3
----@param blocks table<BlockIDs>
+---@param blocks table<number>
 ---@return World
 function World.new(name, size, spawn, blocks)
     local self = setmetatable({}, World)

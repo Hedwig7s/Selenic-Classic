@@ -1,3 +1,5 @@
+---@module "standalonetypes"
+
 ---@class WorldsModule
 local module = {}
 local fs = require("fs")
@@ -77,10 +79,6 @@ end
 
 
 ---@class World
----@field name string
----@field size Vector3
----@field spawn Vector3
----@field blocks table<number, BlockIDs>
 local World = {}
 World.__index = World
 

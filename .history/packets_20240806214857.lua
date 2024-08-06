@@ -87,7 +87,7 @@ local function levelDataChunk(connection, length, data, percent)
         error("Chunk too large")
     end
     data = util.pad(data,1024,"\0")
-    connection.write(string.pack(">BHc1024B",0x03,length,data,percent))
+    connection.write(string.pack(">BHI4"..string.rep("B",1024).."B",0x03,length,data,percent))
 end
 
 ---Indicates to client that level has been fully sent, also sends size
@@ -125,22 +125,9 @@ end
 ---@param z number
 ---@param yaw number
 ---@param pitch number
----@param connection Connection?
+---@param connection Connection
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
-    local x, y, z = toFixedPoint(x,y,z)
-    local data = string.pack(">Bbc80HHHBB",0x07,id, formatString(name), x, y, z,yaw,pitch,0)
-    if connection then
-        connection.write(data)
-        return
-    end
-    for _, connection in pairs(connections) do
-        if connection.id ~= id then -- Don't send to the player that is being spawned
-            local success, err = pcall(connection.write, data)
-            if not success then
-                print("Error sending packet to client: "..err)
-            end 
-        end
-    end
+    connection.write(string.pack(">Bbc80HHHHH",0x07,id, formatString(name),toFixedPoint(x,y,z),yaw,pitch,0))
 end
 
 ---@class ServerPackets 
@@ -166,7 +153,10 @@ module.ServerPackets = ServerPackets
 
 -----------------CLIENT PACKETS-----------------
 
----@alias ClientPacket fun(data:string, connection:Connection)
+---@generic ClientPacket
+---@param data string
+---@param connection Connection
+local function clientPacket(data, connection) end
 
 ---Handles player identification
 ---@type ClientPacket
@@ -186,13 +176,9 @@ local function playerIdent(data, connection)
     end
     ServerPackets.ServerIdentification(connection)
     print("Identified")
-    local player = playerModule.Player.new(connection, username)
-    connection.player = player
-    player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])
+    local player = playerModule.Player.new(connections[connectionCount], username)
 end
 
----Handles client trying to set block
----@type ClientPacket
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
     local success, err = pcall(function()
@@ -213,7 +199,6 @@ function clientSetBlock(data, connection)
     end
 end
 
----@class ClientPackets
 local ClientPackets = {
     [0x00] = playerIdent,
     [0x05] = clientSetBlock,
@@ -224,13 +209,6 @@ local ClientPackets = {
 module.ClientPackets = ClientPackets
 -----------------HANDLING-----------------
 
----Handles a new connection
----@param server unknown
----@param read fun():string?
----@param write fun(data:string)
----@param dsocket unknown
----@param updateDecoder unknown
----@param updateEncoder unknown
 function module:HandleConnect(server, read, write, dsocket, updateDecoder, updateEncoder)
     local id = connectionCount
     connectionCount = connectionCount + 1
@@ -244,7 +222,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     ---@field updateEncoder unknown
     ---@field id number
     ---@field routine thread
-    ---@field player Player?
     local connection = {
         read = read,
         write = write,
