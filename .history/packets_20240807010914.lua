@@ -52,7 +52,7 @@ end
 ---@param reason string
 ---@type ServerPacket
 local function disconnect(connection, reason)
-    local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
+    local success, err = connection.write(string.pack(">Bc64",0xFF,formatString(reason)))
     connection.dsocket:close()
     return success, err
 end

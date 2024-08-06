@@ -76,12 +76,9 @@ end
 ---Creates new player
 ---@param connection Connection
 ---@param name string
----@return Player | boolean, string?
 function Player.new(connection, name)
     if module:GetPlayerByName(name) then
-        local err = "Player with name "..name.." already exists"
-        print(err)
-        return false, err
+        error("Player with name "..name.." already exists")
     end
     local self = setmetatable({}, Player)
     self.connection = connection
@@ -95,9 +92,7 @@ function Player.new(connection, name)
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
     if id > 255 then
-        local err = "Too many players!"
-        print(err)
-        return false, err
+        error("Too many players!")
     end
     self.id = id
     players[self.id] = self
