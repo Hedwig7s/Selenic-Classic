@@ -46,15 +46,16 @@ local function fromFixedPoint(...)
 end
 -----------------SERVER PACKETS-----------------
 
----@alias ServerPacket fun(connection:Connection, ...:any?): success:boolean, err:string?
+---@alias ServerPacket fun(connection:Connection, ...:any?)
 
 ---Disconnects a player with a reason
 ---@param reason string
 ---@type ServerPacket
 local function disconnect(connection, reason)
-    local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
+    local data = string.pack(">Bc64",0xFF,formatString(reason))
+    connection.write(data)
     connection.dsocket:close()
-    return success, err
+    return data
 end
 
 ---Identifies server to client
@@ -189,10 +190,10 @@ local function playerIdent(data, connection)
     end
     ServerPackets.ServerIdentification(connection)
     print("Identified")
-    local player, err = playerModule.Player.new(connection, username)
-    if not player then
-        print("Error creating player: "..err)
-        disconnect(connection, err:sub(1,64))
+    local success, player = pcall(playerModule.Player.new,connection, username)
+    if not success then
+        print("Error creating player: "..player)
+        disconnect(connection, "Error creating player: "..player)
         return
     end
     connection.player = player
@@ -242,7 +243,7 @@ module.ClientPackets = ClientPackets
 function module:HandleConnect(server, read, write, dsocket, updateDecoder, updateEncoder)
     local id do
         local i = 1
-        while connections[i] and i <= 1024 do
+        while connections[i] or i <= 1024 do
             i = i + 1
         end
         if i > 1024 then
@@ -256,7 +257,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     local lastPing = os.time()
     ---@class Connection
     ---@field read fun():string?
-    ---@field write fun(data:string): success:boolean, err:string?
+    ---@field write fun(data:string)
     ---@field dsocket unknown 
     ---@field updateDecoder unknown
     ---@field updateEncoder unknown
@@ -296,12 +297,11 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 lastPingSuccess,err = ServerPackets.Ping(connection)
                 if not lastPingSuccess then
                     print("Error sending ping to client: "..err)
-                    pcall(dsocket.close, dsocket)
+                    dsocket:close()
                     break
                 end
             end
         end
-        -- TODO: Clean up player
         connections[id] = nil
     end)
     coroutine.resume(connectionroutine) 

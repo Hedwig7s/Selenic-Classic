@@ -52,7 +52,7 @@ end
 ---@param reason string
 ---@type ServerPacket
 local function disconnect(connection, reason)
-    local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
+    local success, err = connection.write(string.pack(">Bc64",0xFF,formatString(reason)))
     connection.dsocket:close()
     return success, err
 end
@@ -189,9 +189,10 @@ local function playerIdent(data, connection)
     end
     ServerPackets.ServerIdentification(connection)
     print("Identified")
-    local player, err = playerModule.Player.new(connection, username)
+    local player, err = pcall(playerModule.Player.new,connection, username)
     if not player then
         print("Error creating player: "..err)
+
         disconnect(connection, err:sub(1,64))
         return
     end
@@ -296,7 +297,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 lastPingSuccess,err = ServerPackets.Ping(connection)
                 if not lastPingSuccess then
                     print("Error sending ping to client: "..err)
-                    pcall(dsocket.close, dsocket)
+                    dsocket:close()
                     break
                 end
             end

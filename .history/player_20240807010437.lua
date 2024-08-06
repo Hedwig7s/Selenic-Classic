@@ -76,7 +76,7 @@ end
 ---Creates new player
 ---@param connection Connection
 ---@param name string
----@return Player | boolean, string?
+---@return Player | boolean, string
 function Player.new(connection, name)
     if module:GetPlayerByName(name) then
         local err = "Player with name "..name.." already exists"
