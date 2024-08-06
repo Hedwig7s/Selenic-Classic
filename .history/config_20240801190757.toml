@@ -1,0 +1,11 @@
+[server]
+heartbeatURL = "https://classicube.net/server/heartbeat"
+host = "0.0.0.0"
+levelName = "default"
+maxPlayers = 20
+motd = "Welcome!"
+port = 25565
+public = true
+serverName = "Hedwig's Test Server"
+verifyNames = true
+defaultWorld = world
