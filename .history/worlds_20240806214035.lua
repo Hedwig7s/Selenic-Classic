@@ -77,10 +77,6 @@ end
 
 
 ---@class World
----@field name string
----@field size Vector3
----@field spawn Vector3
----@field blocks table<number, BlockIDs>
 local World = {}
 World.__index = World
 
@@ -101,7 +97,7 @@ end
 ---@param y number
 ---@param z number
 ---@param id BlockIDs
----@param skipSend boolean?
+---@param skipSend boolean
 function World:setBlock(x, y, z, id, skipSend)
     local index = getIndex(x, y, z, self.size)
     self.blocks[index] = id

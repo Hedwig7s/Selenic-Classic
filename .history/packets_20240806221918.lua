@@ -128,7 +128,7 @@ end
 ---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
     local x, y, z = toFixedPoint(x,y,z)
-    local data = string.pack(">Bbc80HHHBB",0x07,id, formatString(name), x, y, z,yaw,pitch,0)
+    local data = string.pack(">Bbc80HHHHH",0x07,id, formatString(name), x, y, z,yaw,pitch,0)
     if connection then
         connection.write(data)
         return

@@ -1,11 +1,10 @@
 [server]
+defaultWorld = "world"
 heartbeatURL = "https://classicube.net/server/heartbeat"
 host = "0.0.0.0"
-levelName = "default"
 maxPlayers = 20
 motd = "Welcome!"
-port = 25565
+port = 20000
 public = true
-serverName = "Hedwig's Test Server"
+serverName = "Selenic Server"
 verifyNames = true
-defaultWorld = "world"

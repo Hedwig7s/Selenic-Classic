@@ -13,12 +13,8 @@ local config = require("./config")
 ---@field pitch number
 ---@field world World
 ---@field name string
----@field id number
 local Player = {}
 Player.__index = Player
-
----@type table<number, Player>
-local players = {}
 
 ---Spawns the player in a world. Should only be called on the player's first spawn in the world
 function Player:Spawn()
@@ -47,11 +43,6 @@ function Player:LoadWorld(world)
     packets.ServerPackets.LevelFinalize(self.connection, world.size)
     self:Spawn()
     self:MoveTo(world.spawn.x, world.spawn.y, world.spawn.z)
-    for _, player in pairs(players) do
-        if player.world == world and player.id ~= self.id then
-            packets.ServerPackets.SpawnPlayer(player.connection.id, player.name, player.x, player.y, player.z, player.yaw, player.pitch, self.connection)
-        end
-    end
 end
 
 ---Moves the player to a specified position
@@ -77,13 +68,6 @@ function Player.new(connection, name)
     self.pitch = 0
     self.world = nil
     self.name = name
-    local id = -1
-    repeat id = id + 1 until not players[id] or id > 255
-    if id > 255 then
-        error("Too many players!")
-    end
-    self.id = id
-    players[self.id] = self
     return self
 end
 

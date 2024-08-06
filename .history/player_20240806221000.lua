@@ -1,4 +1,4 @@
----@class PlayerModule
+--@class PlayerModule
 local module = {}
 
 local worlds = require("./worlds")
@@ -13,12 +13,8 @@ local config = require("./config")
 ---@field pitch number
 ---@field world World
 ---@field name string
----@field id number
 local Player = {}
 Player.__index = Player
-
----@type table<number, Player>
-local players = {}
 
 ---Spawns the player in a world. Should only be called on the player's first spawn in the world
 function Player:Spawn()
@@ -27,13 +23,13 @@ function Player:Spawn()
 end
 
 ---Loads player into a world
----@param world World
 function Player:LoadWorld(world)
     self.world = world
     local packets = require("./packets")
     print("Packing world")
     local packed = world:Pack()
-    packets.ServerPackets.LevelInitialize(self.connection)
+    local write = self.connection.write
+    packets.ServerPackets.LevelInitialize(write)
     print("Initialising level")
     local length = #packed
     local chunkSize = 1024
@@ -41,32 +37,20 @@ function Player:LoadWorld(world)
     print("Sending level data")
     for i = 1, chunks do
         local chunk = packed:sub((i-1)*chunkSize+1, i*chunkSize)
-        packets.ServerPackets.LevelDataChunk(self.connection, #chunk, chunk, math.floor(i/chunks*100))
+        packets.ServerPackets.LevelDataChunk(write, #chunk, chunk, math.floor(i/chunks*100))
     end
     print("Finalising level")
-    packets.ServerPackets.LevelFinalize(self.connection, world.size)
-    self:Spawn()
+    packets.ServerPackets.LevelFinalize(write, world.size)
     self:MoveTo(world.spawn.x, world.spawn.y, world.spawn.z)
-    for _, player in pairs(players) do
-        if player.world == world and player.id ~= self.id then
-            packets.ServerPackets.SpawnPlayer(player.connection.id, player.name, player.x, player.y, player.z, player.yaw, player.pitch, self.connection)
-        end
-    end
+    self:Spawn()
 end
 
----Moves the player to a specified position
----@param x number
----@param y number
----@param z number
 function Player:MoveTo(x, y, z)
     self.x = x
     self.y = y
     self.z = z
 end
 
----Creates new player
----@param connection Connection
----@param name string
 function Player.new(connection, name)
     local self = setmetatable({}, Player)
     self.connection = connection
@@ -77,13 +61,6 @@ function Player.new(connection, name)
     self.pitch = 0
     self.world = nil
     self.name = name
-    local id = -1
-    repeat id = id + 1 until not players[id] or id > 255
-    if id > 255 then
-        error("Too many players!")
-    end
-    self.id = id
-    players[self.id] = self
     return self
 end
 

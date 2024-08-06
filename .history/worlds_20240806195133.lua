@@ -1,4 +1,3 @@
----@class WorldsModule
 local module = {}
 local fs = require("fs")
 local util = require("./util")
@@ -6,10 +5,8 @@ local zlib = require("zlib")
 local packets
 require("compat53")
 
----@type table<string,World> 
 module.loadedWorlds = {}
 
----@enum BlockIDs
 module.BLOCK_IDS = {
     AIR = 0,
     STONE = 1,
@@ -63,9 +60,6 @@ module.BLOCK_IDS = {
     OBSIDIAN = 49,
 }
 
----Gets internal block name from id
----@param id BlockIDs
----@return string
 function module.getBlockName(id)
     for k, v in pairs(module.BLOCK_IDS) do
         if v == id then
@@ -75,34 +69,16 @@ function module.getBlockName(id)
     return "UNKNOWN"
 end
 
-
----@class World
----@field name string
----@field size Vector3
----@field spawn Vector3
----@field blocks table<number, BlockIDs>
 local World = {}
 World.__index = World
 
----@param x number
----@param y number
----@param z number
----@param size Vector3
----@return number
 local function getIndex(x, y, z, size)
     assert(x >= 0 and x <= size.x, "x out of bounds")
     assert(z >= 0 and z <= size.z, "z out of bounds")
     assert(y >= 0 and y <= size.y, "y out of bounds")
     return x + (z * size.x) + (y * size.x * size.z)
 end
-
----Sets block at specified x, y and z coordinates
----@param x number
----@param y number
----@param z number
----@param id BlockIDs
----@param skipSend boolean?
-function World:setBlock(x, y, z, id, skipSend)
+function World:setBlock(x, y, z, id, skipSend:boolean)
     local index = getIndex(x, y, z, self.size)
     self.blocks[index] = id
     if not packets then 
@@ -113,17 +89,11 @@ function World:setBlock(x, y, z, id, skipSend)
     end
 end
 
----Gets block at specified x, y and z coordinates
----@param x number
----@param y number
----@param z number
----@return BlockIDs
 function World:getBlock(x, y, z)
     local index = getIndex(x, y, z, self.size)
     return self.blocks[index] or module.BLOCK_IDS.AIR
 end
 
----Saves the world to a file
 function World:save()
     local data = ""
     print("Saving world "..self.name)
@@ -153,8 +123,6 @@ function World:save()
     print("World saved")
 end
 
----Packs the world into a protocol-compliant byte-array
----@return string
 function World:Pack()
     local function compress(str)
         local level = 5
@@ -183,12 +151,6 @@ function World:Pack()
     return compress(data) 
 end
 
----Creates a new world
----@param name string
----@param size Vector3
----@param spawn Vector3
----@param blocks table<BlockIDs>
----@return World
 function World.new(name, size, spawn, blocks)
     local self = setmetatable({}, World)
     self.name = name
@@ -199,9 +161,6 @@ function World.new(name, size, spawn, blocks)
     return self
 end
 
----Loads a world from a file
----@param name string
----@return World
 function module:load(name)
     local data = fs.readFileSync("./worlds/"..name..".hworld")
     local sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ = string.unpack("HHHHHH",data:sub(1, 12))
@@ -217,9 +176,6 @@ function module:load(name)
     return World.new(name, {x = sizeX, y = sizeY, z = sizeZ}, {x = spawnX, y = spawnY, z = spawnZ}, blocks)
 end
 
----Loads a world from a file, or creates a new one if it doesn't exist
----@param name string
----@return World
 function module:loadOrCreate(name)
     if module.loadedWorlds[name] then
         return module.loadedWorlds[name]
@@ -244,7 +200,6 @@ function module:loadOrCreate(name)
     end
 end
 
----Saves all loaded worlds  
 function module:saveAll()
     for _, v in pairs(module.loadedWorlds) do
         v:save()

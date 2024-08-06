@@ -87,7 +87,7 @@ local function levelDataChunk(connection, length, data, percent)
         error("Chunk too large")
     end
     data = util.pad(data,1024,"\0")
-    connection.write(string.pack(">BHc1024B",0x03,length,data,percent))
+    connection.write(string.pack(">BHI4c1024B",0x03,length,data,percent))
 end
 
 ---Indicates to client that level has been fully sent, also sends size
@@ -127,8 +127,7 @@ end
 ---@param pitch number
 ---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
-    local x, y, z = toFixedPoint(x,y,z)
-    local data = string.pack(">Bbc80HHHBB",0x07,id, formatString(name), x, y, z,yaw,pitch,0)
+    local data = string.pack(">Bbc80HHHHH",0x07,id, formatString(name),toFixedPoint(x,y,z),yaw,pitch,0)
     if connection then
         connection.write(data)
         return
