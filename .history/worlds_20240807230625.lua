@@ -170,7 +170,7 @@ function World:Pack()
         return zlib.deflate(level, windowSize)(str, "finish")
     end
     print("Packing world")
-    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y)
+    local data = string.pack(">H", self.size.x*self.size.z*self.size.y)
     local lastPercent = 0
     local blocks = {}
     local totalSize = self.size.x * self.size.z * self.size.y

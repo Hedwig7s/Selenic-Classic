@@ -225,7 +225,7 @@ end
 local ClientPackets = {
     [0x00] = playerIdent,
     [0x05] = clientSetBlock,
-    [0x08] = "PositionAndOrientation",
+    ---[0x08] = "PositionAndOrientation",
     [0x0D] = "Message"
 }
 
