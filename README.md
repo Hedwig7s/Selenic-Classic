@@ -24,6 +24,7 @@ A Classic server written in Lua because I hate myself
 - [x] Duplicate blocking
 - [ ] Chat
 - [ ] Commands
+- [ ] Physics
 - [ ] Permissions/Roles
 - [x] Config creation
 - [x] Config loading
