@@ -204,24 +204,25 @@ end
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
 
+    local cooldown = connection.cooldowns.setblock
+    local time = os.clock()
+    if time - cooldown.last < 0.05 then
+        cooldown.amount = cooldown.amount + 1
+        if cooldown.amount > 10 then
+            cooldown.dropped = cooldown.dropped + 1
+            return
+        end
+        -- TODO: Maybe kick player for excessive blocks
+    else
+        cooldown.last = time
+        cooldown.amount = 0
+        cooldown.dropped = 0
+    end
+
     local success, err = pcall(function()
         assert(mode == 0 or mode == 1, "Invalid mode")
         assert(block < 256, "Invalid block")
         assert(x < 65536 and y < 65536 and z < 65536 and x >= 0 and y >= 0 and z >= 0, "Invalid coordinates")
-        local cooldown = connection.cooldowns.setblock
-        local time = os.clock()
-        if time - cooldown.last < 0.05 then
-            cooldown.amount = cooldown.amount + 1
-            if cooldown.amount > 10 then
-                cooldown.dropped = cooldown.dropped + 1
-                error("Too many blocks")
-            end
-            -- TODO: Maybe kick player for excessive blocks
-        else
-            cooldown.last = time
-            cooldown.amount = 0
-            cooldown.dropped = 0
-        end
     end)
     local world = worlds.loadedWorlds[config:getValue("server.defaultWorld")]
     if not success then
