@@ -277,7 +277,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
             packet = {last = 0, amount = 0, dropped = 0},
         },
     }
-    local cooldown = connection.cooldowns.packet
+    local cooldowns = connection.cooldowns
     connections[id] = connection
     local connectionroutine = coroutine.create(function()
         local lastPingSuccess = true
@@ -285,32 +285,28 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
             timer.sleep(5)
             local data = read()
             if data and #data > 0 then
-                local time = os.clock()
-                local limited = false
-                if time - cooldown.last < 0.001 then
-                    cooldown.amount = cooldown.amount + 1
-                    if cooldown.amount > 10 then
-                        cooldown.dropped = cooldown.dropped + 1
+                local time = os.time()
+                if time - cooldowns.packet.last < 0.02 then
+                    cooldowns.packet.amount = cooldowns.packet.amount + 1
+                    if cooldowns.packet.amount > 10 then
+                        cooldowns.packet.dropped = cooldowns.packet.dropped + 1
                         print("Dropped packet from connection "..tostring(id)..": Rate limit exceeded")
-                        limited = true
                     end
-                    if cooldown.dropped > 30 then
+                    if cooldowns.packet.dropped > 30 then
                         print("Removing connection "..tostring(id).." due to rate limit")
                         pcall(dsocket.close, dsocket)
                         break
                     end
                 else
-                    cooldown.last = time
-                    cooldown.amount = 0
-                    cooldown.dropped = 0
-                end
-                if not limited then
+                    cooldowns.packet.last = time
+                    cooldowns.packet.amount = 0
+                    cooldowns.packet.dropped = 0
+
                     local id = string.unpack(">B",data:sub(1,1))
                     if ClientPackets[id] then
-                        print(id)
                         local success, err = pcall(ClientPackets[id],data, connection)
                         if not success then
-                            print("Error handling packet from connection "..tostring(connection.id)..":", err)
+                            print("Error handling packet from connection "..tostring(id)..":", err)
                         end
                     else
                         print("Unknown packet received:", id)

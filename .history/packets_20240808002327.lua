@@ -307,10 +307,9 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 if not limited then
                     local id = string.unpack(">B",data:sub(1,1))
                     if ClientPackets[id] then
-                        print(id)
                         local success, err = pcall(ClientPackets[id],data, connection)
                         if not success then
-                            print("Error handling packet from connection "..tostring(connection.id)..":", err)
+                            print("Error handling packet from connection "..tostring(id)..":", err)
                         end
                     else
                         print("Unknown packet received:", id)

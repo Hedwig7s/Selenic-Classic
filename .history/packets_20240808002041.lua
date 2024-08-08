@@ -286,13 +286,11 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
             local data = read()
             if data and #data > 0 then
                 local time = os.clock()
-                local limited = false
-                if time - cooldown.last < 0.001 then
+                if time - cooldown.last < 0.005 then
                     cooldown.amount = cooldown.amount + 1
                     if cooldown.amount > 10 then
                         cooldown.dropped = cooldown.dropped + 1
                         print("Dropped packet from connection "..tostring(id)..": Rate limit exceeded")
-                        limited = true
                     end
                     if cooldown.dropped > 30 then
                         print("Removing connection "..tostring(id).." due to rate limit")
@@ -303,14 +301,12 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                     cooldown.last = time
                     cooldown.amount = 0
                     cooldown.dropped = 0
-                end
-                if not limited then
+
                     local id = string.unpack(">B",data:sub(1,1))
                     if ClientPackets[id] then
-                        print(id)
                         local success, err = pcall(ClientPackets[id],data, connection)
                         if not success then
-                            print("Error handling packet from connection "..tostring(connection.id)..":", err)
+                            print("Error handling packet from connection "..tostring(id)..":", err)
                         end
                     else
                         print("Unknown packet received:", id)
