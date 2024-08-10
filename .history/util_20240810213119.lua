@@ -69,14 +69,14 @@ function module.pad(str, len, char)
 end
 
 ---Asserts a positional coordinate
----@param n number?
+---@param n number
 ---@param err string
 function module.positionAssert(n, err)
     assert(n and type(n) == "number" and n < 65536 and n >= 0, err or "Invalid position")
 end
 
 ---Asserts angle
----@param n number?
+---@param n number
 ---@param err string
 function module.angleAssert(n, err)
     assert(n and type(n) == "number" and n <= 192 and n >= 0, err or "Invalid angle")

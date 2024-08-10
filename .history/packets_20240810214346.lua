@@ -55,7 +55,6 @@ end
 ---@param reason string
 ---@type ServerPacket
 local function disconnect(connection, reason)
-    assert(reason and type(reason) == "string" and #reason <= 64, "Invalid reason")
     local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
     connection.dsocket:close()
     return success, err
