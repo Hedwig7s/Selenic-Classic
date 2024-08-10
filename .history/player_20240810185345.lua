@@ -32,8 +32,7 @@ function Player:Spawn(player)
     if player and (self.world ~= player.world or player.id == self.id) then
         return
     end
-    local position = self.position
-    packets.ServerPackets.SpawnPlayer(self.connection.id, self.name, position.x, position.y, position.z, position.yaw, position.pitch, player and player.connection or nil)
+    packets.ServerPackets.SpawnPlayer(self.connection.id, self.name, self.x, self.y, self.z, self.yaw, self.pitch, player and player.connection or nil)
 end
 
 ---Loads player into a world
@@ -55,7 +54,7 @@ function Player:LoadWorld(world)
     end
     print("Finalising level")
     packets.ServerPackets.LevelFinalize(self.connection, world.size)
-    self:MoveTo(world.spawn, true)
+    self:MoveTo(world.spawn.x, world.spawn.y, world.spawn.z, true)
     self:Spawn()
     for _, player in pairs(players) do
         player:Spawn(self)
@@ -63,15 +62,14 @@ function Player:LoadWorld(world)
 end
 
 ---Moves the player to a specified position
----@param position Position
----@param skipReplication boolean?
-function Player:MoveTo(position, skipReplication)
+---@param x number
+---@param y number
+---@param z number
+function Player:MoveTo(x, y, z, skipReplication)
     skipReplication = skipReplication or false
-    self.position.x = position.x or self.position.x
-    self.position.y = position.y or self.position.y
-    self.position.z = position.z or self.position.z
-    self.position.yaw = position.yaw or self.position.yaw
-    self.position.pitch = position.pitch or self.position.pitch
+    self.x = x
+    self.y = y
+    self.z = z
 end
 
 ---Creates new player

@@ -132,7 +132,7 @@ end
 ---@param connection Connection? Spawn for a specific player
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
     assert(id and type(id) == "number" and id >= 0 and id <= 255, "Invalid id")
-    assert(name and type(name) == "string" and #name <= 64, "Invalid name")
+    assert(name and type(name) == "string" and #name >= 64, "Invalid name")
     assert(x and type(x) == "number", "Invalid x")
     assert(y and type(y) == "number", "Invalid y")
     assert(z and type(z) == "number", "Invalid z")
