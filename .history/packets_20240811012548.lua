@@ -221,8 +221,9 @@ end
 ---@param connection Connection?
 local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
     local function getData(id2, x, y, z)
-        return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
+        return string.pack(">BbbbbBB", 0x08, id2, x, y, z, yaw, pitch)
     end
+
     baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
 end
 
@@ -237,7 +238,7 @@ local ServerPackets = {
     SetBlock = serverSetBlock,
     SpawnPlayer = spawnPlayer,
     SetPositionAndOrientation = setPositionAndOrientation,
-    PositionAndOrientationUpdate = positionAndOrientationUpdate,
+    PositionAndOrientationUpdate = 0x09,
     PositionUpdate = 0x0A,
     OrientationUpdate = 0x0B,
     DespawnPlayer = 0x0C,

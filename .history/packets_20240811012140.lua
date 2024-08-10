@@ -158,23 +158,20 @@ end
 ---@param packetName string
 local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, connection)
     asserts.assertId(id)
-    asserts.assertCoordinates(x, y, z, yaw, pitch)
-    x, y, z = toFixedPoint(x, y, z)
-
-    local function errorHandler(err)
-        print("Error sending " .. packetName .. " packet to client: " .. err)
+    asserts.assertCoordinates(x,y,z, yaw, pitch)
+    x,y,z = toFixedPoint(x,y,z)
+    local function errorHandler(err) 
+        print("Error sending "..packetName.." packet to client: "..err) 
     end
-
-    local dataProvider2 = function(id2)
-        return dataProvider(id2, x, y, z)
+    local dataProvider2 = function(id2) 
+        return dataProvider(id2, x, y, z) 
     end
-
     perPlayerPacket(dataProvider2, id, errorHandler, criteria, connection)
 end
 
 ---Tells clients to spawn player with specified positional information
----@param id number
 ---@param name string
+---@param id number
 ---@param x number
 ---@param y number
 ---@param z number
@@ -185,11 +182,9 @@ end
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, criteria, connection)
     asserts.assertPacketString(name)
     name = formatString(name)
-
-    local function getData(id2, x, y, z)
-        return string.pack(">Bbc64hhhBB", 0x07, id2, name, x, y, z, yaw, pitch)
+    local function getData(id2) 
+        return string.pack(">Bbc64hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
     end
-
     baseMovementPacket(id, x, y, z, yaw, pitch, "SpawnPlayer", getData, criteria, connection)
 end
 
@@ -203,29 +198,11 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, connection)
-    local function getData(id2, x, y, z)
+    local function getData(id2,x,y,z)
         return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
     end
-
     baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
 end
-
----Tells clients to move player relative to current (client-side) location
----@param id number
----@param x number
----@param y number
----@param z number
----@param yaw number
----@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
-local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    local function getData(id2, x, y, z)
-        return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
-    end
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
-end
-
 
 ---@class ServerPackets 
 local ServerPackets = {
@@ -237,7 +214,7 @@ local ServerPackets = {
     SetBlock = serverSetBlock,
     SpawnPlayer = spawnPlayer,
     SetPositionAndOrientation = setPositionAndOrientation,
-    PositionAndOrientationUpdate = positionAndOrientationUpdate,
+    PositionAndOrientationUpdate = 0x09,
     PositionUpdate = 0x0A,
     OrientationUpdate = 0x0B,
     DespawnPlayer = 0x0C,
