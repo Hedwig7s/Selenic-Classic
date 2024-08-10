@@ -7,7 +7,6 @@ local timer = require("timer")
 local server = require("./server")
 local config = require("./config")
 local util = require("./util")
-local asserts = require("./asserts")
 local worlds = require("./worlds")
 local playerModule = require("./player")
 require("compat53")
@@ -49,31 +48,24 @@ end
 ---Sends packet about a specific player to all clients, substituting the target's id with -1 when sending to the target
 ---@param dataProvider fun(id:number):string
 ---@param targetId number
----@param connection Connection?
----@param errorHandler? fun(err:string)
----@param criteria? fun(connection:Connection):boolean
 ---@return boolean, string?
-local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, connection)
+local function perPlayerPacket(dataProvider, targetId)
     local data = dataProvider(targetId)
-    if connection then
-        return connection.write(data)
-    end
     for _, connection in pairs(connections) do
-        if (criteria and criteria(connection)) or not criteria then
-            local success, err = connection.write(data)
-            if not success and errorHandler and err then
-                errorHandler(err)
-            end
-        end
+        local d = connection.id == targetId and dataProvider(-1) or data
+        local success, err = connection.write(d)
+        return success, err
     end
 end
 
 
 -----------------SERVER PACKETS-----------------
 
+---@alias ServerPacket fun(connection:Connection, ...:any?): success:boolean, err:string?
+
 ---Disconnects a player with a reason
 ---@param reason string
----@param connection Connection
+---@type ServerPacket
 local function disconnect(connection, reason)
     assert(reason and type(reason) == "string" and #reason <= 64, "Invalid reason")
     local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
@@ -82,7 +74,7 @@ local function disconnect(connection, reason)
 end
 
 ---Identifies server to client
----@param connection Connection
+---@type ServerPacket
 local function serverIdent(connection) 
     return connection.write(string.pack(">BBc64c64B",
                         0x00,
@@ -93,19 +85,19 @@ local function serverIdent(connection)
 end
 
 ---Pings the client
----@param connection Connection
+---@type ServerPacket
 local function ping(connection)
     return connection.write(string.pack(">B",0x01))
 end
 
 ---Indicates to client that level data is about to be sent
----@param connection Connection
+---@type ServerPacket
 local function levelInit(connection)
     return connection.write(string.pack(">B",0x02))
 end
 
 ---Sends a chunk of level data to the client
----@param connection Connection
+---@type ServerPacket
 ---@param length number
 ---@param data string
 ---@param percent number
@@ -118,21 +110,22 @@ local function levelDataChunk(connection, length, data, percent)
 end
 
 ---Indicates to client that level has been fully sent, also sends size
----@param connection Connection
+---@type ServerPacket
 ---@param size Vector3
 local function levelFinalize(connection, size)
-    asserts.assertCoordinates(size.x,size.y,size.z)
+    util.assertCoordinates(size.x,size.y,size.z)
     return connection.write(string.pack(">BHHH",0x04,size.x,size.y,size.z))
 end
 
 ---Updates client(s) of a block update
----@param connection Connection
+---@type ServerPacket
 ---@param x number
 ---@param y number
 ---@param z number
 ---@param block BlockIDs
+---@param connection Connection?
 local function serverSetBlock(x, y, z, block, connection)
-    asserts.assertCoordinates(x,y,z)
+    util.assertCoordinates(x,y,z)
     assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
     local data = string.pack(">BHHHB",0x06,x,y,z,block)
     if connection then
@@ -146,33 +139,8 @@ local function serverSetBlock(x, y, z, block, connection)
     end
 end
 
----@param id number
----@param x number
----@param y number
----@param z number
----@param yaw number
----@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
----@param dataProvider fun(id:number, x:number, y:number, z:number):string
----@param packetName string
-local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, connection)
-    asserts.assertId(id)
-    asserts.assertCoordinates(x, y, z, yaw, pitch)
-    x, y, z = toFixedPoint(x, y, z)
-
-    local function errorHandler(err)
-        print("Error sending " .. packetName .. " packet to client: " .. err)
-    end
-
-    local dataProvider2 = function(id2)
-        return dataProvider(id2, x, y, z)
-    end
-
-    perPlayerPacket(dataProvider2, id, errorHandler, criteria, connection)
-end
-
 ---Tells clients to spawn player with specified positional information
+---@type ServerPacket
 ---@param id number
 ---@param name string
 ---@param x number
@@ -180,52 +148,31 @@ end
 ---@param z number
 ---@param yaw number
 ---@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
-local function spawnPlayer(id, name, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertPacketString(name)
+---@param connection Connection? Spawn for a specific player
+local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
+    assert(id and type(id) == "number" and id >= 0 and id <= 255, "Invalid id")
+    assert(name and type(name) == "string" and #name <= 64, "Invalid name")
+    util.assertCoordinates(x,y,z,yaw,pitch)
+    x, y, z = toFixedPoint(x,y,z)
     name = formatString(name)
-
-    local function getData(id2, x, y, z)
-        return string.pack(">Bbc64hhhBB", 0x07, id2, name, x, y, z, yaw, pitch)
+    local function getData(id2) 
+        return string.pack(">Bbc64hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
     end
+    if connection then
+        return connection.write(getData(id))
+    end
+    local data = getData(id)
 
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SpawnPlayer", getData, criteria, connection)
+    local success, err = perPlayerPacket(getData, id)
+    if not success then
+        print("Error sending spawn packet to client: "..err)
+    end 
 end
 
----Tells clients to move player to specified location
----@param id number
----@param x number
----@param y number
----@param z number
----@param yaw number
----@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
-local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, connection)
-    local function getData(id2, x, y, z)
-        return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
-    end
-
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
+local function setPositionAndOrientation(id, x, y, z, yaw, pitch, connection)
+    assert(id and type(id) == "number")
+    
 end
-
----Tells clients to move player relative to current (client-side) location
----@param id number
----@param x number
----@param y number
----@param z number
----@param yaw number
----@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
-local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    local function getData(id2, x, y, z)
-        return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
-    end
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
-end
-
 
 ---@class ServerPackets 
 local ServerPackets = {
@@ -236,8 +183,8 @@ local ServerPackets = {
     LevelFinalize = levelFinalize,
     SetBlock = serverSetBlock,
     SpawnPlayer = spawnPlayer,
-    SetPositionAndOrientation = setPositionAndOrientation,
-    PositionAndOrientationUpdate = positionAndOrientationUpdate,
+    SetPositionAndOrientation = 0x08,
+    PositionAndOrientationUpdate = 0x09,
     PositionUpdate = 0x0A,
     OrientationUpdate = 0x0B,
     DespawnPlayer = 0x0C,
@@ -288,7 +235,7 @@ end
 ---@type ClientPacket
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
-    asserts.assertCoordinates(x,y,z)
+    util.assertCoordinates(x,y,z)
     assert(mode and type(mode) == "number" and (mode == 0 or mode == 1), "Invalid mode")
     assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
     local success, err = pcall(function()

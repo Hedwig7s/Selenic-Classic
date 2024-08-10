@@ -210,23 +210,6 @@ local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, conn
     baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
 end
 
----Tells clients to move player relative to current (client-side) location
----@param id number
----@param x number
----@param y number
----@param z number
----@param yaw number
----@param pitch number
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
-local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    local function getData(id2, x, y, z)
-        return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
-    end
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
-end
-
-
 ---@class ServerPackets 
 local ServerPackets = {
     ServerIdentification = serverIdent,
@@ -237,7 +220,7 @@ local ServerPackets = {
     SetBlock = serverSetBlock,
     SpawnPlayer = spawnPlayer,
     SetPositionAndOrientation = setPositionAndOrientation,
-    PositionAndOrientationUpdate = positionAndOrientationUpdate,
+    PositionAndOrientationUpdate = 0x09,
     PositionUpdate = 0x0A,
     OrientationUpdate = 0x0B,
     DespawnPlayer = 0x0C,
