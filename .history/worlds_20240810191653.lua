@@ -129,7 +129,7 @@ end
 function World:save()
     print("Saving world "..self.name)
     print("Creating header")
-    local data = string.pack("<I4HHHHHHBB", WORLD_VERSION,self.size.x, self.size.y,self.size.z, self.spawn.x,self.spawn.y,self.spawn.z, self.spawn.yaw, self.spawn.pitch)
+    local data = string.pack("I4HHHHHHBB", WORLD_VERSION,self.size.x, self.size.y,self.size.z, self.spawn.x,self.spawn.y,self.spawn.z, self.spawn.yaw, self.spawn.pitch)
     local lastBlock = -1
     local count = 0
     print("Creating block data")
@@ -139,7 +139,7 @@ function World:save()
             count = count + 1
         else
             if count > 0 then
-                data = data .. string.pack("<BI4",lastBlock,count)
+                data = data .. string.pack("BI4",lastBlock,count)
             end
             lastBlock = block
             count = 1
@@ -170,7 +170,7 @@ function World:Pack()
         return zlib.deflate(level, windowSize)(str, "finish")
     end
     print("Packing world")
-    local data = string.pack("<>I4", self.size.x*self.size.z*self.size.y)
+    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y)
     local lastPercent = 0
     local blocks = {}
     local totalSize = self.size.x * self.size.z * self.size.y
@@ -178,7 +178,7 @@ function World:Pack()
     local airBlock = module.BLOCK_IDS.AIR
     
     for i = 1, totalSize do
-        blocks[i] = string.pack("<>B",blockData[i] or airBlock)
+        blocks[i] = string.pack(">B",blockData[i] or airBlock)
         local percent = math.floor(i / totalSize * 100)
         if percent ~= lastPercent then
             print("Packing: " .. percent .. "%")
@@ -212,11 +212,11 @@ end
 ---@return World
 function module:load(name)
     local data = fs.readFileSync("./worlds/"..name..".hworld")
-    local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("<I4HHHHHHBB",data:sub(1, 18))
+    local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("I4HHHHHHBB",data:sub(1, 18))
     local blocks = {}
     data = data:sub(19)
-    for i = 1, #data, 5 do 
-        local block, count = string.unpack("<BI4",data:sub(i, i+4))
+    for i = 1, #data, 5 do
+        local block, count = string.unpack("BI4",data:sub(i, i+4))
         for _ = 1, count do
             table.insert(blocks, block)
         end

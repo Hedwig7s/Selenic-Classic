@@ -215,7 +215,7 @@ function module:load(name)
     local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("<I4HHHHHHBB",data:sub(1, 18))
     local blocks = {}
     data = data:sub(19)
-    for i = 1, #data, 5 do 
+    for i = 1, #data, 5 do
         local block, count = string.unpack("<BI4",data:sub(i, i+4))
         for _ = 1, count do
             table.insert(blocks, block)

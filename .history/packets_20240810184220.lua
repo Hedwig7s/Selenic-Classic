@@ -129,19 +129,12 @@ end
 ---@param z number
 ---@param yaw number
 ---@param pitch number
----@param connection Connection? Spawn for a specific player
+---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
-    assert(id and type(id) == "number" and id >= 0 and id <= 255, "Invalid id")
-    assert(name and type(name) == "string" and #name <= 64, "Invalid name")
-    assert(x and type(x) == "number", "Invalid x")
-    assert(y and type(y) == "number", "Invalid y")
-    assert(z and type(z) == "number", "Invalid z")
-    assert(yaw and type(yaw) == "number", "Invalid yaw")
-    assert(pitch and type(pitch) == "number", "Invalid pitch")
     x, y, z = toFixedPoint(x,y,z)
-    name = formatString(name)
+    print(x,y,z)
     local function getData(id2) 
-        return string.pack(">Bbc64hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
+        return string.pack(">Bbc80HHHBB",0x07,id2, formatString(name), x, y, z,yaw,pitch,0)
     end
     local data = getData(id)
     if connection then
@@ -149,9 +142,9 @@ local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
     end
     for _, connection in pairs(connections) do
         local d = connection.id == id and getData(-1) or data
-        local success, err = connection.write(d)
+        local success, err = pcall(connection.write, d)
         if not success then
-            print("Error sending spawn packet to client: "..err)
+            print("Error sending packet to client: "..err)
         end 
     end
 end

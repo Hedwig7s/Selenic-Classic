@@ -132,7 +132,7 @@ end
 ---@param connection Connection? Spawn for a specific player
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
     assert(id and type(id) == "number" and id >= 0 and id <= 255, "Invalid id")
-    assert(name and type(name) == "string" and #name <= 64, "Invalid name")
+    assert(name and type(name) == "string" and #name <= 80, "Invalid name")
     assert(x and type(x) == "number", "Invalid x")
     assert(y and type(y) == "number", "Invalid y")
     assert(z and type(z) == "number", "Invalid z")
@@ -141,9 +141,10 @@ local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
     x, y, z = toFixedPoint(x,y,z)
     name = formatString(name)
     local function getData(id2) 
-        return string.pack(">Bbc64hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
+        return string.pack(">Bbc80hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
     end
     local data = getData(id)
+    require("fs").writeFileSync("spawnpacket.bin",data)
     if connection then
         return connection.write(data)
     end

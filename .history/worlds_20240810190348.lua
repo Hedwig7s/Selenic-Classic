@@ -6,7 +6,7 @@ local zlib = require("zlib")
 local packets
 require("compat53")
 
-local WORLD_VERSION = 2 -- Update for any breaking changes
+local WORLD_VERSION = 2
 
 ---@type table<string,World> 
 module.loadedWorlds = {}
@@ -81,7 +81,7 @@ end
 ---@class World
 ---@field name string
 ---@field size Vector3
----@field spawn Position
+---@field spawn Vector3
 ---@field blocks table<number, BlockIDs>
 local World = {}
 World.__index = World
@@ -127,9 +127,11 @@ end
 
 ---Saves the world to a file
 function World:save()
+    local data = ""
     print("Saving world "..self.name)
     print("Creating header")
-    local data = string.pack("<I4HHHHHHBB", WORLD_VERSION,self.size.x, self.size.y,self.size.z, self.spawn.x,self.spawn.y,self.spawn.z, self.spawn.yaw, self.spawn.pitch)
+    data = data .. string.pack("HHH",self.size.x, self.size.y,self.size.z)
+    data = data .. string.pack("HHH",self.spawn.x,self.spawn.y,self.spawn.z)
     local lastBlock = -1
     local count = 0
     print("Creating block data")
@@ -139,7 +141,7 @@ function World:save()
             count = count + 1
         else
             if count > 0 then
-                data = data .. string.pack("<BI4",lastBlock,count)
+                data = data .. string.pack("BI4",lastBlock,count)
             end
             lastBlock = block
             count = 1
@@ -170,7 +172,7 @@ function World:Pack()
         return zlib.deflate(level, windowSize)(str, "finish")
     end
     print("Packing world")
-    local data = string.pack("<>I4", self.size.x*self.size.z*self.size.y)
+    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y)
     local lastPercent = 0
     local blocks = {}
     local totalSize = self.size.x * self.size.z * self.size.y
@@ -178,7 +180,7 @@ function World:Pack()
     local airBlock = module.BLOCK_IDS.AIR
     
     for i = 1, totalSize do
-        blocks[i] = string.pack("<>B",blockData[i] or airBlock)
+        blocks[i] = string.pack(">B",blockData[i] or airBlock)
         local percent = math.floor(i / totalSize * 100)
         if percent ~= lastPercent then
             print("Packing: " .. percent .. "%")
@@ -193,9 +195,9 @@ end
 
 ---Creates a new world
 ---@param name string
----@param size Vector3?
----@param spawn Position?
----@param blocks table<BlockIDs>?
+---@param size Vector3
+---@param spawn Position
+---@param blocks table<BlockIDs>
 ---@return World
 function World.new(name, size, spawn, blocks)
     local self = setmetatable({}, World)
@@ -212,11 +214,11 @@ end
 ---@return World
 function module:load(name)
     local data = fs.readFileSync("./worlds/"..name..".hworld")
-    local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("<I4HHHHHHBB",data:sub(1, 18))
+    local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("I4HHHHHHBB",data:sub(1, 14))
     local blocks = {}
-    data = data:sub(19)
-    for i = 1, #data, 5 do 
-        local block, count = string.unpack("<BI4",data:sub(i, i+4))
+    data = data:sub(15)
+    for i = 1, #data, 5 do
+        local block, count = string.unpack("BI4",data:sub(i, i+4))
         for _ = 1, count do
             table.insert(blocks, block)
         end
@@ -234,7 +236,7 @@ function module:loadOrCreate(name)
     elseif fs.existsSync("./worlds/"..name..".hworld") then
         return module:load(name)
     else
-        local world = World.new(name, {x = 256, y = 128, z = 256}, {x = 128, y = 70, z = 128, pitch = 0, yaw = 0})
+        local world = World.new(name, {x = 256, y = 128, z = 256}, {x = 128, y = 70, z = 128})
         for x = 0, world.size.x - 1 do
             for z = 0, world.size.z - 1 do
                 for y = 0, world.size.y/2 do

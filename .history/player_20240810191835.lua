@@ -55,6 +55,7 @@ function Player:LoadWorld(world)
     end
     print("Finalising level")
     packets.ServerPackets.LevelFinalize(self.connection, world.size)
+    print(require("inspect")(world.spawn))
     self:MoveTo(world.spawn, true)
     self:Spawn()
     for _, player in pairs(players) do
@@ -72,6 +73,7 @@ function Player:MoveTo(position, skipReplication)
     self.position.z = position.z or self.position.z
     self.position.yaw = position.yaw or self.position.yaw
     self.position.pitch = position.pitch or self.position.pitch
+    print(require("inspect")(self.position))
 end
 
 ---Creates new player

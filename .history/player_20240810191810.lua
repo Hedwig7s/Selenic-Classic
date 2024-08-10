@@ -55,6 +55,7 @@ function Player:LoadWorld(world)
     end
     print("Finalising level")
     packets.ServerPackets.LevelFinalize(self.connection, world.size)
+    print(require("inspect")(world.spawn))
     self:MoveTo(world.spawn, true)
     self:Spawn()
     for _, player in pairs(players) do

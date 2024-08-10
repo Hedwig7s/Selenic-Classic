@@ -3,6 +3,7 @@ local module = {}
 
 local worlds = require("./worlds")
 local config = require("./config")
+local util = require("./util")
 
 ---@class Player
 ---@field connection Connection
@@ -55,6 +56,7 @@ function Player:LoadWorld(world)
     end
     print("Finalising level")
     packets.ServerPackets.LevelFinalize(self.connection, world.size)
+    print(require("inspect")(world.spawn))
     self:MoveTo(world.spawn, true)
     self:Spawn()
     for _, player in pairs(players) do
@@ -67,11 +69,7 @@ end
 ---@param skipReplication boolean?
 function Player:MoveTo(position, skipReplication)
     skipReplication = skipReplication or false
-    self.position.x = position.x or self.position.x
-    self.position.y = position.y or self.position.y
-    self.position.z = position.z or self.position.z
-    self.position.yaw = position.yaw or self.position.yaw
-    self.position.pitch = position.pitch or self.position.pitch
+    self.position = util.deepCopy(position)
 end
 
 ---Creates new player

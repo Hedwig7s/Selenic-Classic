@@ -129,30 +129,20 @@ end
 ---@param z number
 ---@param yaw number
 ---@param pitch number
----@param connection Connection? Spawn for a specific player
+---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, connection)
-    assert(id and type(id) == "number" and id >= 0 and id <= 255, "Invalid id")
-    assert(name and type(name) == "string" and #name <= 64, "Invalid name")
-    assert(x and type(x) == "number", "Invalid x")
-    assert(y and type(y) == "number", "Invalid y")
-    assert(z and type(z) == "number", "Invalid z")
-    assert(yaw and type(yaw) == "number", "Invalid yaw")
-    assert(pitch and type(pitch) == "number", "Invalid pitch")
     x, y, z = toFixedPoint(x,y,z)
-    name = formatString(name)
-    local function getData(id2) 
-        return string.pack(">Bbc64hhhBB",0x07,id2, name, x, y, z,yaw,pitch)
-    end
-    local data = getData(id)
+    local data = string.pack(">Bbc80HHHBB",0x07,id, formatString(name), x, y, z,yaw,pitch,0)
     if connection then
         return connection.write(data)
     end
     for _, connection in pairs(connections) do
-        local d = connection.id == id and getData(-1) or data
-        local success, err = connection.write(d)
-        if not success then
-            print("Error sending spawn packet to client: "..err)
-        end 
+        if connection.id ~= id then -- Don't send to the player that is being spawned
+            local success, err = pcall(connection.write, data)
+            if not success then
+                print("Error sending packet to client: "..err)
+            end 
+        end
     end
 end
 
@@ -332,9 +322,10 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 if not limited then
                     local id = string.unpack(">B",data:sub(1,1))
                     if ClientPackets[id] then
+                        print(id)
                         local success, err = pcall(ClientPackets[id],data, connection)
                         if not success then
-                            print("Error handling packet id " .. tostring(id) .." from connection "..tostring(connection.id)..":", err)
+                            print("Error handling packet from connection "..tostring(connection.id)..":", err)
                         end
                     else
                         print("Unknown packet received:", id)
