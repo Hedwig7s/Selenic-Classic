@@ -46,7 +46,6 @@ local function fromFixedPoint(...)
 end
 
 
-
 -----------------SERVER PACKETS-----------------
 
 ---@alias ServerPacket fun(connection:Connection, ...:any?): success:boolean, err:string?
@@ -55,7 +54,6 @@ end
 ---@param reason string
 ---@type ServerPacket
 local function disconnect(connection, reason)
-    assert(reason and type(reason) == "string" and #reason <= 64, "Invalid reason")
     local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
     connection.dsocket:close()
     return success, err
@@ -90,9 +88,9 @@ end
 ---@param data string
 ---@param percent number
 local function levelDataChunk(connection, length, data, percent)
-    assert(length and length <= 1024, "Data chunk too large")
-    assert(data and type(data) == "string", "Invalid data")
-    assert(percent and type(percent) == "number" and percent <= 100 and percent >= 0, "Invalid percent")
+    if length > 1024 then
+        error("Chunk too large")
+    end
     data = util.pad(data,1024,"\0")
     return connection.write(string.pack(">BHc1024B",0x03,length,data,percent))
 end
@@ -101,7 +99,6 @@ end
 ---@type ServerPacket
 ---@param size Vector3
 local function levelFinalize(connection, size)
-    util.assertCoordinates(size.x,size.y,size.z)
     return connection.write(string.pack(">BHHH",0x04,size.x,size.y,size.z))
 end
 
@@ -113,8 +110,6 @@ end
 ---@param block BlockIDs
 ---@param connection Connection?
 local function serverSetBlock(x, y, z, block, connection)
-    util.assertCoordinates(x,y,z)
-    assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
     local data = string.pack(">BHHHB",0x06,x,y,z,block)
     if connection then
         return connection.write(data)
@@ -188,10 +183,6 @@ module.ServerPackets = ServerPackets
 ---@type ClientPacket
 local function playerIdent(data, connection) 
     local _,protocolVersion, username, verificationKey, CPE = string.unpack(">BBc64c64B",data)
-    assert(protocolVersion and type(protocolVersion) == "number", "Invalid protocol version")
-    assert(username and type(username) == "string" and #username <= 64, "Invalid username")
-    assert(verificationKey and type(verificationKey) == "string" and #verificationKey <= 64, "Invalid verification key")
-    assert(CPE and type(CPE) == "number" and (CPE == 0x00 or CPE == 0x42), "Invalid CPE")
     username = username:sub(1,username:find("\32")-1)
     verificationKey = verificationKey:sub(1,verificationKey:find("\32")-1)
     print("Login packet received")
@@ -220,9 +211,7 @@ end
 ---@type ClientPacket
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
-    util.assertCoordinates(x,y,z)
-    assert(mode and type(mode) == "number" and (mode == 0 or mode == 1), "Invalid mode")
-    assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
+
     local success, err = pcall(function()
         assert(mode == 0 or mode == 1, "Invalid mode")
         assert(block < 256, "Invalid block")
