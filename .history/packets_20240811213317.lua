@@ -237,9 +237,7 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertFByte("Invalid coordinate", x, y, z)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
+    asserts.assertFByte("Invalid coordinate or orientation", x, y, z, yaw, pitch)
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
     end
@@ -268,8 +266,7 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function orientationUpdate(id, yaw, pitch, criteria, connection)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
+    asserts.assertFByte("Invalid orientation", yaw, pitch)
     local function getData(id2, _, _, _, yaw, pitch)
         return string.pack(">BbBB", 0x0B, id2, yaw, pitch)
     end

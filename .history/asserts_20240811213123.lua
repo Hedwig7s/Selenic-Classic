@@ -39,10 +39,8 @@ function module.assertPacketString(str)
     assert(str and type(str) == "string" and #string <= 64, "Invalid string")
 end
 
-function module.assertFByte(err, ...)
-    for _, x in pairs({...}) do
-        assert(x > -4 and x < 3.96875, err or "Invalid fbyte")
-    end
+function module.assertFByte(x, err)
+    assert(x > -4 and x < 3.96875, err or "Invalid fbyte")
 end
 
 return module

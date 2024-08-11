@@ -115,7 +115,9 @@ function Player:MoveTo(position, playerMovement, skipReplication)
         local orientationChanged = difference.yaw ~= 0 or difference.pitch ~= 0
         local positionChanged = difference.x ~= 0 or difference.y ~= 0 or difference.z ~= 0
         local overflowed = not cap(difference.x, difference.y, difference.z)
-
+        if self.movements >= 100 then
+            print("Reset")
+        end
         if not playerMovement or self.movements >= 100 or (overflowed and positionChanged) then -- Teleportation, desync prevention or overflow
             packets.ServerPackets.SetPositionAndOrientation(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria, playerMovement)
             self.movements = 0

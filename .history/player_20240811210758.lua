@@ -3,7 +3,6 @@ local module = {}
 
 
 local util = require("./util")
-local asserts = require("./asserts")
 local lazyModules = {}
 
 local function lazyLoad(moduleName)
@@ -82,7 +81,6 @@ end
 ---@param skipReplication boolean?
 ---@param playerMovement boolean?
 function Player:MoveTo(position, playerMovement, skipReplication)
-    asserts.assertCoordinates(position.x, position.y, position.z, position.yaw, position.pitch)
     skipReplication = skipReplication or false
     playerMovement = playerMovement or false
     local oldpos = util.deepCopy(self.position)
@@ -104,28 +102,18 @@ function Player:MoveTo(position, playerMovement, skipReplication)
         local function criteria(connection)
             return connection.player and connection.player.world == self.world
         end
-        local function cap(...)
-            for _, x in pairs({...}) do
-                if x < -4 or x > 3.96875 then
-                    return false
-                end
-            end
-            return true
-         end
         local orientationChanged = difference.yaw ~= 0 or difference.pitch ~= 0
         local positionChanged = difference.x ~= 0 or difference.y ~= 0 or difference.z ~= 0
-        local overflowed = not cap(difference.x, difference.y, difference.z)
-
-        if not playerMovement or self.movements >= 100 or (overflowed and positionChanged) then -- Teleportation, desync prevention or overflow
+        if not playerMovement or self.movements >= 50 then -- Teleportation or desync prevention
             packets.ServerPackets.SetPositionAndOrientation(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria, playerMovement)
             self.movements = 0
             return
         elseif orientationChanged and positionChanged then
-            packets.ServerPackets.PositionAndOrientationUpdate(self.id, difference.x, difference.y, difference.z, position.yaw, position.pitch, criteria)
+            packets.ServerPackets.PositionAndOrientationUpdate(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria)
         elseif orientationChanged then
             packets.ServerPackets.OrientationUpdate(self.id, self.position.yaw, self.position.pitch, criteria)
         elseif positionChanged then
-            packets.ServerPackets.PositionUpdate(self.id, difference.x, difference.y, difference.z, criteria)
+            packets.ServerPackets.PositionUpdate(self.id, self.position.x, self.position.y, self.position.z, criteria)
         end
         self.movements = self.movements + 1
     end
