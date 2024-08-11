@@ -11,7 +11,6 @@ module.subscriptions = subscriptions
 
 local util = require("./util")
 local asserts = require("./asserts")
-local config = require("./config")
 local lazyModules = {}
 
 local function lazyLoad(moduleName)
@@ -124,9 +123,10 @@ function Player:MoveTo(position, playerMovement, skipReplication)
         local positionChanged = difference.x ~= 0 or difference.y ~= 0 or difference.z ~= 0
         local overflowed = not cap(difference.x, difference.y, difference.z)
 
-        if not config:getValue("server.useRelativeMovement") or (not playerMovement or self.movements >= 100 or (overflowed and positionChanged)) then -- Teleportation, desync prevention or overflow
+        if not playerMovement or self.movedata.movements >= 100 or (overflowed and positionChanged) or (not positionChanged and self.movedata.lastWasRelative) then -- Teleportation, desync prevention or overflow
             packets.ServerPackets.SetPositionAndOrientation(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria, playerMovement)
-            self.movements = 0
+            self.movedata.movements = 0
+            self.movedata.lastWasRelative = false
             return
         elseif orientationChanged and positionChanged then
             packets.ServerPackets.PositionAndOrientationUpdate(self.id, difference.x, difference.y, difference.z, position.yaw, position.pitch, criteria)
@@ -134,8 +134,11 @@ function Player:MoveTo(position, playerMovement, skipReplication)
             packets.ServerPackets.OrientationUpdate(self.id, self.position.yaw, self.position.pitch, criteria)
         elseif positionChanged then
             packets.ServerPackets.PositionUpdate(self.id, difference.x, difference.y, difference.z, criteria)
+        else
+            return
         end
-        self.movements = self.movements + 1
+        self.movedata.movements = self.movedata.movements + 1
+        self.movedata.lastWasRelative = false
     end
 end
 
@@ -202,7 +205,9 @@ function Player.new(connection, name)
     self.world = nil
     self.name = name
     self.removed = false
-    self.movements = 0
+    self.movedata = {}
+    self.movedata.movements = 0
+    self.movedata.lastWasRelative = false
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
     if id > 255 then
