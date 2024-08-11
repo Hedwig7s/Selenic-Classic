@@ -97,14 +97,13 @@ end
 ---@param player Player?
 function Player:Despawn(player)
     local packets = lazyLoad("./packets")
-    local success, err = pcall(packets.ServerPackets.DespawnPlayer,self.id, player and player.connection or nil)
-    if not success then
-        print(err)
-    end
+    packets.ServerPackets.DespawnPlayer(self.id, player and player.connection or nil)
 end
 
 function Player:Remove()
-    self:Despawn()
+    for _, player in pairs(players) do
+        self:Despawn()
+    end
     players[self.id] = nil
     playersByName[self.name] = nil
     self.removed = true

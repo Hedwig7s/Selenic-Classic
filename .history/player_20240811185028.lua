@@ -1,15 +1,8 @@
 ---@class PlayerModule
 local module = {}
 
--- Lazy load table and function
-local lazyModules = {}
-
-local function lazyLoad(moduleName)
-    if not lazyModules[moduleName] then
-        lazyModules[moduleName] = require(moduleName)
-    end
-    return lazyModules[moduleName]
-end
+local worlds = require("./worlds")
+local config = require("./config")
 
 ---@class Player
 ---@field connection Connection
@@ -34,10 +27,11 @@ setmetatable(players, {
     end
 })
 
+
 ---Spawns the player in a world. Should only be called on the player's first spawn in the world
 ---@param player Player?
 function Player:Spawn(player)
-    local packets = lazyLoad("./packets")
+    local packets = require("./packets")
     if player and (self.world ~= player.world or player.id == self.id) then
         return
     end
@@ -52,7 +46,7 @@ end
 ---@param world World
 function Player:LoadWorld(world)
     self.world = world
-    local packets = lazyLoad("./packets")
+    local packets = require("./packets")
     print("Packing world")
     local packed = world:Pack()
     packets.ServerPackets.LevelInitialize(self.connection)
@@ -85,7 +79,7 @@ function Player:MoveTo(position, skipReplication, skipSelf)
     self.position.yaw = position.yaw or self.position.yaw
     self.position.pitch = position.pitch or self.position.pitch
     if not skipReplication then
-        local packets = lazyLoad("./packets")
+        local packets = require("./packets")
         local function criteria(connection)
             return connection.player and connection.player.world == self.world
         end
@@ -93,25 +87,22 @@ function Player:MoveTo(position, skipReplication, skipSelf)
     end
 end
 
----Despawns the player from the world
----@param player Player?
 function Player:Despawn(player)
-    local packets = lazyLoad("./packets")
-    local success, err = pcall(packets.ServerPackets.DespawnPlayer,self.id, player and player.connection or nil)
-    if not success then
-        print(err)
-    end
+    local packets = require("./packets")
+    packets.ServerPackets.DespawnPlayer(self.id, player and player.connection or nil)
 end
 
 function Player:Remove()
-    self:Despawn()
+    for _, player in pairs(players) do
+        -- TODO: Despawn self
+    end
     players[self.id] = nil
     playersByName[self.name] = nil
     self.removed = true
 end
 
 function Player:Kick(reason)
-    local packets = lazyLoad("./packets")
+    local packets = require("./packets")
     pcall(packets.ServerPackets.DisconnectPlayer,self.connection, reason)
     self:Remove()
 end

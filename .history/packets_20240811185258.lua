@@ -275,16 +275,12 @@ local function orientationUpdate(id, yaw, pitch, criteria, connection)
     baseMovementPacket(id, nil, nil, nil, yaw, pitch, "OrientationUpdate", getData, criteria, true, connection)
 end
 
----Despawns a player from the world
----@param id number
----@param connection Connection?
----@return boolean?, string?
 local function despawnPlayer(id, connection)
     local data = string.pack(">Bb",0x0C,id)
     if connection then
         return connection.write(data)
     end
-    local player = playerModule:GetPlayerById(id)
+    local player = playerModule.GetPlayerById(id)
     if not player then
         error("Player not found")
     end

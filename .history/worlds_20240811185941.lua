@@ -170,7 +170,7 @@ function World:Pack()
         return zlib.deflate(level, windowSize)(str, "finish")
     end
     print("Packing world")
-    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y)
+    local data = string.pack("<>I4", self.size.x*self.size.z*self.size.y)
     local lastPercent = 0
     local blocks = {}
     local totalSize = self.size.x * self.size.z * self.size.y
@@ -178,7 +178,7 @@ function World:Pack()
     local airBlock = module.BLOCK_IDS.AIR
     
     for i = 1, totalSize do
-        blocks[i] = string.pack(">B",blockData[i] or airBlock)
+        blocks[i] = string.pack("<>B",blockData[i] or airBlock)
         local percent = math.floor(i / totalSize * 100)
         if percent ~= lastPercent then
             print("Packing: " .. percent .. "%")
