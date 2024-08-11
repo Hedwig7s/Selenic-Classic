@@ -149,12 +149,7 @@ function Player:Chat(message)
     for _, sub in pairs(subscriptions.chat) do
         coroutine.wrap(sub)(self, message)
     end
-    local function criteria(connection)
-        return connection.player and connection.player.world == self.world
-    end
-    message = self.name..": "..message
-    print(message)
-    packets.ServerPackets.Message(message, self.id, criteria)
+    packets.ServerPackets.serverMessage(self.connection, self.name..": "..message)
 end
 ---Despawns the player from the world
 ---@param player Player?

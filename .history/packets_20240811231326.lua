@@ -24,18 +24,6 @@ local function formatString(str)
     return util.pad(str,64,"\32")
 end
 
----Reverts packet padding on a string
----@param str string
----@return string
-local function unformatString(str)
-    for i = #str,1,-1 do
-        if str:sub(i,i) ~= "\32" then
-            return str:sub(1,i)
-        end
-    end
-    return ""
-end
-
 ---Converts numbers to fixed point
 ---@param ... number
 ---@return number ...
@@ -308,33 +296,18 @@ local function despawnPlayer(id, connection)
     end
 end
 
----Sends a message to client(s)
----@param message string
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
----@return boolean?, string?
-local function serverMessage(message, id, criteria, connection)
+local function serverMessage(message)
     asserts.assertPacketString(message)
-    asserts.assertId(id)
     if message:sub(-1,-1) == "&" then
         message = message:sub(1,-2)
     end
     message = formatString(message)
-    local data = string.pack(">Bbc64",0x0D, id or -2,message)
-    if connection then
-        return connection.write(data)
-    end
+    local data = string.pack(">Bc64",0x0D,message)
     for _, connection in pairs(connections) do
-        if (criteria and criteria(connection)) or not criteria then
-            connection.write(data)
-        end
+        connection.write(data)
     end
 end
 
----Changes the user type of a player
----@param connection Connection?
----@param id number
----@param type number
 local function updateUserType(connection, id, type)
     asserts.assertId(id)
     assert(type and type == 0 or type == 0x64, "Invalid type")
@@ -378,8 +351,8 @@ local function playerIdent(data, connection)
     assert(username and type(username) == "string" and #username <= 64, "Invalid username")
     assert(verificationKey and type(verificationKey) == "string" and #verificationKey <= 64, "Invalid verification key")
     assert(CPE and type(CPE) == "number" and (CPE == 0x00 or CPE == 0x42), "Invalid CPE")
-    username = unformatString(username)
-    verificationKey = unformatString(verificationKey)
+    username = username:sub(1,username:find("\32")-1)
+    verificationKey = verificationKey:sub(1,verificationKey:find("\32")-1)
     print("Login packet received")
     print("Protocol version: " .. protocolVersion)
     print("Username: " .. username)
@@ -461,29 +434,12 @@ local function positionAndOrientation(data, connection)
     player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, true, false)
 end
 
----Handles chat messages from client
----@type ClientPacket
-local function clientMessage(data, connection)
-    local _, id, message = string.unpack(">Bbc64",data)
-    if id ~= -1 then
-        print("Invalid message id")
-        return
-    end
-    message = unformatString(message)
-    local player = connection.player
-    if not player then
-        print("Player not found")
-        return
-    end
-    player:Chat(message)
-end
-
 ---@class ClientPackets
 local ClientPackets = {
     [0x00] = playerIdent,
     [0x05] = clientSetBlock,
     [0x08] = positionAndOrientation,
-    [0x0D] = clientMessage,
+    [0x0D] = "Message"
 }
 
 module.ClientPackets = ClientPackets

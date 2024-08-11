@@ -154,7 +154,7 @@ function Player:Chat(message)
     end
     message = self.name..": "..message
     print(message)
-    packets.ServerPackets.Message(message, self.id, criteria)
+    packets.ServerPackets.serverMessage(message, criteria)
 end
 ---Despawns the player from the world
 ---@param player Player?

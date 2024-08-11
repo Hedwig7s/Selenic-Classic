@@ -28,12 +28,7 @@ end
 ---@param str string
 ---@return string
 local function unformatString(str)
-    for i = #str,1,-1 do
-        if str:sub(i,i) ~= "\32" then
-            return str:sub(1,i)
-        end
-    end
-    return ""
+    return str:sub(1,str:find("\32")-1)
 end
 
 ---Converts numbers to fixed point
@@ -310,25 +305,24 @@ end
 
 ---Sends a message to client(s)
 ---@param message string
+---@param id number?
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
+---@param skip? table<number, boolean>
 ---@return boolean?, string?
-local function serverMessage(message, id, criteria, connection)
+local function serverMessage(message, id, criteria, connection, skip)
     asserts.assertPacketString(message)
-    asserts.assertId(id)
     if message:sub(-1,-1) == "&" then
         message = message:sub(1,-2)
     end
     message = formatString(message)
-    local data = string.pack(">Bbc64",0x0D, id or -2,message)
-    if connection then
-        return connection.write(data)
+    local function dataProvider(id2) 
+        return string.pack(">Bbc64",0x0D,id2,message)
     end
-    for _, connection in pairs(connections) do
-        if (criteria and criteria(connection)) or not criteria then
-            connection.write(data)
-        end
+    local function errorHandler(err)
+        print("Error sending message packet to client: "..err)
     end
+    perPlayerPacket(dataProvider, id or -2, errorHandler, criteria, skip, connection)
 end
 
 ---Changes the user type of a player

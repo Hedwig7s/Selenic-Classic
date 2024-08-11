@@ -28,12 +28,7 @@ end
 ---@param str string
 ---@return string
 local function unformatString(str)
-    for i = #str,1,-1 do
-        if str:sub(i,i) ~= "\32" then
-            return str:sub(1,i)
-        end
-    end
-    return ""
+    return str:sub(1,str:find("\32")-1)
 end
 
 ---Converts numbers to fixed point
@@ -313,14 +308,13 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 ---@return boolean?, string?
-local function serverMessage(message, id, criteria, connection)
+local function serverMessage(message, criteria, connection)
     asserts.assertPacketString(message)
-    asserts.assertId(id)
     if message:sub(-1,-1) == "&" then
         message = message:sub(1,-2)
     end
     message = formatString(message)
-    local data = string.pack(">Bbc64",0x0D, id or -2,message)
+    local data = string.pack(">Bc64",0x0D,message)
     if connection then
         return connection.write(data)
     end
@@ -464,8 +458,8 @@ end
 ---Handles chat messages from client
 ---@type ClientPacket
 local function clientMessage(data, connection)
-    local _, id, message = string.unpack(">Bbc64",data)
-    if id ~= -1 then
+    local _, id, message = string.unpack(">BBc64",data)
+    if id ~= 0xFF then
         print("Invalid message id")
         return
     end

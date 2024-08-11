@@ -28,12 +28,7 @@ end
 ---@param str string
 ---@return string
 local function unformatString(str)
-    for i = #str,1,-1 do
-        if str:sub(i,i) ~= "\32" then
-            return str:sub(1,i)
-        end
-    end
-    return ""
+    return str:sub(1,str:find("\32")-1)
 end
 
 ---Converts numbers to fixed point

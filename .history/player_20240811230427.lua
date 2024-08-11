@@ -1,13 +1,6 @@
 ---@class PlayerModule
 local module = {}
 
----@class PlayerSubscriptions
----@field chat table<fun(player:Player, message:string)>
-local subscriptions = {
-    chat = {},
-}
-
-module.subscriptions = subscriptions
 
 local util = require("./util")
 local asserts = require("./asserts")
@@ -144,17 +137,9 @@ function Player:Chat(message)
     asserts.assertPacketString(message)
     local packets = lazyLoad("./packets")
     -- TODO: Add muting
-    -- TODO: Add color code permissions
+    -- TODO: Add color codes
     -- TODO: Add filter
-    for _, sub in pairs(subscriptions.chat) do
-        coroutine.wrap(sub)(self, message)
-    end
-    local function criteria(connection)
-        return connection.player and connection.player.world == self.world
-    end
-    message = self.name..": "..message
-    print(message)
-    packets.ServerPackets.Message(message, self.id, criteria)
+    packets.ServerPackets.serverMessage(self.connection, self.name..": "..message)
 end
 ---Despawns the player from the world
 ---@param player Player?
