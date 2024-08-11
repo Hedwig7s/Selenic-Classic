@@ -284,7 +284,7 @@ local function despawnPlayer(id, connection)
     if connection then
         return connection.write(data)
     end
-    local player = playerModule:GetPlayerById(id)
+    local player = playerModule.GetPlayerById(id)
     if not player then
         error("Player not found")
     end

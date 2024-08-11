@@ -275,25 +275,6 @@ local function orientationUpdate(id, yaw, pitch, criteria, connection)
     baseMovementPacket(id, nil, nil, nil, yaw, pitch, "OrientationUpdate", getData, criteria, true, connection)
 end
 
----Despawns a player from the world
----@param id number
----@param connection Connection?
----@return boolean?, string?
-local function despawnPlayer(id, connection)
-    local data = string.pack(">Bb",0x0C,id)
-    if connection then
-        return connection.write(data)
-    end
-    local player = playerModule:GetPlayerById(id)
-    if not player then
-        error("Player not found")
-    end
-    for _,connection in pairs(connections) do
-        if connection.player and connection.player.id ~= id and connection.player.world == player.world then
-            connection.write(data)
-        end
-    end
-end
 
 ---@class ServerPackets 
 local ServerPackets = {
@@ -308,7 +289,7 @@ local ServerPackets = {
     PositionAndOrientationUpdate = positionAndOrientationUpdate,
     PositionUpdate = positionUpdate,
     OrientationUpdate = orientationUpdate,
-    DespawnPlayer = despawnPlayer,
+    DespawnPlayer = 0x0C,
     Message = 0x0D,
     DisconnectPlayer = disconnect,
     UpdateUserType = 0x0F,
@@ -356,34 +337,29 @@ end
 ---@type ClientPacket
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
-    local world
+    asserts.assertCoordinates(x,y,z)
+    assert(mode and type(mode) == "number" and (mode == 0 or mode == 1), "Invalid mode")
+    assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
     local success, err = pcall(function()
-        local player = connection.player
-        if not player then
-            error("Player not found")
-        end
-        world = player.world
-        if not world then
-            error("Player " .. tostring(player.id) .. " not in a world")
-        end
         assert(mode == 0 or mode == 1, "Invalid mode")
-        assert(block and block < 256, "Invalid block")
-        asserts.assertCoordinates(x,y,z)
-        assert(x < world.size.x and y < world.size.y and z < world.size.z and x >= 0 and y >= 0 and z >= 0, "Invalid coordinates")
+        assert(block < 256, "Invalid block")
+        assert(x < 65536 and y < 65536 and z < 65536 and x >= 0 and y >= 0 and z >= 0, "Invalid coordinates")
         local cooldown = connection.cooldowns.setblock
         local time = os.clock()
-        if time - cooldown.last < 0.015 then
+        if time - cooldown.last < 0.05 then
             cooldown.amount = cooldown.amount + 1
             if cooldown.amount > 10 then
                 cooldown.dropped = cooldown.dropped + 1
                 error("Too many blocks")
             end
+            -- TODO: Maybe kick player for excessive blocks
         else
             cooldown.last = time
             cooldown.amount = 0
             cooldown.dropped = 0
         end
     end)
+    local world = worlds.loadedWorlds[config:getValue("server.defaultWorld")]
     if not success then
         print("Error handling SetBlock packet:", err)
         ServerPackets.SetBlock(x,y,z,world:getBlock(x,y,z), connection)
@@ -527,9 +503,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 break
             end
         end
-        if connection.player then
-            connection.player:Remove()
-        end
+        -- TODO: Clean up player
         connections[id] = nil
     end)
     coroutine.resume(connectionroutine) 
