@@ -18,6 +18,7 @@ A Classic server written in Lua because I hate myself
 - [x] Split world data into 1024 byte chunks and send to client
 - [x] Player module
 - [x] Player block modification
+- [ ] Block placement rules
 - [x] Basic player spawning
 - [x] Player movement
 - [x] Relative player movement
