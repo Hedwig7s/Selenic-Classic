@@ -384,7 +384,7 @@ local function positionAndOrientation(data, connection)
         print("Player not found")
         return
     end
-    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, false, true)
+    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch})
 end
 
 ---@class ClientPackets

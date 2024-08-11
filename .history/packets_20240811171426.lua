@@ -56,6 +56,7 @@ end
 ---@return boolean, string?
 local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, skip, connection)
     local data = dataProvider(targetId)
+    print(require("inspect")(skip))
     skip = skip or {}
     if connection then
         return connection.write(data)
@@ -384,7 +385,7 @@ local function positionAndOrientation(data, connection)
         print("Player not found")
         return
     end
-    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, false, true)
+    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch})
 end
 
 ---@class ClientPackets

@@ -52,25 +52,15 @@ end
 ---@param connection Connection?
 ---@param errorHandler? fun(err:string)
 ---@param criteria? fun(connection:Connection):boolean
----@param skip? table<number, boolean>
 ---@return boolean, string?
-local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, skip, connection)
+local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, connection)
     local data = dataProvider(targetId)
-    skip = skip or {}
     if connection then
         return connection.write(data)
     end
     for _, connection in pairs(connections) do
-        local player = connection.player
-        local passed do
-            if criteria then
-                passed = criteria(connection)
-            else
-                passed = true
-            end
-        end
-        if player and not skip[player.id] and passed then
-            local d = player.id == targetId and dataProvider(-1) or data
+        if connection.player and ((criteria and criteria(connection)) or not criteria) then
+            local d = connection.player.id == targetId and dataProvider(-1) or data
             local success, err = connection.write(d)
             if not success and errorHandler and err then
                 errorHandler(err)
@@ -164,11 +154,10 @@ end
 ---@param yaw number?
 ---@param pitch number?
 ---@param criteria? fun(connection:Connection):boolean
----@param skipSelf? boolean
 ---@param connection Connection?
 ---@param dataProvider fun(id:number, x:number, y:number, z:number, yaw:number, pitch:number):string
 ---@param packetName string
-local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, skipSelf, connection)
+local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, connection)
     asserts.assertId(id)
     if yaw and pitch then
         asserts.angleAssert(yaw, "Invalid yaw")
@@ -178,6 +167,7 @@ local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvi
         asserts.assertCoordinates(x,y,z)
         x, y, z = toFixedPoint(x, y, z)
     end
+    print(packetName, x, y, z)
 
     local function errorHandler(err)
         print("Error sending " .. packetName .. " packet to client: " .. err)
@@ -186,11 +176,8 @@ local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvi
     local dataProvider2 = function(id2)
         return dataProvider(id2, x, y, z, yaw, pitch)
     end
-    local skip = {}
-    if skipSelf then
-        skip[id] = true
-    end
-    perPlayerPacket(dataProvider2, id, errorHandler, criteria, skip, connection)
+
+    perPlayerPacket(dataProvider2, id, errorHandler, criteria, connection)
 end
 
 ---Tells clients to spawn player with specified positional information
@@ -211,7 +198,7 @@ local function spawnPlayer(id, name, x, y, z, yaw, pitch, criteria, connection)
         return string.pack(">Bbc64hhhBB", 0x07, id2, name, x, y, z, yaw, pitch)
     end
 
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SpawnPlayer", getData, criteria, false, connection)
+    baseMovementPacket(id, x, y, z, yaw, pitch, "SpawnPlayer", getData, criteria, connection)
 end
 
 ---Tells clients to move player to specified location
@@ -222,14 +209,13 @@ end
 ---@param yaw number
 ---@param pitch number
 ---@param criteria? fun(connection:Connection):boolean
----@param skipSelf? boolean
 ---@param connection Connection?
-local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, skipSelf, connection)
+local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, connection)
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
     end
 
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, skipSelf, connection)
+    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
 end
 
 ---Tells clients to move player relative to current (client-side) location and orientation
@@ -245,10 +231,10 @@ local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, c
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
     end
-    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, true, connection)
+    baseMovementPacket(id, x, y, z, yaw, pitch, "SetPositionAndOrientation", getData, criteria, connection)
 end
 
----Tells clients to move player relative to current (client-side) location
+---Tells client to move player relative to current (client-side) location
 ---@param id number
 ---@param x number
 ---@param y number
@@ -259,10 +245,10 @@ local function positionUpdate(id, x, y, z, criteria, connection)
     local function getData(id2, x, y, z, _, _)
         return string.pack(">Bbhhh", 0x0A, id2, x, y, z)
     end
-    baseMovementPacket(id, x, y, z, nil, nil, "PositionUpdate", getData, criteria, true, connection)
+    baseMovementPacket(id, x, y, z, nil, nil, "PositionUpdate", getData, criteria, connection)
 end
 
----Tells client to rotate player relative to current (client-side) orientation
+---Tells client to move player relative to current (client-side) orientation
 ---@param id number
 ---@param yaw number
 ---@param pitch number
@@ -272,7 +258,7 @@ local function orientationUpdate(id, yaw, pitch, criteria, connection)
     local function getData(id2, _, _, _, yaw, pitch)
         return string.pack(">BbBB", 0x0B, id2, yaw, pitch)
     end
-    baseMovementPacket(id, nil, nil, nil, yaw, pitch, "OrientationUpdate", getData, criteria, true, connection)
+    baseMovementPacket(id, nil, nil, nil, yaw, pitch, "OrientationUpdate", getData, criteria, connection)
 end
 
 
@@ -376,6 +362,7 @@ end
 ---@type ClientPacket
 local function positionAndOrientation(data, connection)
     local _, id, x, y, z, yaw, pitch = string.unpack(">BbhhhBB",data)
+    print("clientMove", x, y, z)
     x, y, z = fromFixedPoint(x, y, z)
     assert(id == -1, "Invalid id")
     asserts.assertCoordinates(x,y,z,yaw,pitch)
@@ -384,7 +371,7 @@ local function positionAndOrientation(data, connection)
         print("Player not found")
         return
     end
-    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, false, true)
+    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch})
 end
 
 ---@class ClientPackets
@@ -420,7 +407,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     end
     print("Client connected with id ".. id)
     local lastPing = os.time()
-    local loginTime = os.time()
     ---@class Connection
     ---@field read fun():string?
     ---@field write fun(data:string): success:boolean, err:string?
@@ -448,7 +434,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     connections[id] = connection
     local connectionroutine = coroutine.create(function()
         local lastPingSuccess = true
-        local loggedIn = false
         while true do
             timer.sleep(5)
             local data = read()
@@ -495,13 +480,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                     pcall(dsocket.close, dsocket) -- There isn't much I can do if this fails 
                     break
                 end
-            end
-            loggedIn = connection.player and true or false
-            if os.time() - loginTime > 10 and not loggedIn then
-                print("Client took too long to login")
-                pcall(ServerPackets.DisconnectPlayer,connection, "Login timeout")
-                pcall(dsocket.close, dsocket)
-                break
             end
         end
         -- TODO: Clean up player

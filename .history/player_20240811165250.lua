@@ -33,10 +33,7 @@ function Player:Spawn(player)
         return
     end
     local position = self.position
-    local function criteria(connection)
-        return connection.player and connection.player.world == self.world
-    end
-    packets.ServerPackets.SpawnPlayer(self.id, self.name, position.x, position.y, position.z, position.yaw, position.pitch, criteria, player and player.connection or nil)
+    packets.ServerPackets.SpawnPlayer(self.id, self.name, position.x, position.y, position.z, position.yaw, position.pitch, player and player.connection or nil)
 end
 
 ---Loads player into a world
@@ -68,7 +65,7 @@ end
 ---Moves the player to a specified position
 ---@param position Position
 ---@param skipReplication boolean?
-function Player:MoveTo(position, skipReplication, skipSelf)
+function Player:MoveTo(position, skipReplication)
     skipReplication = skipReplication or false
     self.position.x = position.x or self.position.x
     self.position.y = position.y or self.position.y
@@ -80,7 +77,7 @@ function Player:MoveTo(position, skipReplication, skipSelf)
         local function criteria(connection)
             return connection.player and connection.player.world == self.world
         end
-        packets.ServerPackets.SetPositionAndOrientation(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria, skipSelf or false)
+        packets.ServerPackets.SetPositionAndOrientation(self.id, self.position.x, self.position.y, self.position.z, self.position.yaw, self.position.pitch, criteria)
     end
 end
 
