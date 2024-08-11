@@ -4,7 +4,7 @@ local module = {}
 ---@class ServerInfo
 module.info = {
     Protocol = 7,
-    Version = "a0.1.0",
+    Version = "0.3.1",
     Software = "Selenic Classic",
 }
 

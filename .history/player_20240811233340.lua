@@ -152,9 +152,7 @@ function Player:Chat(message)
     local function criteria(connection)
         return connection.player and connection.player.world == self.world
     end
-    message = self.name..": "..message
-    print(message)
-    packets.ServerPackets.Message(message, self.id, criteria)
+    packets.ServerPackets.serverMessage(self.connection, self.name..": "..message, criteria)
 end
 ---Despawns the player from the world
 ---@param player Player?

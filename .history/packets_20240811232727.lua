@@ -28,12 +28,7 @@ end
 ---@param str string
 ---@return string
 local function unformatString(str)
-    for i = #str,1,-1 do
-        if str:sub(i,i) ~= "\32" then
-            return str:sub(1,i)
-        end
-    end
-    return ""
+    return str:sub(1,str:find("\32")-1)
 end
 
 ---Converts numbers to fixed point
@@ -308,33 +303,18 @@ local function despawnPlayer(id, connection)
     end
 end
 
----Sends a message to client(s)
----@param message string
----@param criteria? fun(connection:Connection):boolean
----@param connection Connection?
----@return boolean?, string?
-local function serverMessage(message, id, criteria, connection)
+local function serverMessage(message)
     asserts.assertPacketString(message)
-    asserts.assertId(id)
     if message:sub(-1,-1) == "&" then
         message = message:sub(1,-2)
     end
     message = formatString(message)
-    local data = string.pack(">Bbc64",0x0D, id or -2,message)
-    if connection then
-        return connection.write(data)
-    end
+    local data = string.pack(">Bc64",0x0D,message)
     for _, connection in pairs(connections) do
-        if (criteria and criteria(connection)) or not criteria then
-            connection.write(data)
-        end
+        connection.write(data)
     end
 end
 
----Changes the user type of a player
----@param connection Connection?
----@param id number
----@param type number
 local function updateUserType(connection, id, type)
     asserts.assertId(id)
     assert(type and type == 0 or type == 0x64, "Invalid type")
@@ -464,18 +444,23 @@ end
 ---Handles chat messages from client
 ---@type ClientPacket
 local function clientMessage(data, connection)
-    local _, id, message = string.unpack(">Bbc64",data)
-    if id ~= -1 then
-        print("Invalid message id")
-        return
-    end
-    message = unformatString(message)
+    local _, message = string.unpack(">Bc64",data)
+    message = message:sub(1,message:find("\32")-1)
+    print("Message from client: " .. message)
     local player = connection.player
     if not player then
         print("Player not found")
         return
     end
-    player:Chat(message)
+    local world = player.world
+    if not world then
+        print("Player not in a world")
+        return
+    end
+    local success, err = pcall(world.chat, world, player, message)
+    if not success then
+        print("Error handling chat message:", err)
+    end
 end
 
 ---@class ClientPackets
