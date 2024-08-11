@@ -62,14 +62,8 @@ local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, s
     end
     for _, connection in pairs(connections) do
         local player = connection.player
-        local passed do
-            if criteria then
-                passed = criteria(connection)
-            else
-                passed = true
-            end
-        end
-        if player and not skip[player.id] and passed then
+        print(criteria)
+        if player and not skip[player.id] ((criteria and criteria(connection)) or not criteria) then
             local d = player.id == targetId and dataProvider(-1) or data
             local success, err = connection.write(d)
             if not success and errorHandler and err then
@@ -384,7 +378,7 @@ local function positionAndOrientation(data, connection)
         print("Player not found")
         return
     end
-    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, false, true)
+    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch})
 end
 
 ---@class ClientPackets

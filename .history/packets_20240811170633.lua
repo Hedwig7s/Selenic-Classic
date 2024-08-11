@@ -62,14 +62,7 @@ local function perPlayerPacket(dataProvider, targetId, errorHandler, criteria, s
     end
     for _, connection in pairs(connections) do
         local player = connection.player
-        local passed do
-            if criteria then
-                passed = criteria(connection)
-            else
-                passed = true
-            end
-        end
-        if player and not skip[player.id] and passed then
+        if player and not skip[player.id] ((criteria and criteria(connection)) or not criteria) then
             local d = player.id == targetId and dataProvider(-1) or data
             local success, err = connection.write(d)
             if not success and errorHandler and err then
@@ -384,7 +377,7 @@ local function positionAndOrientation(data, connection)
         print("Player not found")
         return
     end
-    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, false, true)
+    player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch})
 end
 
 ---@class ClientPackets
@@ -420,7 +413,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     end
     print("Client connected with id ".. id)
     local lastPing = os.time()
-    local loginTime = os.time()
     ---@class Connection
     ---@field read fun():string?
     ---@field write fun(data:string): success:boolean, err:string?
@@ -448,7 +440,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     connections[id] = connection
     local connectionroutine = coroutine.create(function()
         local lastPingSuccess = true
-        local loggedIn = false
         while true do
             timer.sleep(5)
             local data = read()
@@ -495,13 +486,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                     pcall(dsocket.close, dsocket) -- There isn't much I can do if this fails 
                     break
                 end
-            end
-            loggedIn = connection.player and true or false
-            if os.time() - loginTime > 10 and not loggedIn then
-                print("Client took too long to login")
-                pcall(ServerPackets.DisconnectPlayer,connection, "Login timeout")
-                pcall(dsocket.close, dsocket)
-                break
             end
         end
         -- TODO: Clean up player

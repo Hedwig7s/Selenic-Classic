@@ -33,10 +33,7 @@ function Player:Spawn(player)
         return
     end
     local position = self.position
-    local function criteria(connection)
-        return connection.player and connection.player.world == self.world
-    end
-    packets.ServerPackets.SpawnPlayer(self.id, self.name, position.x, position.y, position.z, position.yaw, position.pitch, criteria, player and player.connection or nil)
+    packets.ServerPackets.SpawnPlayer(self.id, self.name, position.x, position.y, position.z, position.yaw, position.pitch, player and player.connection or nil)
 end
 
 ---Loads player into a world
