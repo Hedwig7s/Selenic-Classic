@@ -170,7 +170,14 @@ end
 ---@param packetName string
 local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, skipSelf, connection)
     asserts.assertId(id)
-    x, y, z = toFixedPoint(x, y, z)
+    if yaw and pitch then
+        asserts.angleAssert(yaw, "Invalid yaw")
+        asserts.angleAssert(pitch, "Invalid pitch")
+    end
+    if x and y and z then
+        asserts.assertCoordinates(x,y,z)
+        x, y, z = toFixedPoint(x, y, z)
+    end
 
     local function errorHandler(err)
         print("Error sending " .. packetName .. " packet to client: " .. err)
@@ -197,7 +204,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     asserts.assertPacketString(name)
     name = formatString(name)
 
@@ -219,7 +225,6 @@ end
 ---@param skipSelf? boolean
 ---@param connection Connection?
 local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, skipSelf, connection)
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
     end
@@ -237,9 +242,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertFByte("Invalid coordinate", x, y, z)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
     end
@@ -254,9 +256,8 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function positionUpdate(id, x, y, z, criteria, connection)
-    asserts.assertFByte("Invalid coordinate", x, y, z)
     local function getData(id2, x, y, z, _, _)
-        return string.pack(">Bbbbb", 0x0A, id2, x, y, z)
+        return string.pack(">Bbhhh", 0x0A, id2, x, y, z)
     end
     baseMovementPacket(id, x, y, z, nil, nil, "PositionUpdate", getData, criteria, true, connection)
 end
@@ -268,8 +269,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function orientationUpdate(id, yaw, pitch, criteria, connection)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, _, _, _, yaw, pitch)
         return string.pack(">BbBB", 0x0B, id2, yaw, pitch)
     end
@@ -481,7 +480,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 local limited = false
                 if time - cooldown.last < 0.001 then
                     cooldown.amount = cooldown.amount + 1
-                    if cooldown.amount > 15 then
+                    if cooldown.amount > 10 then
                         cooldown.dropped = cooldown.dropped + 1
                         print("Dropped packet from connection "..tostring(id)..": Rate limit exceeded")
                         limited = true
@@ -499,11 +498,9 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                 if not limited then
                     local id = string.unpack(">B",data:sub(1,1))
                     if ClientPackets[id] then
-                        local co = coroutine.create(ClientPackets[id])
-                        local success, err = coroutine.resume(co, data, connection)
+                        local success, err = pcall(ClientPackets[id],data, connection)
                         if not success then
                             print("Error handling packet id " .. tostring(id) .." from connection "..tostring(connection.id)..":", err)
-                            print(debug.traceback(co))
                         end
                     else
                         print("Unknown packet received:", id)

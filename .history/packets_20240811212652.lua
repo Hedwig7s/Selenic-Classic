@@ -170,7 +170,14 @@ end
 ---@param packetName string
 local function baseMovementPacket(id, x, y, z, yaw, pitch, packetName, dataProvider, criteria, skipSelf, connection)
     asserts.assertId(id)
-    x, y, z = toFixedPoint(x, y, z)
+    if yaw and pitch then
+        asserts.angleAssert(yaw, "Invalid yaw")
+        asserts.angleAssert(pitch, "Invalid pitch")
+    end
+    if x and y and z then
+        asserts.assertCoordinates(x,y,z)
+        x, y, z = toFixedPoint(x, y, z)
+    end
 
     local function errorHandler(err)
         print("Error sending " .. packetName .. " packet to client: " .. err)
@@ -197,7 +204,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function spawnPlayer(id, name, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     asserts.assertPacketString(name)
     name = formatString(name)
 
@@ -219,7 +225,6 @@ end
 ---@param skipSelf? boolean
 ---@param connection Connection?
 local function setPositionAndOrientation(id, x, y, z, yaw, pitch, criteria, skipSelf, connection)
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
     end
@@ -237,9 +242,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function positionAndOrientationUpdate(id, x, y, z, yaw, pitch, criteria, connection)
-    asserts.assertFByte("Invalid coordinate", x, y, z)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
     end
@@ -254,8 +256,8 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function positionUpdate(id, x, y, z, criteria, connection)
-    asserts.assertFByte("Invalid coordinate", x, y, z)
     local function getData(id2, x, y, z, _, _)
+        print(x,y,z)
         return string.pack(">Bbbbb", 0x0A, id2, x, y, z)
     end
     baseMovementPacket(id, x, y, z, nil, nil, "PositionUpdate", getData, criteria, true, connection)
@@ -268,8 +270,6 @@ end
 ---@param criteria? fun(connection:Connection):boolean
 ---@param connection Connection?
 local function orientationUpdate(id, yaw, pitch, criteria, connection)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, _, _, _, yaw, pitch)
         return string.pack(">BbBB", 0x0B, id2, yaw, pitch)
     end
