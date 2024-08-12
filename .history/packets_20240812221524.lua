@@ -337,10 +337,9 @@ local function serverMessage(message, id, criteria, connection)
         end
         i = i + 1
     end
-    table.insert(messages, formatString(table.concat(current)))
     local data = {}
     for _,msg in pairs(messages) do
-        table.insert(data, string.pack(">Bbc64",0x0D, id or -2,msg))
+        table.insert(data, string.pack(">Bc64",0x0D,msg))
     end
     local function write(connection)
         for _,packet in pairs(data) do

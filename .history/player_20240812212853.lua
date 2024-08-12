@@ -155,10 +155,9 @@ function Player:Chat(message)
     local function criteria(connection)
         return connection.player and connection.player.world == self.world
     end
-    message = message:gsub("%%(.)", function(char)
-        return "&"..char
-    end)
+    message = message:gsub("%%.", "&.")
     message = self.name..": "..message
+    print(message)
     packets.ServerPackets.Message(message, self.id, criteria)
 end
 ---Despawns the player from the world
