@@ -418,20 +418,6 @@ local function playerIdent(data, connection)
         disconnect(connection, err)
         return
     end
-    local localIPs = {
-        "127.0.0.1",
-        "localhost",
-        config:getValue("server.host")
-    }
-    local ip = connection.dsocket:getpeername().ip
-    local bypass = config:getValue("server.localBypassVerification") and util.contains(localIPs, ip)
-    if config:getValue("server.verifyNames") and verificationKey ~= md5.sumhexa(server.info.Salt..username) and not bypass then 
-        local err = "Invalid verification key"
-        print(err)
-        disconnect(connection, err)
-        return
-    end
-
     ServerPackets.ServerIdentification(connection)
     print("Identified")
     local player, err = playerModule.Player.new(connection, username)

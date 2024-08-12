@@ -424,6 +424,7 @@ local function playerIdent(data, connection)
         config:getValue("server.host")
     }
     local ip = connection.dsocket:getpeername().ip
+    print(require("inspect")(ip))
     local bypass = config:getValue("server.localBypassVerification") and util.contains(localIPs, ip)
     if config:getValue("server.verifyNames") and verificationKey ~= md5.sumhexa(server.info.Salt..username) and not bypass then 
         local err = "Invalid verification key"

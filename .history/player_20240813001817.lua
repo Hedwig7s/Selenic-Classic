@@ -209,7 +209,7 @@ function Player.new(connection, name)
     self.movements = 0
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
-    if id > 255 or #module:GetPlayers() >= config:getValue("server.maxPlayers") then
+    if id > 255 or config:getValue("server.maxPlayers") then
         local err = "Too many players!"
         print(err)
         return nil, err
