@@ -95,7 +95,7 @@ local function getIndex(x, y, z, size)
     assert(x >= 0 and x <= size.x, "x out of bounds")
     assert(z >= 0 and z <= size.z, "z out of bounds")
     assert(y >= 0 and y <= size.y, "y out of bounds")
-    return x + (z * size.x) + (y * size.x * size.z) + 1
+    return x + (z * size.x) + (y * size.x * size.z) +1
 end
 
 ---Sets block at specified x, y and z coordinates
