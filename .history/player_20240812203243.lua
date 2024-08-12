@@ -246,7 +246,7 @@ function module:GetPlayers()
         error("Cannot set player externally")
     end
     meta.__len = function()
-        local i = 0
+        local i
         for _ in pairs(players) do
             i = i + 1
         end
