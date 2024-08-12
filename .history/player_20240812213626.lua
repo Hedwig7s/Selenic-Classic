@@ -155,7 +155,7 @@ function Player:Chat(message)
     local function criteria(connection)
         return connection.player and connection.player.world == self.world
     end
-    message = message:gsub("%%(.)", function(char)
+    message = message:gsub("%%(.) ", function(char)
         return "&"..char
     end)
     message = self.name..": "..message

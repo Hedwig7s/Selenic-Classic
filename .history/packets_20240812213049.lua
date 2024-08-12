@@ -315,45 +315,19 @@ end
 ---@param connection Connection?
 ---@return boolean?, string?
 local function serverMessage(message, id, criteria, connection)
+    asserts.assertPacketString(message)
     asserts.assertId(id)
     if message:sub(-1,-1) == "&" then
         message = message:sub(1,-2)
     end
     message = formatString(message)
-    local messages = {}
-
-    local current = {}
-    local color = ""
-    local i = 1
-    while i <= #message do
-        local char = message:sub(i,i)
-        if char == "&" and message:sub(i+1,i+1) ~= "" and message:sub(i+1,i+1) ~= " " then
-            color = message:sub(i,i+1)
-        end
-        table.insert(current, char)
-        if #current >= 64 then
-            table.insert(messages, formatString(table.concat(current)))
-            current = {"> "..color}
-        end
-        i = i + 1
-    end
-    table.insert(messages, formatString(table.concat(current)))
-    local data = {}
-    for _,msg in pairs(messages) do
-        table.insert(data, string.pack(">Bbc64",0x0D, id or -2,msg))
-    end
-    local function write(connection)
-        for _,packet in pairs(data) do
-            print(packet)
-            connection.write(packet)
-        end
-    end
+    local data = string.pack(">Bbc"..#message,0x0D, id or -2,message)
     if connection then
-        write(connection)
+        return connection.write(data)
     end
     for _, connection in pairs(connections) do
         if (criteria and criteria(connection)) or not criteria then
-            write(connection)
+            connection.write(data)
         end
     end
 end

@@ -155,9 +155,12 @@ function Player:Chat(message)
     local function criteria(connection)
         return connection.player and connection.player.world == self.world
     end
-    message = message:gsub("%%(.)", function(char)
-        return "&"..char
-    end)
+    for i=1, #message do
+        if string.match(message:sub(i,i+2), "%%. ") then
+            message = string.format("%s%s%s%s%s", message:sub(1,i-1), "&", message:sub(i+1, i+1), " ", message:sub(i+3))
+        end
+    end
+    print(message)
     message = self.name..": "..message
     packets.ServerPackets.Message(message, self.id, criteria)
 end
