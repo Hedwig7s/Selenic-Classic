@@ -1,13 +1,13 @@
 # Selenic Classic
-A Classic server written in Lua because I hate myself
+A Classic server written in Lua because I hate myself  
 Name comes from Selene (greek personification of the moon and a pun on the fact that Lua is Moon in Portuguese) + -ic (pertaining to) and Classic (Minecraft Classic)
 
 ## Setup
-Install [Luvit](https://luvit.io/install.html)
-Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download) 
-Clone the repository or download a release source zip
-Run `./install-dependencies.sh` (Linux) or `./install-dependencies.bat` (Windows) (expects LuaRocks to be in PATH)
-Run `luvit main.lua`
+Install [Luvit](https://luvit.io/install.html)  
+Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download)   
+Clone the repository or download a release source zip  
+Run `./install-dependencies.sh` (Linux) or `./install-dependencies.bat` (Windows) (expects LuaRocks to be in PATH)  
+Run `luvit main.lua`  
 
 ## TODO
 - [x] Basic TCP server
