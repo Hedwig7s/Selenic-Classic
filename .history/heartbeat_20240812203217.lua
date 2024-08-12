@@ -61,7 +61,7 @@ function heartbeat()
         end
         if firstHeartbeat then
             firstHeartbeat = false
-            print("Server URL: " .. body)
+            print("Heartbeat URL: " .. body)
         end
     end)
 end

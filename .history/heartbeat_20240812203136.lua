@@ -26,6 +26,7 @@ function heartbeat()
         software = querystring.urlencode(string.format("%s %s", server.info.Software, server.info.Version)),
         web = "false"
     }
+    print(require("inspect")(params))
     local query = {}
     local i = 1
     for k, v in pairs(params) do
@@ -61,7 +62,7 @@ function heartbeat()
         end
         if firstHeartbeat then
             firstHeartbeat = false
-            print("Server URL: " .. body)
+            print("Heartbeat URL: " .. body)
         end
     end)
 end
