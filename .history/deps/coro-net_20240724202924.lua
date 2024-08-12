@@ -60,7 +60,7 @@ local function normalize(options, server)
   elseif t == "number" then
     options = {port=options}
   elseif t ~= "table" then
-    error("Net options must be table, string, or number")
+    assert("Net options must be table, string, or number")
   end
   if options.port or options.host then
     options.isTcp = true
