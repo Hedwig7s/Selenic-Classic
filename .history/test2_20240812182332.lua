@@ -1,0 +1,29 @@
+local timer = require("timer")
+
+-- Little helper function to wait for 3 seconds and then resolve.
+function sleep()
+  timer.sleep(3)
+  return
+end
+  
+
+function helloWorld()
+    print("Hello,")
+    local co = coroutine.create(doThingAndReturnHelloWorld)
+    local success, result
+    while true do
+        if coroutine.status(co) == "dead" then
+            break
+        end
+        success, result = coroutine.resume(co)
+    end
+    print(result)
+    print("World")
+  end
+  
+function doThingAndReturnHelloWorld()
+    sleep()
+    return "This was awaited for!"
+end
+
+helloWorld()

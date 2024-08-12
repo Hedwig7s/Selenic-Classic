@@ -23,7 +23,6 @@ function main()
     print("Server started")
     print("Starting heartbeat")
     heartbeat:Start()
-    print("Heartbeat started")
 end
 
 
