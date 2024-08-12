@@ -15,7 +15,6 @@ local defaultConfig = {
         motd = "Welcome!",
         levelName = "default",
         verifyNames = true,
-        localBypassVerification = false,
         public = true,
         heartbeat = true,
         heartbeatURL = "http://www.classicube.net/server/heartbeat/",

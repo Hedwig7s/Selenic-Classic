@@ -1,0 +1,13 @@
+[server]
+defaultWorld = "world"
+heartbeatURL = "http://www.classicube.net/server/heartbeat/"
+host = "0.0.0.0"
+levelName = "default"
+maxPlayers = 20
+motd = "Welcome!"
+port = 20000
+public = true
+heartbeat = true
+serverName = "Selenic Server"
+useRelativeMovement = false
+verifyNames = true
