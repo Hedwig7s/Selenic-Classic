@@ -233,14 +233,12 @@ function module:GetPlayerByName(name)
     return playersByName[name]
 end
 
----Get all players
----@return table<number|string, Player>
 function module:GetPlayers()
     local proxy = newproxy(true)
     local meta = getmetatable(proxy)
 
     meta.__index = function(self, key)
-        return type(key) == "string" and playersByName[string] or players[key]
+        return players[key]
     end
     meta.__newindex = function(self, key, value)
         error("Cannot set player externally")

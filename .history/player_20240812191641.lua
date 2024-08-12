@@ -46,6 +46,19 @@ setmetatable(players, {
     end
 })
 
+module.players = newproxy(true)
+local meta = getmetatable(module.players)
+
+meta.__index = function(self, key)
+    return players[key]
+end
+meta.__newindex = function(self, key, value)
+    error("Cannot set player externally")
+end
+meta.__len = function()
+    return #players
+end
+
 ---Spawns the player in a world. Should only be called on the player's first spawn in the world
 ---@param player Player?
 function Player:Spawn(player)
@@ -231,25 +244,6 @@ end
 ---@return Player?
 function module:GetPlayerByName(name)
     return playersByName[name]
-end
-
----Get all players
----@return table<number|string, Player>
-function module:GetPlayers()
-    local proxy = newproxy(true)
-    local meta = getmetatable(proxy)
-
-    meta.__index = function(self, key)
-        return type(key) == "string" and playersByName[string] or players[key]
-    end
-    meta.__newindex = function(self, key, value)
-        error("Cannot set player externally")
-    end
-    meta.__len = function()
-        return #players
-    end
-
-    return proxy
 end
 
 return module
