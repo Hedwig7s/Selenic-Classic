@@ -4,6 +4,7 @@ local module = {}
 local timer = require("timer")
 local util = require("./util")
 local playerModule = require("./player")
+local worlds = require("./worlds")
 local criterias = require("./criterias")
 
 require("compat53")
@@ -33,7 +34,9 @@ setmetatable(protocols, {
 ---@returns Protocol
 local function getProtocol(connection)
     if not connection.player then
-        error("No player associated with connection")
+        print("No player associated with connection")
+        protocols[7].ServerPackets.DisconnectPlayer(connection, "Player was not created successfully")
+        return
     end
     return connection.player.protocol
 end
@@ -44,6 +47,9 @@ end
 local function basicClientboundWrapper(name)
     return function(connection, ...)
         local protocol = getProtocol(connection)
+        if not protocol then
+            return false
+        end
         return protocol.ServerPackets[name](connection, ...)
     end
 end
@@ -54,9 +60,9 @@ end
 ---@param leaveId boolean? @Whether to leave the id unmodified rather than switch to -1 for matching player
 ---@return fun(connection: Connection, ...)
 local function multiPlayerWrapper(name, criteria, leaveId)
+    local base = basicClientboundWrapper(name)
     return function(connection, id, cr, ...)
         local args = {...}
-        local base = basicClientboundWrapper(name)
         ---@type any|criteria
         local criteriaFunction = type(criteria) == "function" and criteria or cr
         local function dataProvider(id)
@@ -72,7 +78,7 @@ local function multiPlayerWrapper(name, criteria, leaveId)
         local data = dataProvider(id)
         local selfData = dataProvider(-1)
         if connection then
-            base(connection, unpack(data))
+            return base(connection, unpack(data))
         end
         for _, connection in pairs(connections) do
             if ((type(criteria) == "function" or criteria == true) and criteriaFunction and criteriaFunction(connection, id)) or not criteria then
@@ -81,7 +87,34 @@ local function multiPlayerWrapper(name, criteria, leaveId)
                 else
                     d = data
                 end
+
                 base(connection, unpack(d))
+            end
+        end
+    end
+end
+
+
+local function setBlock()
+    local wrapper = basicClientboundWrapper("SetBlock")
+    ---@type ServerPackets.SetBlock
+    return function(connection, world, x, y, z, blockId)
+        local function convert(player, blockId)
+            if player and player.protocol then
+                local replacements = worlds.replacements
+                local protoReplacements = replacements[player.protocol.Version]
+                if protoReplacements and blockId > protoReplacements.MAX then
+                    blockId = replacements.REPLACEMENTS[blockId] or replacements.DEFAULT
+                end
+                return blockId
+            end
+        end
+        if connection and connection.player then
+            return wrapper(connection, world, x, y, z, convert(connection.player, blockId))
+        end
+        for _, connection in pairs(connections) do
+            if connection.player and connection.player.world == world then
+                wrapper(connection, world, x, y, z, convert(connection.player, blockId))
             end
         end
     end
@@ -95,13 +128,13 @@ local ServerPackets = {
     LevelDataChunk = basicClientboundWrapper("LevelDataChunk"),
     LevelFinalize = basicClientboundWrapper("LevelFinalize"),
     UpdateUserType = basicClientboundWrapper("UpdateUserType"),
-    SetBlock = multiPlayerWrapper("SetBlock", module.matchWorld),
-    SpawnPlayer = multiPlayerWrapper("SpawnPlayer", module.matchWorld), -- If NPCs are added these will need to be changed
-    SetPositionAndOrientation = multiPlayerWrapper("SetPositionAndOrientation", module.matchWorld),
-    PositionAndOrientationUpdate = multiPlayerWrapper("PositionAndOrientationUpdate", module.matchWorld),
-    PositionUpdate = multiPlayerWrapper("PositionUpdate", module.matchWorld),
-    OrientationUpdate = multiPlayerWrapper("OrientationUpdate", module.matchWorld),
-    DespawnPlayer = multiPlayerWrapper("DespawnPlayer", module.matchWorld),
+    SetBlock = setBlock(),
+    SpawnPlayer = multiPlayerWrapper("SpawnPlayer", criterias.matchWorld), -- If NPCs are added these will need to be changed
+    SetPositionAndOrientation = multiPlayerWrapper("SetPositionAndOrientation", criterias.matchWorld),
+    PositionAndOrientationUpdate = multiPlayerWrapper("PositionAndOrientationUpdate", criterias.matchWorld),
+    PositionUpdate = multiPlayerWrapper("PositionUpdate", criterias.matchWorld),
+    OrientationUpdate = multiPlayerWrapper("OrientationUpdate", criterias.matchWorld),
+    DespawnPlayer = multiPlayerWrapper("DespawnPlayer", criterias.matchWorld),
     Message = multiPlayerWrapper("Message", true, true),
     DisconnectPlayer = basicClientboundWrapper("DisconnectPlayer"),
 }
@@ -120,11 +153,12 @@ local function basicServerboundWrapper(id)
 end
 
 local function PlayerIdentification(data, connection)
+    local protocolVersion
     if #data == 65 then
-        -- Protocol version 1
-        return
+        protocolVersion = 1        
+    else
+        protocolVersion = string.unpack(">B", data:sub(2, 2))
     end
-    local protocolVersion = string.unpack(">B", data:sub(2, 2))
     local protocol = protocols[protocolVersion]
     if not protocol then
         pcall(function()
@@ -225,8 +259,9 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
                     local id = string.unpack(">B", data:sub(1, 1))
                     if ClientPackets[id] then
                         local co = coroutine.create(ClientPackets[id])
-                        local success, err = coroutine.resume(co, data, connection)
+                        local success, err1, err2 = pcall(coroutine.resume, co, data, connection)
                         if not success then
+                            local err = not success and err1 or err2
                             print(
                             "Error handling packet id " ..
                             tostring(id) .. " from connection " .. tostring(connection.id) .. ":", err)

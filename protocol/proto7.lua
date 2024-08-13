@@ -28,7 +28,7 @@ local perPlayerPacket = packetUtil.perPlayerPacket
 local function disconnect(connection, reason)
     assert(reason and type(reason) == "string" and #reason <= 64, "Invalid reason")
     local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
-    connection.dsocket:close()
+    pcall(connection.dsocket.close)
     return success, err
 end
 
@@ -87,7 +87,7 @@ end
 ---@param connection Connection
 local function serverSetBlock(connection, _, x, y, z, block)
     asserts.assertCoordinates(x,y,z)
-    assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block")
+    assert(block and type(block) == "number" and block < 256 and block >= 0, "Invalid block "..block)
     local data = string.pack(">BHHHB",0x06,x,y,z,block)
     return connection.write(data)
 end
@@ -272,39 +272,9 @@ module.ServerPackets = ServerPackets
 ---@type ClientPacket
 ---@param protocol Protocol
 local function playerIdent(data, connection, protocol) 
-    local _,protocolVersion, username, verificationKey, CPE = string.unpack(">BBc64c64B",data)
-    assert(username and type(username) == "string" and #username <= 64, "Invalid username")
-    assert(verificationKey and type(verificationKey) == "string" and #verificationKey <= 64, "Invalid verification key")
+    local _,_, username, verificationKey, CPE = string.unpack(">BBc64c64B",data)
     assert(CPE and type(CPE) == "number" and (CPE == 0x00 or CPE == 0x42), "Invalid CPE")
-    username = unformatString(username)
-    verificationKey = unformatString(verificationKey)
-    print("Login packet received")
-    print("Protocol version: " .. protocolVersion)
-    print("Username: " .. username)
-    print("Verification key: " .. verificationKey)
-    local localIPs = {
-        "127.0.0.1",
-        "localhost",
-        config:getValue("server.host")
-    }
-    local ip = connection.dsocket:getpeername().ip
-    local bypass = config:getValue("server.localBypassVerification") and util.contains(localIPs, ip)
-    if config:getValue("server.verifyNames") and verificationKey ~= md5.sumhexa(server.info.Salt..username) and not bypass then 
-        local err = "Invalid verification key"
-        print(err)
-        disconnect(connection, err)
-        return
-    end
-    local player, err = playerModule.Player.new(connection, username, protocol)
-    if not player then
-        print("Error creating player: "..err)
-        disconnect(connection, err:sub(1,64))
-        return
-    end
-    connection.player = player
-    ServerPackets.ServerIdentification(connection)
-    print("Identified")
-    player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])
+    return packetUtil.handleNewPlayer(connection, protocol, username, verificationKey, disconnect)
 end
 
 ---Handles client trying to set block
