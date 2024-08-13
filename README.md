@@ -35,7 +35,8 @@ Run `luvit main.lua`
 - [x] Duplicate name blocking
 - [ ] Enforce max players
 - [x] Chat
-- [ ] Join/Leave messages
+- [x] Join/Leave messages
+- [ ] Global Chat/Join/Leave messages
 - [ ] Commands
 - [ ] Physics
 - [ ] Permissions/Ranks
@@ -43,6 +44,7 @@ Run `luvit main.lua`
 - [x] Config loading
 - [ ] Full config usage
 - [ ] CPE
+- [ ] Support all protocols (with toggles)
 - [ ] Web client
 - [x] Heartbeat
 - [ ] Name verification
