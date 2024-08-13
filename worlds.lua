@@ -64,6 +64,31 @@ module.BLOCK_IDS = {
     MOSSY_COBBLESTONE = 48,
     OBSIDIAN = 49,
 }
+local BlockIDs = module.BLOCK_IDS
+module.replacements = {
+    DEFAULT = module.BLOCK_IDS.STONE,
+    [1] = {
+        MAX = BlockIDs.LEAVES,
+    },
+    REPLACEMENTS = {
+        [BlockIDs.SPONGE] = module.BLOCK_IDS.SAND,
+        [BlockIDs.GLASS] = module.BLOCK_IDS.GRAVEL,
+        [BlockIDs.YELLOW] = module.BLOCK_IDS.SAND,
+        [BlockIDs.LIME] = module.BLOCK_IDS.LEAVES,
+        [BlockIDs.GREEN] = module.BLOCK_IDS.LEAVES,
+        [BlockIDs.SPRING_GREEN] = module.BLOCK_IDS.LEAVES,
+        [BlockIDs.GRAY] = module.BLOCK_IDS.STONE,
+        [BlockIDs.WHITE] = module.BLOCK_IDS.STONE,
+        [BlockIDs.DANDELION] = module.BLOCK_IDS.AIR,
+        [BlockIDs.ROSE] = module.BLOCK_IDS.AIR,
+        [BlockIDs.BROWN_MUSHROOM] = module.BLOCK_IDS.AIR,
+        [BlockIDs.RED_MUSHROOM] = module.BLOCK_IDS.AIR,
+        [BlockIDs.GOLD] = module.BLOCK_IDS.GOLD_ORE,
+        [BlockIDs.IRON] = module.BLOCK_IDS.IRON_ORE,
+        [BlockIDs.DOUBLE_SLAB] = module.BLOCK_IDS.STONE,
+        [BlockIDs.MOSSY_COBBLESTONE] = module.BLOCK_IDS.COBBLESTONE,
+    }
+}
 
 ---Gets internal block name from id
 ---@param id BlockIDs
@@ -111,7 +136,7 @@ function World:setBlock(x, y, z, id, skipSend)
         packets = require("./packets")
     end
     if not skipSend then
-        packets.ServerPackets.SetBlock(nil, x, y, z, id)
+        packets.ServerPackets.SetBlock(nil, self, x, y, z, id)
     end
 end
 
@@ -162,28 +187,35 @@ function World:setSpawn(x, y, z)
 end
 
 ---Packs the world into a protocol-compliant byte-array
+---@param protocol Protocol
 ---@return string
-function World:Pack()
+function World:Pack(protocol)
     local function compress(str)
         local level = 5
         local windowSize = 15+16
         return zlib.deflate(level, windowSize)(str, "finish")
     end
     print("Packing world")
-    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y)
-    local lastPercent = 0
+    -- This is very verbose but if it wasn't it would be incredibly slow
+    local data = string.pack(">I4", self.size.x*self.size.z*self.size.y) 
     local blocks = {}
     local totalSize = self.size.x * self.size.z * self.size.y
     local blockData = self.blocks
     local airBlock = module.BLOCK_IDS.AIR
-    
+    local replacements = module.replacements
+    local protoRepl = replacements[protocol.Version]
+    local default, repl,max
+    if protoRepl then
+        default = replacements.DEFAULT
+        repl = replacements.REPLACEMENTS
+        max = protoRepl.MAX
+    end
     for i = 1, totalSize do
-        blocks[i] = string.pack(">B",blockData[i] or airBlock)
-        local percent = math.floor(i / totalSize * 100)
-        if percent ~= lastPercent then
-            print("Packing: " .. percent .. "%")
-            lastPercent = percent
+        local block = blockData[i]
+        if protoRepl and block and block > max then
+            block = repl[block] or default
         end
+        blocks[i] = string.pack(">B",block or airBlock)
     end
     
     data = data .. table.concat(blocks)

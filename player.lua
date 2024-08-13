@@ -56,9 +56,8 @@ function Player:Spawn(player)
         return
     end
     local position = self.position
-
-    packets.ServerPackets.SpawnPlayer(nil,self.id, self.name, position.x, position.y, position.z, position.yaw,
-        position.pitch, player and player.connection or nil)
+    packets.ServerPackets.SpawnPlayer(player and player.connection or nil,self.id, self.name, position.x, position.y, position.z, position.yaw,
+        position.pitch)
 end
 
 ---Loads player into a world
@@ -70,8 +69,7 @@ function Player:LoadWorld(world)
 
     print("Initialising level")
     packets.ServerPackets.LevelInitialize(self.connection)
-    print("Packing world")
-    local packed = world:Pack()
+    local packed = world:Pack(self.protocol)
     local length = #packed
     local chunkSize = 1024
     local chunks = math.ceil(length / chunkSize)
@@ -85,7 +83,9 @@ function Player:LoadWorld(world)
     self:MoveTo(world.spawn, false, true)
     self:Spawn()
     for _, player in pairs(players) do
-        coroutine.wrap(player.Spawn)(player, self)
+        if player ~= self then
+            coroutine.wrap(player.Spawn)(player, self)
+        end
     end
     packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." joined this world")
 end
@@ -104,7 +104,14 @@ function Player:MoveTo(position, playerMovement, skipReplication)
     self.position.z = position.z or self.position.z
     self.position.yaw = position.yaw or self.position.yaw
     self.position.pitch = position.pitch or self.position.pitch
-    if not skipReplication then
+    local unchanged = true
+    for k, v in pairs(oldpos) do
+        if self.position[k] ~= v then
+            unchanged = false
+            break
+        end
+    end
+    if not skipReplication and not unchanged then
         ---@type PacketsModule
         local packets = lazyLoad("./packets")
         local difference = {
