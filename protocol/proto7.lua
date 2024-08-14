@@ -191,38 +191,7 @@ end
 ---@param connection Connection
 ---@return boolean?, string?
 local function serverMessage(connection,id, message)
-    id = (not id or id < 0 and 127) or id
-    if id == 127 then
-        message = "&e" .. message
-    end
-    asserts.assertId(id)
-    if message:sub(-1,-1) == "&" then
-        message = message:sub(1,-2)
-    end
-    message = formatString(message)
-    local messages = {}
-
-    local current = {}
-    local color = ""
-    local i = 1
-    while i <= #message do
-        local char = message:sub(i,i)
-        if char == "&" and message:sub(i+1,i+1) ~= "" and message:sub(i+1,i+1) ~= " " then
-            color = message:sub(i,i+1)
-        end
-        if #current == 0 and i ~= 1 then
-            current = {">".." "..color}
-        end
-        table.insert(current, char)
-        if #current >= 64 then
-            table.insert(messages, formatString(table.concat(current)))
-            current = {}
-        end
-        i = i + 1
-    end
-    if #current > 0 then
-        table.insert(messages, formatString(table.concat(current)))
-    end
+    local messages = packetUtil.formatChatMessage(message,id)
     for _,msg in pairs(messages) do
         local packet = string.pack(">Bbc64",0x0D, id or 127,msg)
         connection.write(packet)
@@ -364,5 +333,12 @@ local ClientPackets = {
 module.ClientPackets = ClientPackets
 
 module.Version = 7
+
+module.PacketSizes = {
+    [0x00] = 131,
+    [0x05] = 9,
+    [0x08] = 10,
+    [0x0D] = 66,
+}
 
 return module

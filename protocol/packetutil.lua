@@ -128,4 +128,40 @@ function module.convertPositionUpdate(connection,id,...)
     module.ServerPackets.SetPositionAndOrientation(connection,id,player.position.x,player.position.y,player.position.z,player.position.yaw,player.position.pitch, true)
 end
 
+function module.formatChatMessage(message, id)
+    id = (not id or id < 0 and 127) or id
+    if id == 127 then
+        message = "&e" .. message
+    end
+    asserts.assertId(id)
+    if message:sub(-1,-1) == "&" then
+        message = message:sub(1,-2)
+    end
+    message = module.formatString(message)
+    local messages = {}
+
+    local current = {}
+    local color = ""
+    local i = 1
+    while i <= #message do
+        local char = message:sub(i,i)
+        if char == "&" and message:sub(i+1,i+1) ~= "" and message:sub(i+1,i+1) ~= " " then
+            color = message:sub(i,i+1)
+        end
+        if #current == 0 and i ~= 1 then
+            current = {">".." "..color}
+        end
+        table.insert(current, char)
+        if #current >= 64 then
+            table.insert(messages, module.formatString(table.concat(current)))
+            current = {}
+        end
+        i = i + 1
+    end
+    if #current > 0 then
+        table.insert(messages, module.formatString(table.concat(current)))
+    end
+    return messages
+end
+
 return module
