@@ -70,6 +70,19 @@ module.replacements = {
     [1] = {
         MAX = BlockIDs.LEAVES,
     },
+    [6] = {
+        MAX = BlockIDs.WHITE,
+    },
+    [5] = {
+        MAX = BlockIDs.GLASS,
+    },
+    [4] = {
+        MAX = BlockIDs.LEAVES,
+    },
+    [3] = {
+        MAX = BlockIDs.LEAVES,
+    },
+
     REPLACEMENTS = {
         [BlockIDs.SPONGE] = module.BLOCK_IDS.SAND,
         [BlockIDs.GLASS] = module.BLOCK_IDS.GRAVEL,

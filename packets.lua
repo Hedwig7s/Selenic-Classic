@@ -6,6 +6,7 @@ local util = require("./util")
 local playerModule = require("./player")
 local worlds = require("./worlds")
 local criterias = require("./criterias")
+local uv = require("uv")
 
 require("compat53")
 
@@ -148,24 +149,17 @@ module.ServerPackets = ServerPackets
 local function basicServerboundWrapper(id)
     return function(data, connection)
         local protocol = getProtocol(connection)
+        if not protocol then
+            return false
+        end
         return protocol.ClientPackets[id](data, connection)
     end
 end
 
 local function PlayerIdentification(data, connection)
-    local protocolVersion
-    if #data == 65 then
-        protocolVersion = 1        
-    else
-        protocolVersion = string.unpack(">B", data:sub(2, 2))
-    end
-    local protocol = protocols[protocolVersion]
+    if connection.player then return end
+    local protocol = connection.protocol
     if not protocol then
-        pcall(function()
-            -- Packet never changed should be fine
-            protocols[7].ServerPackets.DisconnectPlayer(connection,
-                string.sub("Unsupported protocol version: " .. protocolVersion, 1, 64))
-        end)
         return false
     end
     return protocol.ClientPackets[0x00](data, connection, protocol)
@@ -181,6 +175,197 @@ local ClientPackets = {
 
 -----------------HANDLING-----------------
 
+---Handles a new packet
+---@param data string
+---@param cooldown {last:number,amount:number, dropped:number}
+---@param connection Connection
+local function handlePacket(data, packetId, cooldown, connection)
+    local dsocket = connection.dsocket
+    local id = connection.id
+    local time = os.clock()
+    local limited = false
+    if time - cooldown.last < 0.001 then
+        cooldown.amount = cooldown.amount + 1
+        if cooldown.amount > 15 then
+            cooldown.dropped = cooldown.dropped + 1
+            print("Dropped packet from connection " .. tostring(id) .. ": Rate limit exceeded")
+            limited = true
+        end
+        if cooldown.dropped > 30 then
+            print("Removing connection " .. tostring(id) .. " due to rate limit")
+            pcall(dsocket.close, dsocket)
+            return false
+        end
+    else
+        cooldown.last = time
+        cooldown.amount = 0
+        cooldown.dropped = 0
+    end
+    if not limited then
+        local co = coroutine.create(ClientPackets[packetId])
+        local success, err1, err2 = pcall(coroutine.resume, co, data, connection)
+        if not success or not err1 then
+            local err = not success and err1 or err2
+            print(
+                "Error handling packet id " ..
+                tostring(packetId) .. " from connection " .. tostring(connection.id) .. ":", err)
+            print(debug.traceback(co))
+        end
+    end
+    return true
+end
+
+function module.HandleConnect(server)
+    return function(err)
+        assert(not err, err)
+        local socket = uv.new_tcp()
+        server:accept(socket)
+        local buffer = {}
+        local closed = false
+        local function read_buffer(bytes, leaveData)
+            local data = table.concat(buffer)
+            local size = #data
+            bytes = bytes or size
+        
+            while bytes > size do
+                timer.sleep(2)
+                data = table.concat(buffer)
+                size = #data
+            end
+        
+            if bytes == size and not leaveData then
+                buffer = {}
+            elseif not leaveData then
+                buffer = {data:sub(bytes + 1)}
+            end
+        
+            return data:sub(1, bytes)
+        end
+        
+
+        socket:read_start(function(err, data)
+            if err or not data then
+                closed = true
+            end
+            if err then return end
+            if not data then
+                socket:shutdown()
+                socket:close()
+                return
+            end
+            if #data > 0 then
+                table.insert(buffer, data)
+            end
+        end)
+        local function write(data)
+            return socket:write(data)
+        end
+        local id
+        do
+            local i = 1
+            while connections[i] and i <= 1024 do
+                i = i + 1
+            end
+            if i > 1024 then
+                print("Too many connections")
+                socket:close()
+                return
+            end
+            id = i
+        end
+
+        ---@class Connection
+        ---@field read fun():string?
+        ---@field write fun(data:string): success:boolean, err:string?
+        ---@field dsocket unknown
+        ---@field id number
+        ---@field routine thread
+        ---@field player Player?
+        ---@field protocol Protocol?
+        ---@field cooldowns table<string, {last:number,amount:number, dropped:number}>
+        local connection = {
+            read = function()
+                return read_buffer()
+            end,
+            write = write,
+            dsocket = socket,
+            id = id,
+            cooldowns = {
+                setblock = { last = 0, amount = 0, dropped = 0 },
+                packet = { last = 0, amount = 0, dropped = 0 },
+            },
+        }
+        
+        local co = coroutine.create(function()
+            local loggedIn = false
+            local identified = false
+            local lastPingSuccess = true
+            local dsocket = connection.dsocket
+            local lastPing = os.time()
+            local loginTime = os.time()
+            while not closed do
+                
+                local data = read_buffer(1)
+                local packetId = string.unpack(">B", data)
+                if packetId == 0x00 and not identified then
+                    local protocolByte = read_buffer(1, true)
+                    local protocolVersion = string.unpack(">B", protocolByte)
+
+                    if protocolVersion > 7 then -- It's probably the username
+                        protocolVersion = 1
+                    end
+                    local protocol = protocols[protocolVersion]
+                    if not protocol then
+                        pcall(function()
+                            -- Should work with most protocols
+                            protocols[7].ServerPackets.DisconnectPlayer(connection,
+                                string.sub("Unsupported protocol version: " .. protocolVersion, 1, 64))
+                        end)
+                        break
+                    end
+                    connection.protocol = protocol
+                    identified = true
+                end
+
+                if not ClientPackets[packetId] then
+                    print("Unknown packet received:", packetId)
+                else
+                    data = data..read_buffer(connection.protocol.PacketSizes[packetId]-1)
+                    if not handlePacket(data, packetId, connection.cooldowns.packet, connection) then
+                        break
+                    end
+                end
+                if os.time() - lastPing > 0 then
+                    local err
+                    lastPingSuccess, err = ServerPackets.Ping(connection)
+                    if not lastPingSuccess then
+                        print("Error sending ping to client: " .. (err and err or "Unknown error"))
+                        pcall(dsocket.close, dsocket) -- There isn't much I can do if this fails
+                        break
+                    end
+                end
+                loggedIn = connection.player and true or false
+                if os.time() - loginTime > 10 and not loggedIn then
+                    print("Client took too long to login")
+                    pcall(protocols[7].ServerPackets.DisconnectPlayer, connection, "Login timeout")
+                    pcall(dsocket.close, dsocket)
+                    break
+                end
+                timer.sleep(2)
+            end
+            if connection.player then
+                connection.player:Remove()
+            end
+            connections[id] = nil
+        end)
+        connection.routine = co
+        connections[id] = connection
+        pcall(coroutine.resume,co)
+    end
+end
+
+
+--[[
 ---Handles a new connection
 ---@param server unknown
 ---@param read fun():string?
@@ -202,6 +387,7 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
         end
         id = i
     end
+    
     print("Client connected with id " .. id)
     local lastPing = os.time()
     local loginTime = os.time()
@@ -229,47 +415,17 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     }
     local cooldown = connection.cooldowns.packet
     connections[id] = connection
+    local firstPacket = true
     local connectionroutine = coroutine.create(function()
-        local lastPingSuccess = true
         local loggedIn = false
+        local lastPingSuccess = true
+
         while true do
             timer.sleep(1)
             local data = read()
             if data and #data > 0 then
-                local time = os.clock()
-                local limited = false
-                if time - cooldown.last < 0.001 then
-                    cooldown.amount = cooldown.amount + 1
-                    if cooldown.amount > 15 then
-                        cooldown.dropped = cooldown.dropped + 1
-                        print("Dropped packet from connection " .. tostring(id) .. ": Rate limit exceeded")
-                        limited = true
-                    end
-                    if cooldown.dropped > 30 then
-                        print("Removing connection " .. tostring(id) .. " due to rate limit")
-                        pcall(dsocket.close, dsocket)
-                        break
-                    end
-                else
-                    cooldown.last = time
-                    cooldown.amount = 0
-                    cooldown.dropped = 0
-                end
-                if not limited then
-                    local id = string.unpack(">B", data:sub(1, 1))
-                    if ClientPackets[id] then
-                        local co = coroutine.create(ClientPackets[id])
-                        local success, err1, err2 = pcall(coroutine.resume, co, data, connection)
-                        if not success then
-                            local err = not success and err1 or err2
-                            print(
-                            "Error handling packet id " ..
-                            tostring(id) .. " from connection " .. tostring(connection.id) .. ":", err)
-                            print(debug.traceback(co))
-                        end
-                    else
-                        print("Unknown packet received:", id)
-                    end
+                if not handlePacket(data, cooldown, connection) then
+                    break
                 end
             elseif data == nil or not lastPingSuccess then
                 print("Client lost connection")
@@ -299,6 +455,6 @@ function module:HandleConnect(server, read, write, dsocket, updateDecoder, updat
     end)
     coroutine.resume(connectionroutine)
     connection.routine = connectionroutine
-end
+end]]
 
 return module

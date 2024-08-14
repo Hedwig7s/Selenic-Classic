@@ -50,3 +50,4 @@
 ---@field public ServerPackets ServerPackets
 ---@field public ClientPackets ClientPackets
 ---@field public Version number
+---@field public PacketSizes { [0]: number, [5]: number, [8]: number, [13]: number } @Size of each packet type
