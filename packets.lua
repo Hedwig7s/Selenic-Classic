@@ -227,7 +227,7 @@ function module.HandleConnect(server)
             local size = #data
             bytes = bytes or size
         
-            while bytes > size do
+            while bytes > size and not closed do
                 timer.sleep(2)
                 data = table.concat(buffer)
                 size = #data
@@ -245,6 +245,7 @@ function module.HandleConnect(server)
 
         socket:read_start(function(err, data)
             if err or not data then
+                print("Client disconnected")
                 closed = true
             end
             if err then return end
@@ -306,6 +307,7 @@ function module.HandleConnect(server)
             while not closed do
                 
                 local data = read_buffer(1)
+                if closed then break end
                 local packetId = string.unpack(">B", data)
                 if packetId == 0x00 and not identified then
                     local protocolByte = read_buffer(1, true)
@@ -356,7 +358,7 @@ function module.HandleConnect(server)
             if connection.player then
                 connection.player:Remove()
             end
-            connections[id] = nil
+            connections[connection.id] = nil
         end)
         connection.routine = co
         connections[id] = connection
