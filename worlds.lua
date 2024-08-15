@@ -1,3 +1,25 @@
+--[[
+WORLD FORMAT:
+Header:
+    - Integer 4 bytes: World version (yes I know the size is a bit absurd)
+    - Short: Size X
+    - Short: Size Y
+    - Short: Size Z
+    - Short: Spawn X
+    - Short: Spawn Y
+    - Short: Spawn Z
+    - Byte: Spawn Yaw
+    - Byte: Spawn Pitch
+
+Block data:
+    - Byte: Block ID
+    - Integer 4 bytes: Count
+    - Repeat until end of file
+The block data is compressed using zlib with default window size and a compression level of 5.
+]]
+
+
+
 ---@class WorldsModule
 local module = {}
 local fs = require("fs")
@@ -6,7 +28,7 @@ local zlib = require("zlib")
 local packets
 require("compat53")
 
-local WORLD_VERSION = 2 -- Update for any breaking changes
+local WORLD_VERSION = 3 -- Update for any breaking changes
 
 ---@type table<string,World> 
 module.loadedWorlds = {}
@@ -103,6 +125,7 @@ module.replacements = {
     }
 }
 
+
 ---Gets internal block name from id
 ---@param id BlockIDs
 ---@return string
@@ -171,18 +194,20 @@ function World:save()
     local lastBlock = -1
     local count = 0
     print("Creating block data")
+    local blockData = {}
     for i = 1, self.size.x*self.size.z*self.size.y+1 do
         local block = self.blocks[i] or module.BLOCK_IDS.AIR
         if block == lastBlock then
             count = count + 1
         else
             if count > 0 then
-                data = data .. string.pack("<BI4",lastBlock,count)
+                table.insert(blockData, string.pack("<BI4",lastBlock,count))
             end
             lastBlock = block
             count = 1
         end
     end
+    data = data .. zlib.deflate(5)(table.concat(blockData), "finish")
     if not fs.existsSync("./worlds") then
         fs.mkdirSync("./worlds")
     end
@@ -258,16 +283,25 @@ end
 function module:load(name)
     local data = fs.readFileSync("./worlds/"..name..".hworld")
     local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("<I4HHHHHHBB",data:sub(1, 18))
+    local size = {x = sizeX, y = sizeY, z = sizeZ}
     local blocks = {}
-    data = data:sub(19)
-    for i = 1, #data, 5 do 
-        local block, count = string.unpack("<BI4",data:sub(i, i+4))
+    local blockData
+    if version < 3 then
+        blockData = data:sub(19)
+    else
+        blockData = zlib.inflate()(data:sub(19), "finish")
+    end
+    for i = 1, #blockData, 5 do 
+        local block, count = string.unpack("<BI4",blockData:sub(i, i+4))
         for _ = 1, count do
             table.insert(blocks, block)
         end
         
     end
-    return World.new(name, {x = sizeX, y = sizeY, z = sizeZ}, {x = spawnX, y = spawnY, z = spawnZ, yaw = spawnYaw, pitch = spawnPitch}, blocks)
+
+    local world = World.new(name, size, {x = spawnX, y = spawnY, z = spawnZ, yaw = spawnYaw, pitch = spawnPitch}, blocks)
+    world:save()
+    return world
 end
 
 ---Loads a world from a file, or creates a new one if it doesn't exist
