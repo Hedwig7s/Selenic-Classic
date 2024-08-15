@@ -66,12 +66,7 @@ function module.baseMovementPacket(connection, id, x, y, z, yaw, pitch, dataProv
     end
     asserts.assertId(id)
     if x then
-        asserts.assertCoordinates(x, y, z)
         x, y, z = module.toFixedPoint(x, y, z)
-    end
-    if yaw then
-        asserts.angleAssert(yaw, "Invalid yaw")
-        asserts.angleAssert(pitch, "Invalid pitch")
     end
 
     return connection.write(dataProvider(id, x, y, z, yaw, pitch))
@@ -216,7 +211,7 @@ function module.formatChatMessage(message, id)
 
     return id, messages
 end
-    
+
 
 
 function module.handleIncomingChat(connection, id, message)
