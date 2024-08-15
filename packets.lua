@@ -187,7 +187,7 @@ local function handlePacket(data, packetId, cooldown, connection)
     local limited = false
     if time - cooldown.last < 0.05 then
         cooldown.amount = cooldown.amount + 1
-        if cooldown.amount > 100 then
+        if cooldown.amount > 150 then
             cooldown.dropped = cooldown.dropped + 1
             print("Dropped packet from connection " .. tostring(id) .. ": Rate limit exceeded")
             limited = true

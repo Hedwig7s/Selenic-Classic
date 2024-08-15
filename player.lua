@@ -104,7 +104,6 @@ end
 ---@param skipReplication boolean?
 ---@param playerMovement boolean?
 function Player:MoveTo(position, playerMovement, skipReplication)
-    asserts.assertCoordinates(position.x, position.y, position.z, position.yaw, position.pitch)
     skipReplication = skipReplication or false
     playerMovement = playerMovement or false
     local oldpos = util.deepCopy(self.position)

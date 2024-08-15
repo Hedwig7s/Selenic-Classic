@@ -298,6 +298,8 @@ local function positionAndOrientation(data, connection)
     local _, id, x, y, z, yaw, pitch = string.unpack(">BbhhhBB",data)
     x, y, z = fromFixedPoint(x, y, z)
     assert(id == -1, "Invalid id")
+    asserts.angleAssert(yaw, "Invalid yaw")
+    asserts.angleAssert(pitch, "Invalid pitch")
     local player = connection.player
     if not player then
         print("Player not found")
