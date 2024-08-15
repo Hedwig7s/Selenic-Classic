@@ -1,12 +1,12 @@
 local module = {}
 local util = require("../util")
-local packets = require("../packets")
 local asserts = require("../asserts")
 local config = require("../config")
 local playerModule = require("../player")
 local server = require("../server")
 local md5 = require("md5")
 local worlds = require("../worlds")
+local commands = require("../commands")
 
 ---Formats string to 64 characters with padding
 ---@param str string
@@ -129,39 +129,125 @@ function module.convertPositionUpdate(connection,id,...)
 end
 
 function module.formatChatMessage(message, id)
-    id = (not id or id < 0 and 127) or id
-    if id == 127 then
-        message = "&e" .. message
-    end
     asserts.assertId(id)
-    if message:sub(-1,-1) == "&" then
-        message = message:sub(1,-2)
-    end
-    message = module.formatString(message)
-    local messages = {}
+    id = id and id >= 0 and id or 127
+    message = message:gsub("&$", "")
 
-    local current = {}
-    local color = ""
-    local i = 1
-    while i <= #message do
+    -- Set the character limit as a variable
+    local charLimit = 61
+
+    local messages, current, word = {}, {}, {}
+    local color, newline = "", false
+
+    -- Split a long word into segments that fit within the character limit
+    local function splitLongWord(word)
+        local segments = {}
+        while #word > charLimit do
+            table.insert(segments, word:sub(1, charLimit))
+            word = word:sub(charLimit + 1)
+        end
+        if #word > 0 then
+            table.insert(segments, word)
+        end
+        return segments
+    end
+
+    local function checkSize()
+        if #current > charLimit then
+            table.insert(messages, module.formatString(table.concat(current)))
+            current = {">", " ", color}
+        end
+    end
+
+    local function addWord()
+        if #word > charLimit then
+            -- If the word is too long, split it into smaller segments
+            local segments = splitLongWord(table.concat(word))
+            for i, segment in ipairs(segments) do
+                if #current + #segment > charLimit then
+                    table.insert(messages, module.formatString(table.concat(current)))
+                    current = {">", " ", color}
+                end
+                table.insert(current, segment)
+                if i < #segments then
+                    table.insert(messages, module.formatString(table.concat(current)))
+                    current = {">", " ", color}
+                end
+            end
+        else
+            checkSize()
+            for _, v in ipairs(word) do
+                table.insert(current, v)
+            end
+            if #current < charLimit then table.insert(current, " ") end
+        end
+        word = {}
+    end
+
+    if id == 127 and message:sub(1,1) ~= "&" then
+        table.insert(current, "&")
+        table.insert(current, "e")
+    end
+
+    for i = 1, #message do
         local char = message:sub(i,i)
-        if char == "&" and message:sub(i+1,i+1) ~= "" and message:sub(i+1,i+1) ~= " " then
+        if char == "&" and message:sub(i+1,i+1):match("%S") then
             color = message:sub(i,i+1)
         end
-        if #current == 0 and i ~= 1 then
-            current = {">".." "..color}
-        end
-        table.insert(current, char)
-        if #current >= 64 then
+        if char == "\n" then
+            addWord()
             table.insert(messages, module.formatString(table.concat(current)))
-            current = {}
+            current, newline = {}, true
+        else
+            if char == " " then
+                addWord()
+            else
+                table.insert(word, char)
+            end
         end
-        i = i + 1
+    end
+
+    if #word > 0 then 
+        addWord() 
     end
     if #current > 0 then
         table.insert(messages, module.formatString(table.concat(current)))
     end
-    return messages
+
+    return id, messages
+end
+    
+
+
+function module.handleIncomingChat(connection, id, message)
+    message = module.unformatString(message)
+    local player = connection.player
+    if not player then
+        print("Player not found")
+        return
+    end
+    if message:sub(1,1) == "/" then
+        local success, err = commands:ParseCommand(player, message:sub(2))
+        if not success and err then
+            player:SendMessage("&c"..err)
+        end
+        return
+    end
+
+    local cooldown = connection.cooldowns.chat
+    local time = os.clock()
+    if time - cooldown.last < 0.5 then
+        cooldown.amount = cooldown.amount + 1
+        if cooldown.amount > 5 then
+            cooldown.dropped = cooldown.dropped + 1
+            error("Too many chat messages")
+        end
+    else
+        cooldown.last = time
+        cooldown.amount = math.max(cooldown.amount - 2, 0)
+        cooldown.dropped = 0
+    end
+    player:Chat(message)
 end
 
 return module

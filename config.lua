@@ -40,6 +40,10 @@ function module:loadConfig()
     end
     config = util.merge(config, defaultConfig)
     initialised = true
+    if config.server.maxPlayers > 126 then
+        config.server.maxPlayers = 126
+        print("Max players cannot exceed 126, setting to 126")
+    end
     module:saveConfig()
 end
 
