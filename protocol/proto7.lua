@@ -189,11 +189,12 @@ end
 ---Sends a message to client(s)
 ---@param message string
 ---@param connection Connection
+---@param id number
 ---@return boolean?, string?
-local function serverMessage(connection,id, message)
-    local messages = packetUtil.formatChatMessage(message,id)
+local function serverMessage(connection, id, message)
+    local id, messages = packetUtil.formatChatMessage(message,id)
     for _,msg in pairs(messages) do
-        local packet = string.pack(">Bbc64",0x0D, id or 127,msg)
+        local packet = string.pack(">Bbc64",0x0D, id,msg)
         connection.write(packet)
     end
     return true
@@ -251,8 +252,9 @@ end
 function clientSetBlock(data, connection) 
     local _, x, y, z, mode, block = string.unpack(">BHHHBB",data)
     local world
+    local player
     local success, err = pcall(function()
-        local player = connection.player
+        player = connection.player
         if not player then
             error("Player not found")
         end
@@ -266,9 +268,9 @@ function clientSetBlock(data, connection)
         assert(x < world.size.x and y < world.size.y and z < world.size.z and x >= 0 and y >= 0 and z >= 0, "Invalid coordinates")
         local cooldown = connection.cooldowns.setblock
         local time = os.clock()
-        if time - cooldown.last < 0.015 then
+        if time - cooldown.last < 0.01 then
             cooldown.amount = cooldown.amount + 1
-            if cooldown.amount > 10 then
+            if cooldown.amount > 35 then
                 cooldown.dropped = cooldown.dropped + 1
                 error("Too many blocks")
             end
@@ -280,7 +282,7 @@ function clientSetBlock(data, connection)
     end)
     if not success then
         print("Error handling SetBlock packet:", err)
-        ServerPackets.SetBlock(x,y,z,world:getBlock(x,y,z), connection)
+        connection.protocol.ServerPackets.SetBlock(connection, player and player.id or -1, x,y,z,world:getBlock(x,y,z))
         return
     end
     if mode == 1 and worlds.getBlockName(block) then
@@ -296,7 +298,6 @@ local function positionAndOrientation(data, connection)
     local _, id, x, y, z, yaw, pitch = string.unpack(">BbhhhBB",data)
     x, y, z = fromFixedPoint(x, y, z)
     assert(id == -1, "Invalid id")
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     local player = connection.player
     if not player then
         print("Player not found")
@@ -309,17 +310,7 @@ end
 ---@type ClientPacket
 local function clientMessage(data, connection)
     local _, id, message = string.unpack(">Bbc64",data)
-    if id ~= -1 then
-        print("Invalid message id")
-        return
-    end
-    message = unformatString(message)
-    local player = connection.player
-    if not player then
-        print("Player not found")
-        return
-    end
-    player:Chat(message)
+    packetUtil.handleIncomingChat(connection, id, message)
 end
 
 ---@type ClientPackets

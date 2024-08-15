@@ -31,6 +31,7 @@ end
 ---@field removed boolean
 ---@field movements number
 ---@field protocol Protocol
+---@field CPE table<string, any>
 local Player = {}
 Player.__index = Player
 
@@ -88,6 +89,14 @@ function Player:LoadWorld(world)
         end
     end
     packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." joined this world")
+end
+
+---Sends a message to the player
+---@param message string
+function Player:SendMessage(message, id)
+    id = id or -2
+    local packets = lazyLoad("./packets")
+    packets.ServerPackets.Message(self.connection,id,criterias.matchWorld,message)
 end
 
 ---Moves the player to a specified position
@@ -165,6 +174,7 @@ function Player:Chat(message)
         return "&" .. char
     end)
     message = self.name .. ": " .. message
+    print(message)
     packets.ServerPackets.Message(nil,self.id,criterias.matchWorld,message)
 end
 
@@ -219,6 +229,7 @@ function Player.new(connection, name, protocol)
     self.removed = false
     self.movements = 0
     self.protocol = protocol
+    self.CPE = {}
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
     if id > 255 or #module:GetPlayers() >= config:getValue("server.maxPlayers") then

@@ -19,7 +19,8 @@ local protocols = {}
 setmetatable(protocols, {
     __index = function(self, key)
         if rawget(self, key) == nil then
-            rawset(self, key, require("./protocol/proto" .. key) or false)
+            local success, proto = pcall(require,"./protocol/proto" .. key)
+            rawset(self, key, success and proto or false)
         end
         if rawget(self, key) == false then
             return nil
@@ -32,7 +33,7 @@ setmetatable(protocols, {
 
 ---Gets protocol from connection
 ---@param connection Connection
----@returns Protocol
+---@return Protocol
 local function getProtocol(connection)
     if not connection.player then
         print("No player associated with connection")
@@ -44,7 +45,7 @@ end
 
 ---Basic wrapper for clientbound packets
 ---@param name string
----@returns fun(connection: Connection, ...)
+---@return fun(connection: Connection, ...)
 local function basicClientboundWrapper(name)
     return function(connection, ...)
         local protocol = getProtocol(connection)
@@ -145,7 +146,7 @@ module.ServerPackets = ServerPackets
 
 ---Basic wrapper for serverbound packets
 ---@param id number
----@returns fun(data: string, connection: Connection)
+---@return fun(data: string, connection: Connection)
 local function basicServerboundWrapper(id)
     return function(data, connection)
         local protocol = getProtocol(connection)
@@ -184,14 +185,14 @@ local function handlePacket(data, packetId, cooldown, connection)
     local id = connection.id
     local time = os.clock()
     local limited = false
-    if time - cooldown.last < 0.001 then
+    if time - cooldown.last < 0.05 then
         cooldown.amount = cooldown.amount + 1
-        if cooldown.amount > 15 then
+        if cooldown.amount > 100 then
             cooldown.dropped = cooldown.dropped + 1
             print("Dropped packet from connection " .. tostring(id) .. ": Rate limit exceeded")
             limited = true
         end
-        if cooldown.dropped > 30 then
+        if cooldown.dropped > 200 then
             print("Removing connection " .. tostring(id) .. " due to rate limit")
             pcall(dsocket.close, dsocket)
             return false
@@ -274,7 +275,7 @@ function module.HandleConnect(server)
             end
             id = i
         end
-
+        print("Client connected with id "..id)
         ---@class Connection
         ---@field read fun():string?
         ---@field write fun(data:string): success:boolean, err:string?
@@ -294,6 +295,7 @@ function module.HandleConnect(server)
             cooldowns = {
                 setblock = { last = 0, amount = 0, dropped = 0 },
                 packet = { last = 0, amount = 0, dropped = 0 },
+                chat = { last = 0, amount = 0, dropped = 0 },
             },
         }
         

@@ -37,7 +37,8 @@ Run `luvit main.lua`
 - [x] Chat
 - [x] Join/Leave messages
 - [ ] Global Chat/Join/Leave messages
-- [ ] Commands
+- [x] Commands
+- [ ] Salt caching
 - [ ] Physics
 - [ ] Permissions/Ranks
 - [x] Config creation
