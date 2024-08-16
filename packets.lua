@@ -37,7 +37,6 @@ setmetatable(protocols, {
 local function getProtocol(connection)
     if not connection.player then
         print("No player associated with connection")
-        protocols[7].ServerPackets.DisconnectPlayer(connection, "Player was not created successfully")
         return
     end
     return connection.player.protocol
