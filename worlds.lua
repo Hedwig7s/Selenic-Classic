@@ -93,7 +93,7 @@ module.replacements = {
         MAX = BlockIDs.LEAVES,
     },
     [6] = {
-        MAX = BlockIDs.WHITE,
+        MAX = BlockIDs.GOLD,
     },
     [5] = {
         MAX = BlockIDs.GLASS,

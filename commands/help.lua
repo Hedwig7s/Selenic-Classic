@@ -34,11 +34,12 @@ local function execute(player, args)
         end
     else
         if not pageList then
-            local helpList = {}
+            local helpList = {"!"}
             for _, value in pairs(commands.commands) do
                 table.insert(helpList, "&a" .. value.NAME .. ": &f" .. value.DESCRIPTION)
             end
             table.sort(helpList)
+            helpList[1] = "&bCommands:" -- ! should always be first
             table.insert(helpList, "&bAliases:")
             local aliases = {}
             for _, value in pairs(commands.commands) do
@@ -59,7 +60,6 @@ local function execute(player, args)
                 table.insert(pageList[page], v)
             end
         end
-        player:SendMessage("&9Commands: ")
         if pageList[page] then
             for _, value in pairs(pageList[page]) do
                 player:SendMessage(value)
