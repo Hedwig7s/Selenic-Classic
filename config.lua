@@ -13,7 +13,6 @@ local defaultConfig = {
         maxPlayers = 20,
         serverName = "Selenic Server",
         motd = "Welcome!",
-        levelName = "default",
         verifyNames = true,
         localBypassVerification = false,
         public = true,

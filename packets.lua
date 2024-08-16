@@ -340,7 +340,7 @@ function module.HandleConnect(server)
                 else
                     print("No protocol")
                 end
-                if os.time() - lastPing > 0 then
+                if os.time() - lastPing > 4 then
                     local err
                     lastPingSuccess, err = ServerPackets.Ping(connection)
                     if not lastPingSuccess then

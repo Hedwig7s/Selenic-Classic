@@ -31,24 +31,27 @@ Run `luvit main.lua`
 - [x] Player movement
 - [x] Relative player movement
 - [x] Player cleanup
+- [ ] Console player
+- [ ] Console input
+- [ ] Translation file
 - [x] Cooldowns
 - [x] Duplicate name blocking
-- [ ] Enforce max players
+- [x] Enforce max players
 - [x] Chat
 - [x] Join/Leave messages
 - [x] Global Chat/Join/Leave messages
 - [ ] Per-world configuration
 - [x] Commands
-- [ ] Salt caching
+- [x] Salt caching
 - [ ] Physics
 - [ ] Permissions/Ranks
 - [x] Config creation
 - [x] Config loading
 - [ ] Persistent player information (including bans)
-- [ ] Full config usage
+- [x] Full config usage
 - [ ] CPE
 - [x] Support all protocols (with toggles)
 - [ ] Web client
 - [x] Heartbeat
-- [ ] Name verification
+- [x] Name verification
 - [ ] Block history
