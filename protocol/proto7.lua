@@ -123,7 +123,6 @@ end
 ---@param connection Connection
 ---@param skipSelf boolean?
 local function setPositionAndOrientation(connection, id, x, y, z, yaw, pitch, skipSelf)
-    asserts.assertCoordinates(x,y,z,yaw,pitch)
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbhhhBB", 0x08, id2, x, y, z, yaw, pitch)
     end
@@ -141,8 +140,6 @@ end
 ---@param connection Connection
 local function positionAndOrientationUpdate(connection, id, x, y, z, yaw, pitch)
     asserts.assertFByte("Invalid coordinate", x, y, z)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">BbbbbBB", 0x09, id2, x, y, z, yaw, pitch)
     end
@@ -169,8 +166,6 @@ end
 ---@param pitch number
 ---@param connection Connection
 local function orientationUpdate(connection, id, yaw, pitch)
-    asserts.angleAssert(yaw, "Invalid yaw")
-    asserts.angleAssert(pitch, "Invalid pitch")
     local function getData(id2, _, _, _, yaw, pitch)
         return string.pack(">BbBB", 0x0B, id2, yaw, pitch)
     end
