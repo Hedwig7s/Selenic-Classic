@@ -332,11 +332,13 @@ function module.HandleConnect(server)
 
                 if not ClientPackets[packetId] then
                     print("Unknown packet received:", packetId)
-                else
+                elseif connection.protocol then
                     data = data..read_buffer(connection.protocol.PacketSizes[packetId]-1)
                     if not handlePacket(data, packetId, connection.cooldowns.packet, connection) then
                         break
                     end
+                else
+                    print("No protocol")
                 end
                 if os.time() - lastPing > 0 then
                     local err
