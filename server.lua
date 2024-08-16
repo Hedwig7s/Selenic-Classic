@@ -3,6 +3,7 @@ local module = {}
 
 local fs = require("fs")
 local util = require("./util")
+local timer = require("timer")
 
 local salt = ""
 for i=1, 32 do
@@ -42,9 +43,10 @@ if fs.existsSync("cachedSalt.txt") then
     end
 end
 writeSalt()
+timer.setInterval(60000, writeSalt)
 ---@class ServerInfo
 module.info = {
-    Version = "v0.5.3-alpha",
+    Version = "v0.5.4-alpha",
     Software = "Selenic Classic",
     Source = "https://github.com/Hedwig7s/Selenic-Classic",
     Salt = salt

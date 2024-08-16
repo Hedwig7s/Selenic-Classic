@@ -22,6 +22,7 @@ local defaultConfig = {
         defaultWorld = "world",
         defaultWorlds = {"world"},
         useRelativeMovement = false,
+        perWorldChat = false,
     },
     protocol = {
         enabled = {

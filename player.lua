@@ -31,6 +31,7 @@ end
 ---@field removed boolean
 ---@field movements number
 ---@field protocol Protocol
+---@field info table<string, any>
 ---@field CPE table<string, any>
 local Player = {}
 Player.__index = Player
@@ -173,8 +174,12 @@ function Player:Chat(message)
         return "&" .. char
     end)
     message = self.name .. ": " .. message
+    if self.info.perWorldChat then
+        message = "&7[WorldChat] &f" .. message
+    end
     print(message)
-    packets.ServerPackets.Message(nil,self.id,criterias.matchWorld,message)
+
+    packets.ServerPackets.Message(nil,self.id,self.info.perWorldChat and criterias.matchWorld or nil,message)
 end
 
 ---Despawns the player from the world
@@ -191,10 +196,12 @@ function Player:Despawn(player)
 end
 
 function Player:Remove()
+    local packets = lazyLoad("./packets")
     self:Despawn()
     players[self.id] = nil
     playersByName[self.name] = nil
     self.removed = true
+    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." left the server")
 end
 
 function Player:Kick(reason)
@@ -209,6 +216,7 @@ end
 ---@param protocol Protocol
 ---@return Player?, string?
 function Player.new(connection, name, protocol)
+    local packets = lazyLoad("./packets")
     if module:GetPlayerByName(name) then
         local err = "Player with name " .. name .. " already exists"
         print(err)
@@ -228,6 +236,9 @@ function Player.new(connection, name, protocol)
     self.removed = false
     self.movements = 0
     self.protocol = protocol
+    self.info = { -- To be replaced with saved info
+        perWorldChat = config:getValue("server.perWorldChat"),
+    }
     self.CPE = {}
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
@@ -238,6 +249,7 @@ function Player.new(connection, name, protocol)
     end
     self.id = id
     players[self.id] = self
+    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." joined the server!")
     return self
 end
 

@@ -52,7 +52,7 @@ local function execute(player, args)
             end
             pageList = {}
             for i,v in pairs(helpList) do
-                local page = math.floor(i/20)+1
+                local page = math.floor(i/10)+1
                 if not pageList[page] then
                     pageList[page] = {}
                 end
