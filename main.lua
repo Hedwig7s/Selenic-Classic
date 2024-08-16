@@ -9,11 +9,16 @@ local server
 function main()
     print("Loading config")
     config:loadIfUninitialised()
-    print("Loading world")
-    worlds:loadOrCreate(config:getValue("server.defaultWorld"))
+    print("Loading worlds")
+    local defaultWorld = config:getValue("server.defaultWorld")
+    for _, world in pairs(config:getValue("server.defaultWorlds")) do
+        if not (world == defaultWorld and worlds:loadOrCreate(world) or worlds:load(world)) then
+            print("WARNING: Failed to load world: " .. world)
+        end
+    end
     local autoSave = coroutine.wrap(function()
         while true do
-            timer.sleep(30000)
+            timer.sleep(20000)
             worlds:saveAll()
         end
     end)

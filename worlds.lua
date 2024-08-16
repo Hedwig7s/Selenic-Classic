@@ -279,9 +279,10 @@ end
 
 ---Loads a world from a file
 ---@param name string
----@return World
+---@return World?
 function module:load(name)
     local data = fs.readFileSync("./worlds/"..name..".hworld")
+    if not data then return nil end
     local version, sizeX, sizeY, sizeZ, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch = string.unpack("<I4HHHHHHBB",data:sub(1, 18))
     local size = {x = sizeX, y = sizeY, z = sizeZ}
     local blocks = {}
@@ -327,6 +328,7 @@ function module:loadOrCreate(name)
                 end
             end
         end
+        world:save()
         return world
     end
 end
@@ -334,7 +336,12 @@ end
 ---Saves all loaded worlds  
 function module:saveAll()
     for _, v in pairs(module.loadedWorlds) do
-        v:save()
+        local co = coroutine.create(v.save)
+        local success, err = coroutine.resume(co)
+        if not success then
+            print("Error saving world "..v.name..": "..err)
+            print(debug.traceback(co))
+        end
     end
 end
 

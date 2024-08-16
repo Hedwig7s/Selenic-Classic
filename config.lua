@@ -20,6 +20,7 @@ local defaultConfig = {
         heartbeat = true,
         heartbeatURL = "http://www.classicube.net/server/heartbeat/",
         defaultWorld = "world",
+        defaultWorlds = {"world"},
         useRelativeMovement = false,
     },
     protocol = {

@@ -1,4 +1,5 @@
 worlds/
+worldbackups/
 config.toml
 lit
 luvi
