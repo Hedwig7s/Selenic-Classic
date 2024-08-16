@@ -39,7 +39,11 @@ function module:ParseCommand(player, str)
         return false, "Unknown command: " .. command
     end
     -- TODO: Add selectors
-    return commandModule.execute(player, args)
+    local success, result, err = pcall(commandModule.execute,player, args)
+    if not success then
+        return false, "An error occurred while executing the command: " .. result
+    end
+    return result, err
 end
 
 return module

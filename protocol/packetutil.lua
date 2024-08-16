@@ -197,7 +197,7 @@ function module.formatChatMessage(message, id)
         end
         if char == "\n" then
             addWord()
-            table.insert(messages, module.formatString(table.concat(current)))
+            table.insert(messages, table.concat(current))
             current, newline = {}, true
         else
             if char == " " then
@@ -214,7 +214,9 @@ function module.formatChatMessage(message, id)
     if #current > 0 then
         table.insert(messages, module.formatString(table.concat(current)))
     end
-
+    for i, message in pairs(messages) do
+        messages[i] = module.formatString(message:gsub("^[/\\].*:%d+:", "")) -- Lets not dox ourselves, shall we? Note this is where the strings are padded
+    end
     return id, messages
 end
 

@@ -108,5 +108,12 @@ function module.readOnlyTable(t, recursive)
     return proxy
 end
 
+function module.stringToHex(str)
+    local hex = ""
+    for i = 1, #str do
+        hex = hex .. string.format("%02X ", str:sub(i, i):byte())
+    end
+    return hex
+end
 
 return module
