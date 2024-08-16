@@ -36,13 +36,15 @@ Run `luvit main.lua`
 - [ ] Enforce max players
 - [x] Chat
 - [x] Join/Leave messages
-- [ ] Global Chat/Join/Leave messages
+- [x] Global Chat/Join/Leave messages
+- [ ] Per-world configuration
 - [x] Commands
 - [ ] Salt caching
 - [ ] Physics
 - [ ] Permissions/Ranks
 - [x] Config creation
 - [x] Config loading
+- [ ] Persistent player information (including bans)
 - [ ] Full config usage
 - [ ] CPE
 - [x] Support all protocols (with toggles)

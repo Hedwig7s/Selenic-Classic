@@ -134,18 +134,16 @@ function module.formatChatMessage(message, id)
     id = id and id >= 0 and id or 127
     message = message:gsub("&$", "")
 
-    -- Set the character limit as a variable
-    local charLimit = 61
+    local wordLengthLimit = 61
 
     local messages, current, word = {}, {}, {}
     local color, newline = "", false
 
-    -- Split a long word into segments that fit within the character limit
     local function splitLongWord(word)
         local segments = {}
-        while #word > charLimit do
-            table.insert(segments, word:sub(1, charLimit))
-            word = word:sub(charLimit + 1)
+        while #word > wordLengthLimit do
+            table.insert(segments, word:sub(1, wordLengthLimit))
+            word = word:sub(wordLengthLimit + 1)
         end
         if #word > 0 then
             table.insert(segments, word)
@@ -153,34 +151,33 @@ function module.formatChatMessage(message, id)
         return segments
     end
 
-    local function checkSize()
-        if #current > charLimit then
+    local function checkSize(extra)
+        if #current >= 64 or (extra and #current+#extra>64) then
             table.insert(messages, module.formatString(table.concat(current)))
             current = {">", " ", color}
         end
     end
 
     local function addWord()
-        if #word > charLimit then
+        if #word > wordLengthLimit then
             -- If the word is too long, split it into smaller segments
             local segments = splitLongWord(table.concat(word))
             for i, segment in ipairs(segments) do
-                if #current + #segment > charLimit then
-                    table.insert(messages, module.formatString(table.concat(current)))
-                    current = {">", " ", color}
+                checkSize(segment)
+                for i = 1, #segment do
+                    table.insert(current, segment:sub(i,i))
                 end
-                table.insert(current, segment)
                 if i < #segments then
                     table.insert(messages, module.formatString(table.concat(current)))
                     current = {">", " ", color}
                 end
             end
         else
-            checkSize()
+            checkSize(word)
             for _, v in ipairs(word) do
                 table.insert(current, v)
             end
-            if #current < charLimit then table.insert(current, " ") end
+            if #current < 64 then table.insert(current, " ") end
         end
         word = {}
     end

@@ -83,7 +83,7 @@ local function multiPlayerWrapper(name, criteria, leaveId)
             return base(connection, unpack(data))
         end
         for _, connection in pairs(connections) do
-            if ((type(criteria) == "function" or criteria == true) and criteriaFunction and criteriaFunction(connection, id)) or not criteria then
+            if ((type(criteria) == "function" or criteria == true) and (criteriaFunction and criteriaFunction(connection, id) or not criteriaFunction)) or not criteria then
                 local d if connection.player and connection.player.id == id and not leaveId then 
                     d = selfData
                 else
