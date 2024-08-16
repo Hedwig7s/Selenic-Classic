@@ -201,7 +201,7 @@ function Player:Remove()
     players[self.id] = nil
     playersByName[self.name] = nil
     self.removed = true
-    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." left the server")
+    pcall(packets.ServerPackets.Message,nil,-2,nil,self.name.." left the server")
 end
 
 function Player:Kick(reason)
@@ -249,7 +249,6 @@ function Player.new(connection, name, protocol)
     end
     self.id = id
     players[self.id] = self
-    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." joined the server!")
     return self
 end
 

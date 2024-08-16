@@ -8,6 +8,14 @@ local md5 = require("md5")
 local worlds = require("../worlds")
 local commands = require("../commands")
 
+local lazyLoaded = {}
+local function lazyLoad(module)
+    if not lazyLoaded[module] then
+        lazyLoaded[module] = require(module)
+    end
+    return lazyLoaded[module]
+end
+
 ---Formats string to 64 characters with padding
 ---@param str string
 ---@return string
@@ -117,6 +125,7 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
         return
     end
     connection.player = player
+    lazyLoad("../packets").ServerPackets.Message(nil,-2,nil,player.name.." joined the server!")
     protocol.ServerPackets.ServerIdentification(connection)
     print("Identified")
     player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])
