@@ -3,7 +3,7 @@ local module = {}
 
 ---@class ServerInfo
 module.info = {
-    Version = "v0.5.0-alpha",
+    Version = "v0.5.1-alpha",
     Software = "Selenic Classic",
     Source = "https://github.com/Hedwig7s/Selenic-Classic",
     Salt = (function ()

@@ -81,7 +81,8 @@ end
 ---@param username string
 ---@param verificationKey string
 ---@param disconnect fun(connection: Connection, reason: string)
-function module.handleNewPlayer(connection, protocol, username, verificationKey, disconnect)
+function module.handleNewPlayer(connection, protocol, username, verificationKey, disconnect, CPE)
+    CPE = CPE or false
     assert(username and type(username) == "string" and #username <= 64, "Invalid username")
     assert(verificationKey and type(verificationKey) == "string" and #verificationKey <= 64, "Invalid verification key")
     username = module.unformatString(username)
@@ -89,7 +90,12 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
     print("Login packet received")
     print("Protocol version: " .. protocol.Version)
     print("Username: " .. username)
+    print("Supports CPE: " .. tostring(CPE))
     --print("Verification key: " .. verificationKey)
+    if config:getValue("protocol.enabled."..(CPE and "CPE" or protocol.Version)) == false then
+        protocol.ServerPackets.DisconnectPlayer(connection, "Protocol version " .. CPE and "CPE" or protocol.Version .. " is disabled")
+        return
+    end
     local localIPs = {
         "127.0.0.1",
         "localhost",

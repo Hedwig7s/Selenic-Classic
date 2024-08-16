@@ -45,7 +45,7 @@ Run `luvit main.lua`
 - [x] Config loading
 - [ ] Full config usage
 - [ ] CPE
-- [ ] Support all protocols (with toggles)
+- [x] Support all protocols (with toggles)
 - [ ] Web client
 - [x] Heartbeat
 - [ ] Name verification

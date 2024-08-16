@@ -244,7 +244,7 @@ module.ServerPackets = ServerPackets
 local function playerIdent(data, connection, protocol) 
     local _,_, username, verificationKey, CPE = string.unpack(">BBc64c64B",data)
     assert(CPE and type(CPE) == "number" and (CPE == 0x00 or CPE == 0x42), "Invalid CPE")
-    return packetUtil.handleNewPlayer(connection, protocol, username, verificationKey, disconnect)
+    return packetUtil.handleNewPlayer(connection, protocol, username, verificationKey, disconnect, CPE == 0x42)
 end
 
 ---Handles client trying to set block
