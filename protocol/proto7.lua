@@ -193,7 +193,6 @@ end
 ---@return boolean?, string?
 local function serverMessage(connection, id, message)
     local id, messages = packetUtil.formatChatMessage(message,id)
-    print(require("inspect")(messages))
     for _,msg in pairs(messages) do
         local packet = string.pack(">Bbc64",0x0D, id,msg)
         connection.write(packet)

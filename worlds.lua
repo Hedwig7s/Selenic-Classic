@@ -208,7 +208,10 @@ function World:save()
         end
     end
     data = data .. zlib.deflate(5)(table.concat(blockData), "finish")
-    if not fs.existsSync("./worlds") then
+    local statData = fs.statSync("./worlds")
+    if type(statData) == "table" and statData.type ~= "directory" then
+        error("worlds is not a directory")
+    elseif not fs.existsSync("./worlds") then
         fs.mkdirSync("./worlds")
     end
     print("Writing to file")
@@ -337,7 +340,7 @@ end
 function module:saveAll()
     for _, v in pairs(module.loadedWorlds) do
         local co = coroutine.create(v.save)
-        local success, err = coroutine.resume(co)
+        local success, err = coroutine.resume(co,v)
         if not success then
             print("Error saving world "..v.name..": "..err)
             print(debug.traceback(co))
