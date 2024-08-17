@@ -45,11 +45,13 @@ Run `luvit main.lua`
 - [x] Salt caching
 - [ ] Physics
 - [ ] Permissions/Ranks
+- [ ] Fancy names & Nicknames
 - [x] Config creation
 - [x] Config loading
 - [ ] Persistent player information (including bans)
 - [x] Full config usage
 - [ ] CPE
+- [ ] Better CPE extension mechanism
 - [x] Support all protocols (with toggles)
 - [ ] Web client
 - [x] Heartbeat

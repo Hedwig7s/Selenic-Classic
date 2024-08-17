@@ -27,7 +27,7 @@ local perPlayerPacket = packetUtil.perPlayerPacket
 ---@param connection Connection
 local function disconnect(connection, reason)
     assert(reason and type(reason) == "string" and #reason <= 64, "Invalid reason")
-    local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason)))
+    local success, err = connection.write(string.pack(">Bc64",0x0E,formatString(reason:gsub("[/\\].*:%d+:", ""))))
     pcall(connection.dsocket.close)
     return success, err
 end
@@ -327,6 +327,11 @@ module.PacketSizes = {
     [0x05] = 9,
     [0x08] = 10,
     [0x0D] = 66,
+    -- CPE
+    [0x10] = 67,
+    [0x11] = 69, -- Nice
 }
+
+module.ClientVersions = "c0.28-c0.30"
 
 return module
