@@ -9,7 +9,7 @@ local function execute(player, _)
     local message = "&bClients:\n"
     local players = playerModule:GetPlayers()
     for i,v in pairs(players) do
-        message = message.."&f"..v.name..": &e"..v.client.."\n"
+        message = message.."    &f"..v.name..": "..v.client.."\n"
     end
     message = message:gsub("\n$", "")
     player:SendMessage(message)
@@ -20,5 +20,6 @@ return {
     NAME = "clients",
     DESCRIPTION = "Shows clients of all players",
     USAGE = "/clients",
-    execute = execute
+    execute = execute,
+    ALIASES = {"pclient"}
 }

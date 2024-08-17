@@ -146,7 +146,7 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
 &aWelcome to %s!
 &aType /help for a list of commands
 &bServer Software: %s
-&aClient Software: &e%s]], config:getValue("server.serverName"), server.info.FancySoftware, player.client))
+&aClient Software: &f%s]], config:getValue("server.serverName"), server.info.FancySoftware, player.client))
     protocol.ServerPackets.ServerIdentification(connection)
     print("Identified")
     player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])

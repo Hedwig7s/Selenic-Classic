@@ -106,10 +106,10 @@ end
 ---Moves the player to a specified position
 ---@param position Position
 ---@param skipReplication boolean?
----@param playerMovement boolean?
-function Player:MoveTo(position, playerMovement, skipReplication)
+---@param clientMovement boolean?
+function Player:MoveTo(position, clientMovement, skipReplication)
     skipReplication = skipReplication or false
-    playerMovement = playerMovement or false
+    clientMovement = clientMovement or false
     local oldpos = util.deepCopy(self.position)
     self.position.x = position.x or self.position.x
     self.position.y = position.y or self.position.y
@@ -145,9 +145,9 @@ function Player:MoveTo(position, playerMovement, skipReplication)
         local positionChanged = difference.x ~= 0 or difference.y ~= 0 or difference.z ~= 0
         local overflowed = not cap(difference.x, difference.y, difference.z)
 
-        if not config:getValue("server.useRelativeMovement") or (not playerMovement or self.movements >= 100 or (overflowed and positionChanged)) then -- Teleportation, desync prevention or overflow
+        if not config:getValue("server.useRelativeMovement") or (not clientMovement or self.movements >= 100 or (overflowed and positionChanged)) then -- Teleportation, desync prevention or overflow
             packets.ServerPackets.SetPositionAndOrientation(nil,self.id, self.position.x, self.position.y, self.position.z,
-                self.position.yaw, self.position.pitch, playerMovement)
+                self.position.yaw, self.position.pitch, clientMovement)
             self.movements = 0
             return
         elseif orientationChanged and positionChanged then
