@@ -58,7 +58,7 @@ end
 
 ---Wrapper for packets that need to be sent to multiple clients
 ---@param name string
----@param criteria criteria @Function to determine if a connection should receive the packet
+---@param criteria criteria|boolean @Function to determine if a connection should receive the packet
 ---@param leaveId boolean? @Whether to leave the id unmodified rather than switch to -1 for matching player
 ---@return fun(connection: Connection, ...)
 local function multiPlayerWrapper(name, criteria, leaveId)
@@ -66,7 +66,14 @@ local function multiPlayerWrapper(name, criteria, leaveId)
     return function(connection, id, cr, ...)
         local args = {...}
         ---@type any|criteria
-        local criteriaFunction = type(criteria) == "function" and criteria or cr
+       local function criteriaFunction(connection, id)
+            if type(criteria) == "function" then
+                return criteria(connection, id)
+            elseif criteria == true then
+                return (cr and cr(connection, id)) or true
+            end
+            return true
+        end
         local function dataProvider(id)
             local data = { id }
             if not criteria or type(criteria) == "function" then
@@ -83,7 +90,7 @@ local function multiPlayerWrapper(name, criteria, leaveId)
             return base(connection, unpack(data))
         end
         for _, connection in pairs(connections) do
-            if ((type(criteria) == "function" or criteria == true) and (criteriaFunction and criteriaFunction(connection, id) or not criteriaFunction)) or not criteria then
+            if criteriaFunction(connection, id) then
                 local d if connection.player and connection.player.id == id and not leaveId then 
                     d = selfData
                 else

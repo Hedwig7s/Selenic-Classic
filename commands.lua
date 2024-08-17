@@ -3,24 +3,32 @@ local module = {}
 
 local util = require("./util")
 local fs = require("fs")
+local loader = require("loader")
 
 local commands = {}
 local aliases = {}
 
-for _, file in ipairs(fs.readdirSync("./commands/")) do
-    if file:sub(-4) == ".lua" then
-        local command = require("./commands/" .. file)
-        if command.NAME then
-            commands[command.NAME:lower()] = command
-            if command.ALIASES then
-                for _, alias in ipairs(command.ALIASES) do
-                    aliases[alias:lower()] = command
+function module:loadCommands(reload)
+
+    for _, file in ipairs(fs.readdirSync("./commands/")) do
+        if file:sub(-4) == ".lua" then
+            file = file:sub(1, -5)
+            if reload then
+                loader.unload("commands/" .. file)
+            end
+            local command = loader.load("commands/" .. file)
+            if command.NAME then
+                commands[command.NAME:lower()] = command
+                if command.ALIASES then
+                    for _, alias in ipairs(command.ALIASES) do
+                        aliases[alias:lower()] = command
+                    end
                 end
             end
         end
     end
 end
-
+module:loadCommands(false)
 module.commands = commands
 module.aliases = aliases
 
