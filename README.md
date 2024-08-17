@@ -50,8 +50,9 @@ Run `luvit main.lua`
 - [x] Config loading
 - [ ] Persistent player information (including bans)
 - [x] Full config usage
-- [ ] CPE
+- [ ] Full CPE
 - [ ] Better CPE extension mechanism
+- [ ] Logging system
 - [x] Support all protocols (with toggles)
 - [ ] Web client
 - [x] Heartbeat
