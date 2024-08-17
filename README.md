@@ -9,11 +9,14 @@ Clone the repository or download a release source zip
 Run `./install-dependencies.sh` (Linux) or `./install-dependencies.bat` (Windows) (expects LuaRocks to be in PATH)  
 Run `luvit main.lua`  
 
-## TODO
+## Features
+
 - [x] Basic TCP server
 - [x] Add framework to handle incoming packages based on ID
 - [x] Parse login packet
 - [x] Send server identification
+
+World:
 - [x] World module
 - [x] World creation
 - [x] World modification
@@ -21,9 +24,13 @@ Run `luvit main.lua`
 - [x] World loading
 - [x] World autosaving
 - [ ] Terrain generation
-- [x] Pack world into protocol-complient gzipped byte-array
+- [x] Pack world into protocol-compliant gzipped byte-array
 - [x] Level initialize, level data chunk and level finalize packets
 - [x] Split world data into 1024 byte chunks and send to client
+- [ ] Per-world configuration
+- [ ] Block history
+
+Player:
 - [x] Player module
 - [x] Player block modification
 - [ ] Block placement rules
@@ -33,28 +40,37 @@ Run `luvit main.lua`
 - [x] Player cleanup
 - [ ] Console player
 - [ ] Console input
-- [ ] Translation file
-- [x] Cooldowns
 - [x] Duplicate name blocking
 - [x] Enforce max players
+- [ ] Persistent player information (including bans)
+- [ ] Fancy names & Nicknames
+
+Messages:
 - [x] Chat
 - [x] Join/Leave messages
 - [x] Global Chat/Join/Leave messages
-- [ ] Per-world configuration
+- [ ] Translation file
+
+Server Management:
 - [x] Commands
-- [x] Salt caching
-- [ ] Physics
+- [x] Cooldowns
 - [ ] Permissions/Ranks
-- [ ] Fancy names & Nicknames
 - [x] Config creation
 - [x] Config loading
-- [ ] Persistent player information (including bans)
 - [x] Full config usage
-- [ ] Full CPE
-- [ ] Better CPE extension mechanism
 - [ ] Logging system
+
+Networking:
 - [x] Support all protocols (with toggles)
-- [ ] Web client
 - [x] Heartbeat
 - [x] Name verification
-- [ ] Block history
+- [x] Salt caching
+- [ ] Full CPE
+- [ ] Better CPE extension mechanism
+- [ ] Web client
+
+Advanced Features:
+- [ ] Physics
+
+Code Improvement:
+- [ ] Code cleanup
