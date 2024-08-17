@@ -41,7 +41,8 @@ function module:ParseCommand(player, str)
     -- TODO: Add selectors
     local success, result, err = pcall(commandModule.execute,player, args)
     if not success then
-        return false, "An error occurred while executing the command: " .. result
+        print("Error executing command: " .. result)
+        return false, "An error occurred while executing the command."
     end
     return result, err
 end

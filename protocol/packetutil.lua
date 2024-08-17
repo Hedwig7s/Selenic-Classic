@@ -5,6 +5,7 @@ local config = require("../config")
 local playerModule = require("../player")
 local server = require("../server")
 local md5 = require("md5")
+local timer = require("timer")
 local worlds = require("../worlds")
 local commands = require("../commands")
 
@@ -117,15 +118,35 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
         disconnect(connection, err)
         return
     end
-    print("Verification key accepted")
-    local player, err = playerModule.Player.new(connection, username, protocol)
+    local player, err = playerModule.Player.new(connection, username, protocol, CPE)
     if not player then
         print("Error creating player: "..err)
         disconnect(connection, err:sub(1,64))
         return
     end
     connection.player = player
-    lazyLoad("../packets").ServerPackets.Message(nil,-2,nil,player.name.." joined the server!")
+    local packets = lazyLoad("../packets")
+    if CPE then
+        packets.ExtensionPackets.ExtInfo(connection)
+        player.client = "Unknown CPE"
+        local waited = 0
+        while not player.identifiedCPE do
+            if waited > 1000 then
+                print("CPE identification timed out")
+                disconnect(connection, "CPE identification timed out")
+                return
+            end
+            waited = waited + 1
+            timer.sleep(1)
+        end
+    end
+    print("Client: "..player.client)
+    packets.ServerPackets.Message(nil,-2,nil,player.name.." joined the server!")
+    player:SendMessage(string.format([[
+&aWelcome to %s!
+&aType /help for a list of commands
+&bServer Software: %s
+&aClient Software: &e%s]], config:getValue("server.serverName"), server.info.FancySoftware, player.client))
     protocol.ServerPackets.ServerIdentification(connection)
     print("Identified")
     player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])
@@ -141,88 +162,66 @@ end
 function module.formatChatMessage(message, id)
     asserts.assertId(id)
     id = id and id >= 0 and id or 127
-    message = message:gsub("&$", "")
 
-    local wordLengthLimit = 61
+    local newline = false
 
-    local messages, current, word = {}, {}, {}
-    local color, newline = "", false
-
-    local function splitLongWord(word)
-        local segments = {}
-        while #word > wordLengthLimit do
-            table.insert(segments, word:sub(1, wordLengthLimit))
-            word = word:sub(wordLengthLimit + 1)
+    local messages, current, word, color = {}, {}, {}, nil
+    if id == 127 then
+        word = {"&", "e"}
+    end
+    local function addCurrent()
+        if #current > 0 then
+            table.insert(messages, module.formatString(table.concat(current):gsub("&$", "")))
         end
-        if #word > 0 then
-            table.insert(segments, word)
-        end
-        return segments
+        current = newline and {} or {">", " ", color}
+        newline = false
     end
 
-    local function checkSize(extra)
-        if #current >= 64 or (extra and #current+#extra>64) then
-            table.insert(messages, module.formatString(table.concat(current)))
-            current = {">", " ", color}
+    local function checkSize()
+        if #current + #word > 64 then
+            addCurrent()
         end
     end
-
     local function addWord()
-        if #word > wordLengthLimit then
-            -- If the word is too long, split it into smaller segments
-            local segments = splitLongWord(table.concat(word))
-            for i, segment in ipairs(segments) do
-                checkSize(segment)
-                for i = 1, #segment do
-                    table.insert(current, segment:sub(i,i))
-                end
-                if i < #segments then
-                    table.insert(messages, module.formatString(table.concat(current)))
-                    current = {">", " ", color}
-                end
-            end
-        else
-            checkSize(word)
-            for _, v in ipairs(word) do
-                table.insert(current, v)
-            end
-            if #current < 64 then table.insert(current, " ") end
+        checkSize()
+        for _, c in pairs(word) do
+            table.insert(current, c)
+        end
+        if #current < 64 then
+            table.insert(current, " ")
         end
         word = {}
     end
 
-    if id == 127 and message:sub(1,1) ~= "&" then
-        table.insert(current, "&")
-        table.insert(current, "e")
-    end
-
     for i = 1, #message do
         local char = message:sub(i,i)
-        if char == "&" and message:sub(i+1,i+1):match("%S") then
-            color = message:sub(i,i+1)
-        end
-        if char == "\n" then
-            addWord()
-            table.insert(messages, table.concat(current))
-            current, newline = {}, true
-        else
-            if char == " " then
+        if #word >= 61 then
+            local cached = table.concat(word)
+            for i = 1, #cached, 61 do
+                word = {}
+                for j = 1, 61 do
+                    table.insert(word, cached:sub(i+j,i+j))
+                end
                 addWord()
-            else
-                table.insert(word, char)
             end
         end
+        if char == "&" and i < #message and message:sub(i+1,i+1):match("[%a%d]") then
+            color = "&"..message:sub(i+1,i+1)
+        end
+        if char == " " then
+            addWord()
+        elseif char == "\n" then
+            addWord()
+            newline = true
+            addCurrent()
+            current = {}
+        else
+            table.insert(word, char)
+        end
     end
+    addWord()
+    addCurrent()
 
-    if #word > 0 then 
-        addWord() 
-    end
-    if #current > 0 then
-        table.insert(messages, module.formatString(table.concat(current)))
-    end
-    for i, message in pairs(messages) do
-        messages[i] = module.formatString(message:gsub("^[/\\].*:%d+:", "")) -- Lets not dox ourselves, shall we? Note this is where the strings are padded
-    end
     return id, messages
 end
 

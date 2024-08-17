@@ -12,8 +12,9 @@ local function execute(player, _)
 &aServer Name: &f%s
 &bServer Software: &9%s
 &eServer Version: &a%s
-&5Server Source: &d%s]]
-    player:SendMessage(message:format(config:getValue("server.serverName"), server.info.Software, server.info.Version, server.info.Source))
+&5Server Source: &d%s
+&cAuthor: &a%s]]
+    player:SendMessage(message:format(config:getValue("server.serverName"), server.info.Software, server.info.Version, server.info.Source, server.info.Author))
     return true
 end
 

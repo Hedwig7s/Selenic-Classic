@@ -17,4 +17,6 @@ module.Version = 6
 
 module.PacketSizes = proto7.PacketSizes
 
+module.ClientVersions = "c0.0.20a-c0.0.23a"
+
 return module

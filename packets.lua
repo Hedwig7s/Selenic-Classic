@@ -7,6 +7,7 @@ local playerModule = require("./player")
 local worlds = require("./worlds")
 local criterias = require("./criterias")
 local uv = require("uv")
+local CPE = require("./protocol/CPE")
 
 require("compat53")
 
@@ -140,12 +141,13 @@ local ServerPackets = {
     DisconnectPlayer = basicClientboundWrapper("DisconnectPlayer"),
 }
 module.ServerPackets = ServerPackets
+module.ExtensionPackets = CPE.ServerPackets
 
 --------------------------------SERVERBOUND PACKETS--------------------------------
 
 ---Basic wrapper for serverbound packets
 ---@param id number
----@return fun(data: string, connection: Connection)
+---@return fun(data: string, connection: Connection): fun(data:string, connection:Connection): boolean
 local function basicServerboundWrapper(id)
     return function(data, connection)
         local protocol = getProtocol(connection)
@@ -153,6 +155,15 @@ local function basicServerboundWrapper(id)
             return false
         end
         return protocol.ClientPackets[id](data, connection)
+    end
+end
+
+---Wrapper for CPE packets
+---@param id number
+---@return fun(data: string, connection: Connection)
+local function extensionWrapper(id)
+    return function(data, connection)
+        return CPE.ClientPackets[id](data, connection)
     end
 end
 
@@ -171,6 +182,8 @@ local ClientPackets = {
     [0x05] = basicServerboundWrapper(0x05),
     [0x08] = basicServerboundWrapper(0x08),
     [0x0D] = basicServerboundWrapper(0x0D),
+    [0x10] = extensionWrapper(0x10),
+    [0x11] = extensionWrapper(0x11),
 }
 
 -----------------HANDLING-----------------

@@ -46,10 +46,12 @@ writeSalt()
 timer.setInterval(60000, writeSalt)
 ---@class ServerInfo
 module.info = {
-    Version = "v0.5.5-alpha",
+    Version = "v0.6.0-alpha",
     Software = "Selenic Classic",
+    Author = "Hedwig7s",
     Source = "https://github.com/Hedwig7s/Selenic-Classic",
     Salt = salt
 }
+module.info.FancySoftware = string.format("&9%s &a%s", module.info.Software, module.info.Version)
 
 return module

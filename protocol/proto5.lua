@@ -62,4 +62,6 @@ module.PacketSizes = {
     [0x0D] = 66,
 }
 
+module.ClientVersions = "c0.0.19a"
+
 return module

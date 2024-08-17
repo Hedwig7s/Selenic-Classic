@@ -32,7 +32,10 @@ end
 ---@field movements number
 ---@field protocol Protocol
 ---@field info table<string, any>
+---@field supportsCPE boolean
+---@field identifiedCPE boolean
 ---@field CPE table<string, any>
+---@field client string
 local Player = {}
 Player.__index = Player
 
@@ -214,8 +217,10 @@ end
 ---@param connection Connection
 ---@param name string
 ---@param protocol Protocol
+---@param supportsCPE boolean?
 ---@return Player?, string?
-function Player.new(connection, name, protocol)
+function Player.new(connection, name, protocol, supportsCPE)
+    supportsCPE = supportsCPE or false
     local packets = lazyLoad("./packets")
     if module:GetPlayerByName(name) then
         local err = "Player with name " .. name .. " already exists"
@@ -239,7 +244,10 @@ function Player.new(connection, name, protocol)
     self.info = { -- To be replaced with saved info
         perWorldChat = config:getValue("server.perWorldChat"),
     }
+    self.supportsCPE = supportsCPE
+    self.identifiedCPE = false
     self.CPE = {}
+    self.client = "Vanilla "..protocol.ClientVersions
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
     if id > 255 or #module:GetPlayers() >= config:getValue("server.maxPlayers") then
@@ -269,26 +277,9 @@ function module:GetPlayerByName(name)
 end
 
 ---Get all players
----@return table<number|string, Player>
+---@return table<number, Player>
 function module:GetPlayers()
-    local proxy = newproxy(true)
-    local meta = getmetatable(proxy)
-
-    meta.__index = function(self, key)
-        return type(key) == "string" and playersByName[string] or players[key]
-    end
-    meta.__newindex = function(self, key, value)
-        error("Cannot set player externally")
-    end
-    meta.__len = function()
-        local i = 0
-        for _ in pairs(players) do
-            i = i + 1
-        end
-        return i
-    end
-
-    return proxy
+    return players
 end
 
 return module
