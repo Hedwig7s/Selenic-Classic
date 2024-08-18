@@ -133,8 +133,9 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
         while not player.identifiedCPE do
             if waited > 1000 then
                 print("CPE identification timed out")
-                disconnect(connection, "CPE identification timed out")
-                return
+                --disconnect(connection, "CPE identification timed out")
+                player.supportsCPE = false
+                break
             end
             waited = waited + 1
             timer.sleep(1)
@@ -142,13 +143,14 @@ function module.handleNewPlayer(connection, protocol, username, verificationKey,
     end
     print("Client: "..player.client)
     packets.ServerPackets.Message(nil,-2,nil,player.name.." joined the server!")
+    protocol.ServerPackets.ServerIdentification(connection)
+    print("Identified")
     player:SendMessage(string.format([[
 &aWelcome to %s!
 &aType /help for a list of commands
 &bServer Software: %s
 &aClient Software: &f%s]], config:getValue("server.serverName"), server.info.FancySoftware, player.client))
-    protocol.ServerPackets.ServerIdentification(connection)
-    print("Identified")
+
     player:LoadWorld(worlds.loadedWorlds[config:getValue("server.defaultWorld")])
     return true
 end
@@ -256,6 +258,48 @@ function module.handleIncomingChat(connection, id, message)
         cooldown.dropped = 0
     end
     player:Chat(message)
+end
+
+function module.multiPlayerWrapper(base, criteria, leaveId)
+    return function(connection, id, cr, ...)
+        local args = {...}
+        ---@type any|criteria
+       local function criteriaFunction(connection, id)
+            if type(criteria) == "function" then
+                return criteria(connection, id)
+            elseif criteria == true then
+                return (cr and cr(connection, id)) or true
+            end
+            return true
+        end
+        local function dataProvider(id)
+            local data = { id }
+            if not criteria or type(criteria) == "function" then
+                table.insert(data, cr)
+            end
+            for _, v in pairs(args) do
+                table.insert(data, v)
+            end
+            return data
+        end
+        local data = dataProvider(id)
+        local selfData = dataProvider(-1)
+        if connection then
+            return base(connection, unpack(data))
+        end
+        local packets = lazyLoad("../packets")
+        for _, connection in pairs(packets.connections) do
+            if criteriaFunction(connection, id) then
+                local d if connection.player and connection.player.id == id and not leaveId then 
+                    d = selfData
+                else
+                    d = data
+                end
+
+                base(connection, unpack(d))
+            end
+        end
+    end
 end
 
 return module

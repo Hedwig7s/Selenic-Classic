@@ -1,6 +1,8 @@
 ---@alias criteria fun(connection: Connection, id:number):boolean
 
 local lazyLoaded = {}
+local timer = require("timer")
+
 
 local function lazyLoad(moduleName)
     if not lazyLoaded[moduleName] then
@@ -24,6 +26,21 @@ end
 
 module.notSelf = function(connection, id)
     return connection.player and connection.player.id ~= id
+end
+
+module.hasExtension = function(extension)
+    return function(connection, id)
+        local player = connection.player        
+        if not player then
+            return false
+        end
+        if player and player.supportsCPE then
+            while not player.identifiedCPE and player.supportsCPE do
+                timer.sleep(1)
+            end
+        end
+        return player.CPE[extension] and true or false
+    end
 end
 
 return module

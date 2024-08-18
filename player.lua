@@ -33,9 +33,12 @@ end
 ---@field protocol Protocol
 ---@field info table<string, any>
 ---@field supportsCPE boolean
+---@field extensionCount number?
 ---@field identifiedCPE boolean
 ---@field CPE table<string, any>
 ---@field client string
+---@field clickDistance number
+---@field heldBlock BlockIDs
 local Player = {}
 Player.__index = Player
 
@@ -96,6 +99,7 @@ function Player:LoadWorld(world)
     if announce then
         packets.ServerPackets.Message(nil,-2,nil,self.name.." switched to world "..world.name)
     end
+    packets.ExtensionPackets.ExtPlayerList.ExtAddPlayerName(nil,self.id,self.name,self.name,"In world &a"..world.name..":",0)
 end
 
 ---Sends a message to the player
@@ -204,6 +208,7 @@ function Player:Remove()
     playersByName[self.name] = nil
     self.removed = true
     pcall(packets.ServerPackets.Message,nil,-2,nil,self.name.." left the server")
+    packets.ExtensionPackets.ExtPlayerList.ExtRemovePlayerName(nil,self.id)
 end
 
 function Player:Kick(reason)
@@ -245,8 +250,20 @@ function Player.new(connection, name, protocol, supportsCPE)
     }
     self.supportsCPE = supportsCPE
     self.identifiedCPE = false
+    self.extensionCount = 0
     self.CPE = {}
+    setmetatable(self.CPE, {
+        __len = function(self)
+            local i = 0
+            for _ in pairs(self) do
+                i = i + 1
+            end
+            return i
+        end
+    })
     self.client = "Vanilla "..protocol.ClientVersions
+    self.clickDistance = 160
+    self.heldBlock = 0
     local id = -1
     repeat id = id + 1 until not players[id] or id > 255
     if id > 255 or #module:GetPlayers() >= config:getValue("server.maxPlayers") then
