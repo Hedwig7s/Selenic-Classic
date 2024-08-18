@@ -12,6 +12,7 @@ local worlds = require("../worlds")
 local playerModule = require("../player")
 local packets = require("../packets")
 local connections = packets.connections
+local timer = require("timer")
 
 local packetUtil = require("./packetutil")
 local formatString = packetUtil.formatString
@@ -106,7 +107,18 @@ local baseMovementPacket = packetUtil.baseMovementPacket
 local function spawnPlayer(connection, id, name, x, y, z, yaw, pitch)
     asserts.assertPacketString(name)
     name = formatString(name)
-
+    local player = connection.player
+    if not player then
+        return false
+    end
+    while player.supportsCPE and not player.identifiedCPE do
+        timer.sleep(1)
+    end
+    if player.CPE["ExtPlayerList"] then
+        local player = connection.player
+        local packs = packets.ExtensionPackets.ExtPlayerList
+        return packs.ExtAddEntity2(connection, id, player.name, player.name, x, y, z, yaw, pitch)
+    end
     local function getData(id2, x, y, z, yaw, pitch)
         return string.pack(">Bbc64hhhBB", 0x07, id2, name, x, y, z, yaw, pitch)
     end
@@ -274,6 +286,14 @@ function clientSetBlock(data, connection)
             cooldown.amount = 0
             cooldown.dropped = 0
         end
+        local distance 
+        local dx = x*32 - math.floor(player.position.x*32)
+        local dy = y*32 - math.floor(player.position.y*32)
+        local dz = z*32 - math.floor(player.position.z*32)
+        distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+        if distance > player.clickDistance+32 then
+            error("Too far away")
+        end
     end)
     if not success then
         print("Error handling SetBlock packet:", err)
@@ -290,15 +310,17 @@ end
 ---Handles client trying to move
 ---@type ClientPacket
 local function positionAndOrientation(data, connection)
-    local _, id, x, y, z, yaw, pitch = string.unpack(">BbhhhBB",data)
+    local _, heldBlock, x, y, z, yaw, pitch = string.unpack(">BbhhhBB",data)
     x, y, z = fromFixedPoint(x, y, z)
-    assert(id == -1, "Invalid id")
     asserts.angleAssert(yaw, "Invalid yaw")
     asserts.angleAssert(pitch, "Invalid pitch")
     local player = connection.player
     if not player then
         print("Player not found")
         return
+    end
+    if player.CPE["HeldBlock"] then
+        player.heldBlock = heldBlock
     end
     player:MoveTo({x = x, y = y, z = z, yaw = yaw, pitch = pitch}, true, false)
 end

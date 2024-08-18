@@ -46,7 +46,7 @@ writeSalt()
 timer.setInterval(60000, writeSalt)
 ---@class ServerInfo
 module.info = {
-    Version = "v0.6.1-alpha",
+    Version = "v0.6.2-alpha",
     Software = "Selenic Classic",
     Author = "Hedwig7s",
     Source = "https://github.com/Hedwig7s/Selenic-Classic",

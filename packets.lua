@@ -2,18 +2,17 @@
 local module = {}
 
 local timer = require("timer")
-local util = require("./util")
-local playerModule = require("./player")
 local worlds = require("./worlds")
 local criterias = require("./criterias")
 local uv = require("uv")
 local CPE = require("./protocol/CPE")
+local packetutil = require("./protocol/packetutil")
 
 require("compat53")
 
 ---@type table<number, Connection>
 local connections = {}
-module.connections = util.readOnlyTable(connections, false)
+module.connections = connections
 
 ---@type table<number, Protocol>
 local protocols = {}
@@ -63,44 +62,7 @@ end
 ---@return fun(connection: Connection, ...)
 local function multiPlayerWrapper(name, criteria, leaveId)
     local base = basicClientboundWrapper(name)
-    return function(connection, id, cr, ...)
-        local args = {...}
-        ---@type any|criteria
-       local function criteriaFunction(connection, id)
-            if type(criteria) == "function" then
-                return criteria(connection, id)
-            elseif criteria == true then
-                return (cr and cr(connection, id)) or true
-            end
-            return true
-        end
-        local function dataProvider(id)
-            local data = { id }
-            if not criteria or type(criteria) == "function" then
-                table.insert(data, cr)
-            end
-            for _, v in pairs(args) do
-                table.insert(data, v)
-            end
-            return data
-        end
-        local data = dataProvider(id)
-        local selfData = dataProvider(-1)
-        if connection then
-            return base(connection, unpack(data))
-        end
-        for _, connection in pairs(connections) do
-            if criteriaFunction(connection, id) then
-                local d if connection.player and connection.player.id == id and not leaveId then 
-                    d = selfData
-                else
-                    d = data
-                end
-
-                base(connection, unpack(d))
-            end
-        end
-    end
+    return packetutil.multiPlayerWrapper(base, criteria, leaveId)
 end
 
 
