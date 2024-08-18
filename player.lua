@@ -69,6 +69,7 @@ end
 ---@param world World
 function Player:LoadWorld(world)
     self:Despawn()
+    local announce = self.world and true or false
     self.world = world
     local packets = lazyLoad("./packets")
 
@@ -92,7 +93,9 @@ function Player:LoadWorld(world)
             coroutine.wrap(player.Spawn)(player, self)
         end
     end
-    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." joined this world")
+    if announce then
+        packets.ServerPackets.Message(nil,-2,nil,self.name.." switched to world "..world.name)
+    end
 end
 
 ---Sends a message to the player
@@ -189,15 +192,11 @@ end
 ---@param player Player?
 function Player:Despawn(player)
     local packets = lazyLoad("./packets")
-    if not self.world then return end
-    packets.ServerPackets.Message(nil,-2,criterias.matchWorld,self.name.." left this world")
     local success, err = pcall(packets.ServerPackets.DespawnPlayer, nil, self.id, player and player.connection or nil)
     if not success then
         print(err)
     end
-    self.world = nil
 end
-
 function Player:Remove()
     local packets = lazyLoad("./packets")
     self:Despawn()
