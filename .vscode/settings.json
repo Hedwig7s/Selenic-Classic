@@ -1,0 +1,18 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        ".history": true
+    },
+    "explorerExclude.backup": {},
+    "Lua.workspace.library": [
+        "/home/danny/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/luvit/module/library",
+        "/home/danny/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/md5/module/library",
+        "/home/danny/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/yue/module/library"
+    ],
+    "Lua.workspace.checkThirdParty": false
+}
