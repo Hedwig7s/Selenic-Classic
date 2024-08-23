@@ -7,7 +7,7 @@ global record BaseClass
     __values__:{string: any}
     metamethod __call: function(self:BaseClass, ...:any): Instance
     __singleton__: boolean
-    __constructor__: function(self:Instance, ...:any)
+    __constructor__: function(self:Instance, super:BaseClass|nil, ...:any)
 end
 
 global record Instance
@@ -18,8 +18,28 @@ global record ClassData
     implements: BaseClass|nil
     extends: BaseClass|nil
     values: {string: any}
-    constructor: function(self:Instance, ...:any)
+    constructor: function(self:Instance, super:BaseClass|nil, ...:any)
     singleton: boolean|nil
+end
+
+local function implementsClass(class:BaseClass, implements:BaseClass): boolean
+    for k, _ in pairs(implements.__values__) do
+        if not class.__values__[k] then
+            return false
+        end
+    end
+    return true
+end
+
+local function extendsClass(class:BaseClass, extends:BaseClass): boolean
+    local current = class
+    while current do
+        if current == extends then
+            return true
+        end
+        current = current.__super__
+    end
+    return false
 end
 
 global function createClass(name:string, data:ClassData): BaseClass
@@ -42,7 +62,7 @@ global function createClass(name:string, data:ClassData): BaseClass
             if class.__values__ then
                 setmetatable(instance, {__index = class.__values__})
             end
-            self.__constructor__(instance, ...)
+            self.__constructor__(instance, class.__super__, ...)
             if self.__singleton__ then
                 singletons[self.__name__] = instance
             end
@@ -54,11 +74,9 @@ global function createClass(name:string, data:ClassData): BaseClass
         setmetatable(class, {__index = data.extends})
     end
     local implements = data.implements
-    if implements is BaseClass then
+    if implements is BaseClass and not implementsClass(class, implements) then
         for k, _ in pairs(implements.__values__) do
-            if not class.__values__[k] then
-                error("Class " .. name .. " does not implement method " .. k)
-            end
+            error("Class " .. name .. " does not implement method " .. k)
         end
     end
     class.__values__ = data.values
@@ -67,4 +85,7 @@ global function createClass(name:string, data:ClassData): BaseClass
     return class
 end
 
-return createClass
+return createClass, {
+    implements = implementsClass,
+    extends = extendsClass
+}

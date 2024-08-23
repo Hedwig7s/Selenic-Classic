@@ -1,7 +1,9 @@
 return {
     include_dir = {
         "./",
-        "./types",
+        "./src/types",
+        "./src",
+        "./deps",
     },
     build_dir = "./build",
     gen_target = "5.1",

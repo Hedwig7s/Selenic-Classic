@@ -1,5 +1,5 @@
---local require = require("deps.customrequire")
-local class = require("deps.class")
+--local require = require("customrequire")
+local class = require("class")
 
 global type Connection
 
@@ -21,9 +21,8 @@ end
 
 local protocol = class("Protocol", {
     singleton = true,
-    constructor = function(self:Instance): Protocol
-        local self = self as Protocol
-        return self
+    constructor = function(self:Instance, _:BaseClass|nil)
+
     end,
     values = {
         ServerPackets = {},
