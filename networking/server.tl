@@ -75,7 +75,12 @@ local connectionClass = class("Connection", {
             end
 
             self.socket:read_start(function(err:string|nil, data:string|nil)
-                assert(not err, err)
+                if err then
+                    print("Error reading data: " .. err)
+                    self.closed = true
+                    pcall(self.socket.close, self.socket)
+                    return
+                end
                 if data and #data > 0 then
                     table.insert(buffer,data)
                 end
@@ -83,6 +88,7 @@ local connectionClass = class("Connection", {
 
             self.readRoutine = coroutine.create(function()
                 while not self.closed do
+                    timer.sleep(1)
                     local data = read_buffer(1)
                     if #data == 1 then
                         local id = string.unpack(">B", data) as integer
@@ -108,6 +114,7 @@ local connectionClass = class("Connection", {
                     end
                 end
             end)
+            coroutine.resume(self.readRoutine)
         end,
     }
 })
