@@ -1,5 +1,6 @@
-local require = require("deps.customrequire")
-local class = require("deps.class")
+local require = require("customrequire")
+local class = require("class")
+local loggerClass = require("logging")
 local uv = require("uv")
 local timer = require("timer")
 
@@ -19,6 +20,8 @@ global record Server
     socket: uv.Tcp
     handleConnect: function(self:Server, err: any)
     initialized: boolean
+    logger: Logger
+    init: function(self:Server)
 end
 
 global record Connection
@@ -30,29 +33,32 @@ global record Connection
     id: integer
     handlePacket: function(self:Connection, packet:ClientPacket, data:string)
     init: function(self:Connection)
+    logger: Logger
     initialized: boolean
 end
 
 local connectionClass = class("Connection", {
     singleton = false,
-    constructor = function(self:Instance, socket:uv.Tcp)
+    constructor = function(self:Instance, _:BaseClass|nil, socket:uv.Tcp)
         local self = self as Connection
         self.socket = socket
         self.closed = false
         self.initialized = false
+        self.logger = loggerClass.new("Connection "..connectionCount)
         connections[connectionCount] = self
         self.id = connectionCount
         connectionCount = connectionCount + 1
     end,
     values = {
         handlePacket = function(self:Connection, packet:ClientPacket, data:string)
-            print("Received packet: " .. data)
+
         end,
         init = function(self:Connection)
             if self.initialized then
                 return
             end
             self.initialized = true
+            self.logger:Debug("Client connected")
             local buffer:{string} = {}
             local function read_buffer(bytes:integer, leaveData:boolean): string
                 local data = table.concat(buffer)
@@ -76,7 +82,7 @@ local connectionClass = class("Connection", {
 
             self.socket:read_start(function(err:string|nil, data:string|nil)
                 if err then
-                    print("Error reading data: " .. err)
+                    self.logger:Error("Failed to read TCP data: " .. err, true)
                     self.closed = true
                     pcall(self.socket.close, self.socket)
                     return
@@ -99,17 +105,19 @@ local connectionClass = class("Connection", {
                             end
                             local protocol = protocols[protVersion]
                             if not protocol then
-                                print("Unsupported protocol version: " .. protVersion)
+                                self.logger:Warn("Unsupported protocol version: " .. protVersion)
                             end
                             self.protocol = protocol
                         end
-                        local packet = self.protocol.ClientPackets[id]
-                        if not packet then 
-                            print("Received unknown packet id: " .. id)
-                        else
-                            local size = packet.size
-                            data = data..read_buffer(size-1)
-                            self:handlePacket(packet, data)
+                        if self.protocol then
+                            local packet = self.protocol.ClientPackets[id]
+                            if not packet then 
+                                self.logger:Warn("Received unknown packet id: " .. id)
+                            else
+                                local size = packet.size
+                                data = data..read_buffer(size-1)
+                                self:handlePacket(packet, data)
+                            end
                         end
                     end
                 end
@@ -121,10 +129,12 @@ local connectionClass = class("Connection", {
 
 local serverClass = class("Server", {
     singleton = true,
-    constructor = function(self:Instance, host:string, port:integer)
+    constructor = function(self:Instance, _:BaseClass|nil, host:string, port:integer)
+        assert(self )
         local self = self as Server
         self.host = host
         self.port = port
+        self.logger = loggerClass.new("Server")
         self.initialized = false
     end,
     values = {
@@ -145,7 +155,7 @@ local serverClass = class("Server", {
             self.socket:listen(128, function(err:string|nil)
                 self:handleConnect(err)
             end)
-            print("Started")
+            self.logger:Info("Started")
         end,
     }
 })
