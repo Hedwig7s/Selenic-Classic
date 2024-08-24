@@ -81,6 +81,9 @@ local record fs
     writeFileSync: function(path:string, data:string, options:table|nil)
     appendFile: function(path:string, data:string, options:table|nil, callback:function(err:string|nil))
     appendFileSync: function(path:string, data:string, options:table|nil)
+
+    exists: function(path:string, callback:function(exists:boolean, err:string|nil))
+    existsSync: function(path:string): boolean, string|nil
 end
 
 return fs

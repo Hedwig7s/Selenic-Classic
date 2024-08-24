@@ -6,14 +6,49 @@ local toml = require("toml")
 local fs = require("fs")
 local pathModule = require("path")
 
+global type SettingsTable = {string: any}
+
 global record Config 
     __class__: BaseClass
     name: string
-    defaults: {string: any}
-    settings: {string: any}
+    defaults: SettingsTable
+    settings: SettingsTable
     loaded: boolean
     logger: Logger
+    getConfigPath: function(self:Config): string
     loadFromFile: function(self:Config)
+    saveToFile: function(self:Config)
+    get: function(self:Config, key:string): any
+    set: function(self:Config, key:string, value:any)
+end
+
+global record ConfigClass 
+    metamethod __call: function(self:ConfigClass, name:string, defaults: {string: any}): Config
+    __name__:string
+    __super__:BaseClass
+    __values__:{string: any}
+    __singleton__: boolean
+    __constructor__: function(self:Instance, super:BaseClass|nil, ...:any)
+end
+
+local function parseKey(key:string, current:SettingsTable, currentDefault:SettingsTable): SettingsTable| nil, SettingsTable|string, any 
+    local path = {}
+    for part in key:gmatch("([^%.]+)") do
+        table.insert(path, part)
+    end
+    local subkey = path[#path]
+    table.remove(path, #path)
+    for i = 1, #path do
+        local sub = current[path[i]]
+        local subDefault = currentDefault[path[i]]
+        if sub is SettingsTable and subDefault is SettingsTable then
+            current = sub
+            currentDefault = subDefault
+        else
+            return nil, path[i]
+        end
+    end
+    return current, currentDefault, subkey
 end
 
 local configClass = class("Config", {
@@ -23,9 +58,12 @@ local configClass = class("Config", {
         self.defaults = defaults
         self.settings = {}
         self.loaded = false
-        self.logger = logging.new(name.." Config")
+        self.logger = logging.new(name.."-config")
     end,
     values = {
+        getConfigPath = function(self:Config): string
+            return pathModule.join(pathModule.resolve("."), "config/"..self.name..".toml")
+        end,
         saveToFile = function(self:Config)
             if not self.loaded then
                 self.logger:Error("Cannot save an unloaded config")
@@ -44,50 +82,61 @@ local configClass = class("Config", {
                 self.logger:Warn("Attempted to load config when already loaded without force")
                 return
             end
-            local data = fs.readFileSync(pathModule.join(pathModule.resolve("."), "config/"..self.name..".toml"))
-            local settings = toml.decode(data)
-            local function parseSettings(settings:{string:any}, defaults:{string:any})
-                for k, v in pairs(defaults) do
-                    if v is table then
-                        if not settings[k] then
-                            settings[k] = tableUtility.deepCopy(v)
-                        else
-                            parseSettings(settings[k] as {string:any}, v as {string:any})
+            local filePath = self:getConfigPath()
+            local exists = type(fs.statSync(pathModule.dirname(filePath))) == "table"
+            if not exists then
+                fs.mkdirSync(pathModule.dirname(filePath))
+            end
+            if not fs.existsSync(filePath) then
+                self.logger:Warn("Config file does not exist. Creating a new one")
+                self.settings = tableUtility.deepCopy(self.defaults) as SettingsTable
+                self.loaded = true
+                self:saveToFile()
+                return
+            end
+            xpcall(function()
+                local data = fs.readFileSync(filePath)
+                local settings = toml.decode(data)
+                
+                local function parseSettings(settings:SettingsTable, defaults:SettingsTable)
+                    for k, v in pairs(defaults) do
+                        if v is table then
+                            if settings[k] == nil then
+                                settings[k] = tableUtility.deepCopy(v)
+                            else
+                                parseSettings(settings[k] as SettingsTable, v as SettingsTable)
+                            end
+                        elseif settings[k] == nil then
+                            settings[k] = v
+                        elseif type(settings[k]) ~= type(v) then
+                            self.logger:Error(string.format("Setting %s is not the correct type. Expected %s, got %s", k, type(settings[k]), type(v)))
                         end
-                    elseif not settings[k] then
-                        settings[k] = v
-                    elseif type(settings[k]) ~= type(v) then
-                        self.logger:Error(string.format("Setting %s is not the correct type. Expected %s, got %s", k, type(settings[k]), type(v)))
                     end
                 end
-            end
-            parseSettings(settings, self.defaults)
-            self.settings = settings
-            self.loaded = true
-            self.logger:Debug("Loaded successfully")
+                parseSettings(settings, self.defaults)
+                self.settings = settings
+                self.loaded = true
+                self.logger:Debug("Loaded successfully")
+                self:saveToFile()
+            end, function(err)
+                self.logger:Error("Failed to load config: "..(err and tostring(err)) or "Unknown error")
+            end)
+            
         end,
         get = function(self:Config, key:string): any
-            return self.settings[key]
+            local current, failedKey, subkey = parseKey(key, self.settings, self.defaults)
+            if not current then
+                self.logger:Error(string.format("Invalid key: %s. Failed at %s", key, failedKey))
+            end
+            local current, subkey = current as SettingsTable, subkey as string
+            return current[subkey]
         end,
         set = function(self:Config, key:string, value:any)
-            local path = {}
-            for part in key:gmatch("([^%.]+)") do
-                table.insert(path, part)
+            local current, currentDefault, subkey = parseKey(key, self.settings, self.defaults)
+            if not current then
+                self.logger:Error(string.format("Invalid key: %s. Failed at %s", key, currentDefault))
             end
-            local current = self.settings
-            local currentDefault = self.defaults
-            local subkey = path[#path]
-            table.remove(path, #path)
-            for i = 1, #path do
-                local sub = current[path[i]]
-                local subDefault = currentDefault[path[i]]
-                if sub is {string:any} and subDefault is {string:any} then
-                    current = sub
-                    currentDefault = subDefault
-                else
-                    self.logger:Error(string.format("Invalid key: %s. Failed at %s", key, path[i]))
-                end
-            end
+            local current, currentDefault, subkey = current as SettingsTable, currentDefault as SettingsTable, subkey as string
             if currentDefault[subkey] and type(currentDefault[subkey]) ~= type(value) then
                 self.logger:Error(string.format("Setting %s is not the correct type. Expected %s, got %s", key, type(currentDefault[subkey]), type(value)))
             end
@@ -98,6 +147,6 @@ local configClass = class("Config", {
             end
         end,
     }
-})
+}) as ConfigClass
 
 return configClass
