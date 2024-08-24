@@ -12,6 +12,7 @@ require("compat53")
 
 ---@type table<number, Connection>
 local connections = {}
+local connectionCount = 0
 module.connections = connections
 
 ---@type table<number, Protocol>
@@ -245,16 +246,8 @@ function module.HandleConnect(server)
         end
         local id
         do
-            local i = 1
-            while connections[i] and i <= 1024 do
-                i = i + 1
-            end
-            if i > 1024 then
-                print("Too many connections")
-                socket:close()
-                return
-            end
-            id = i
+            id = connectionCount
+            connectionCount = connectionCount + 1
         end
         print("Client connected with id "..id)
         ---@class Connection
