@@ -6,8 +6,8 @@ Name comes from Selene (greek personification of the moon and a pun on the fact 
 Install [Luvit](https://luvit.io/install.html)  
 Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download)   
 Clone the repository or download a release source zip  
-Run `./install-dependencies.sh` (Linux) or `./install-dependencies.bat` (Windows) (expects LuaRocks to be in PATH)  
-Run `luvit main.lua`  
+Run `./install-dependencies.sh` (Linux)
+Run `./run.sh`  
 
 ## Features
 
@@ -55,10 +55,10 @@ Server Management:
 - [ ] Commands
 - [ ] Cooldowns
 - [ ] Permissions/Ranks
-- [ ] Config creation
-- [ ] Config loading
+- [x] Config creation
+- [x] Config loading
 - [ ] Full config usage
-- [ ] Logging system
+- [x] Logging system
 
 Networking:
 - [ ] Support all protocols (with toggles)

@@ -36,7 +36,7 @@ end
 
 function Logger:Debug(message: string)
     if globalSettings.DEBUG then
-        print(detailString("2;97",self:getPrefix("DEBUG") .. message))
+        print(detailString("1;30",self:getPrefix("DEBUG") .. message))
     end
 end
 

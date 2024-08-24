@@ -1,5 +1,13 @@
 local require = require("customrequire")
 local serverClass = require("networking/server")
+local serverConfig = require("data/config/serverconfig")
+local loggerClass = require("logging")
+local logger = loggerClass.new("Main")
+
+logger:Info("Loading config...")
+serverConfig:loadFromFile()
+
+logger:Info("Starting server...")
 
 local server = serverClass("0.0.0.0", 25565)
 server:init()
