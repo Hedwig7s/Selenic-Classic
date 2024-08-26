@@ -28,7 +28,7 @@ global record ConfigClass
     __super__:BaseClass
     __values__:{string: any}
     __singleton__: boolean
-    __constructor__: function(self:Instance, super:BaseClass|nil, ...:any)
+    __constructor__: function(self:Instance, ...:any)
 end
 
 local function parseKey(key:string, current:SettingsTable, currentDefault:SettingsTable): SettingsTable| nil, SettingsTable|string, any 
@@ -52,7 +52,7 @@ local function parseKey(key:string, current:SettingsTable, currentDefault:Settin
 end
 
 local configClass = class("Config", {
-    constructor = function(self:Instance, _:BaseClass|nil, name:string, defaults: {string: any})
+    constructor = function(self:Instance, name:string, defaults: {string: any})
         local self = self as Config
         self.name = name
         self.defaults = defaults
@@ -77,9 +77,9 @@ local configClass = class("Config", {
                 self.logger:Error("Failed to save: "..(err and tostring(err)) or "Unknown error")
             end)
         end,
-        loadFromFile = function(self:Config, force:boolean|nil)
-            if self.loaded and not force then
-                self.logger:Warn("Attempted to load config when already loaded without force")
+        loadFromFile = function(self:Config, reload:boolean|nil)
+            if self.loaded and not reload then
+                self.logger:Warn("Attempted to load config when already loaded without reload")
                 return
             end
             local filePath = self:getConfigPath()

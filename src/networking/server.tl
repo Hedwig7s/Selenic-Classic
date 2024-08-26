@@ -4,54 +4,42 @@ local loggerClass = require("logging")
 local uv = require("uv")
 local timer = require("timer")
 
+local type _ = require("networking.servertypes")
+
 local connections: {integer:Connection} = {}
 local connectionCount = 0
 
 local type _ = require("networking.protocol.protocol")
 
-local protocols:{string|number: Protocol} = {
-    
+local protocols:{integer: Protocol|nil} = {
+    [7] = require("networking.protocol.protocol7")
 }
 
-global record Server 
-    __class__: BaseClass
-    host: string
-    port: integer
-    socket: uv.Tcp
-    handleConnect: function(self:Server, err: any)
-    initialized: boolean
-    logger: Logger
-    init: function(self:Server)
-end
-
-global record Connection
-    __class__: BaseClass
-    socket: uv.Tcp
-    closed: boolean
-    readRoutine: thread
-    protocol: Protocol
-    id: integer
-    handlePacket: function(self:Connection, packet:ClientPacket, data:string)
-    init: function(self:Connection)
-    logger: Logger
-    initialized: boolean
-end
 
 local connectionClass = class("Connection", {
     singleton = false,
-    constructor = function(self:Instance, _:BaseClass|nil, socket:uv.Tcp)
+    constructor = function(self:Instance, socket:uv.Tcp)
         local self = self as Connection
         self.socket = socket
         self.closed = false
         self.initialized = false
+        self.write = function(self:Connection,data:string)
+            if self.closed then
+                return
+            end
+            self.socket:write(data)
+        end
         self.logger = loggerClass.new("Connection "..connectionCount)
         connections[connectionCount] = self
         self.id = connectionCount
         connectionCount = connectionCount + 1
     end,
     values = {
-        handlePacket = function(self:Connection, packet:ClientPacket, data:string)
-
+        handlePacket = function(self:Connection, packet:Packet, data:string)
+            local receiver = packet.receiver
+            if receiver is ClientReceiver then
+                receiver(self.protocol, self, data)
+            end
         end,
         init = function(self:Connection)
             if self.initialized then
@@ -110,7 +98,7 @@ local connectionClass = class("Connection", {
                             self.protocol = protocol
                         end
                         if self.protocol then
-                            local packet = self.protocol.ClientPackets[id]
+                            local packet = self.protocol.Packets[id]
                             if not packet then 
                                 self.logger:Warn("Received unknown packet id: " .. id)
                             else
@@ -129,7 +117,7 @@ local connectionClass = class("Connection", {
 
 local serverClass = class("Server", {
     singleton = true,
-    constructor = function(self:Instance, _:BaseClass|nil, host:string, port:integer)
+    constructor = function(self:Instance, host:string, port:integer)
         assert(self )
         local self = self as Server
         self.host = host

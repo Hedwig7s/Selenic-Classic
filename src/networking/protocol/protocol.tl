@@ -1,34 +1,45 @@
---local require = require("customrequire")
+local require = require("customrequire")
 local class = require("class")
 
 global type Connection
 
-global type ServerPacket
+global type ClientReceiver = function(protocol:Protocol, connection:Connection, data:string)
 
-global record ClientPacket
+global record Packet
+    id: integer
     name: string
+    format: string
     size: integer
-    handle: function(connection:Connection, data:string)
+    receiver: ClientReceiver|nil
+    sender: function(self:Protocol, connection:Connection, data:string)
 end
 
+global type Packets = {integer: Packet}
 
 global record Protocol
     __class__: BaseClass
-    ServerPackets: {string:ServerPacket}
-    ClientPackets: {integer:ClientPacket}
-    PacketFormats: {string:string}
+    Packets: Packets
+    record Meta
+        Version: integer
+    end
+    PacketFromName: function(self:Protocol, name:string): Packet|nil
 end
 
-local protocol = class("Protocol", {
+local protocolImpl = class("ProtocolImpl", {
     singleton = true,
-    constructor = function(self:Instance, _:BaseClass|nil)
+    constructor = function()
 
     end,
     values = {
-        ServerPackets = {},
-        ClientPackets = {},
-        PacketFormats = {},
+        Packets = {},
+        Meta = {
+            Version = -1
+        },
+        PacketFromName = function(): Packet|nil
+            
+        end
     }
 })
 
-return protocol
+
+return protocolImpl

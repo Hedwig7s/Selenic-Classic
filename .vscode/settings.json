@@ -14,5 +14,6 @@
         "/home/danny/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/md5/module/library",
         "/home/danny/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/yue/module/library"
     ],
-    "Lua.workspace.checkThirdParty": false
+    "Lua.workspace.checkThirdParty": false,
+    "teal.compilerPath": "tl"
 }
