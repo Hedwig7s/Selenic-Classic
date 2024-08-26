@@ -12,22 +12,24 @@ Run `./run.sh`
 ## Features
 
 - [x] Basic TCP server
-- [ ] Add framework to handle incoming packets based on ID
-- [ ] Parse login packet
-- [ ] Send server identification
+- [x] Add framework to handle incoming packets based on ID
+- [x] Parse login packet
+- [x] Send server identification
 
 World:
-- [ ] World module
-- [ ] World creation
-- [ ] World modification
-- [ ] World saving
-- [ ] World loading
+- [x] World module
+- [x] World creation
+- [x] World modification
+- [ ] Broadcast world modifications
+- [x] World saving
+- [x] World loading
 - [ ] World autosaving
 - [ ] Terrain generation
 - [ ] Pack world into protocol-compliant gzipped byte-array
 - [ ] Level initialize, level data chunk and level finalize packets
 - [ ] Split world data into 1024 byte chunks and send to client
 - [ ] Per-world configuration
+- [ ] Block data
 - [ ] Block history
 
 Player:

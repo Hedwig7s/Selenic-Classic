@@ -7,7 +7,7 @@ global record BaseClass
     __values__:{string: any}
     metamethod __call: function(self:BaseClass, ...:any): Instance
     __singleton__: boolean
-    __constructor__: function(self:Instance, super:BaseClass|nil, ...:any)
+    __constructor__: function(self:Instance, ...:any)
 end
 
 global record Instance
@@ -18,7 +18,7 @@ global record ClassData
     implements: BaseClass|nil
     extends: BaseClass|nil
     values: {string: any}
-    constructor: function(self:Instance, super:BaseClass|nil, ...:any)
+    constructor: function(self:Instance, ...:any)
     singleton: boolean|nil
 end
 
@@ -62,7 +62,7 @@ global function createClass(name:string, data:ClassData): BaseClass
             if class.__values__ then
                 setmetatable(instance, {__index = class.__values__})
             end
-            self.__constructor__(instance, class.__super__, ...)
+            self.__constructor__(instance, ...)
             if self.__singleton__ then
                 singletons[self.__name__] = instance
             end
@@ -73,13 +73,14 @@ global function createClass(name:string, data:ClassData): BaseClass
         class.__super__ = data.extends
         setmetatable(class, {__index = data.extends})
     end
+    class.__values__ = data.values
+
     local implements = data.implements
     if implements is BaseClass and not implementsClass(class, implements) then
         for k, _ in pairs(implements.__values__) do
             error("Class " .. name .. " does not implement method " .. k)
         end
     end
-    class.__values__ = data.values
 
     classes[name] = class
     return class

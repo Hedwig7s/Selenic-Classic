@@ -7,6 +7,7 @@ local serverConfig = configClass("server", {
         maxPlayers = 20,
         motd = "A Minecraft Server",
         debug = false,
+        serverName = "Selenic Server"
     }
 })
 

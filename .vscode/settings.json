@@ -14,5 +14,6 @@
         
         
     ],
-    "Lua.workspace.checkThirdParty": false
+    "Lua.workspace.checkThirdParty": false,
+    "teal.compilerPath": "tl"
 }
