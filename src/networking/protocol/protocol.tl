@@ -11,14 +11,20 @@ global record Packet
     format: string
     size: integer
     receiver: ClientReceiver|nil
-    sender: function(self:Protocol, connection:Connection, data:string)
+    sender: function(self:Protocol, connection:Connection, ...:any)
 end
 
-global type Packets = {integer: Packet}
+global record ServerPackets
+    Identification: function(self:Protocol, connection:Connection, name:string, motd:string)
+    Ping: function(self:Protocol, connection:Connection)
+    LevelInitialize: function(self:Protocol, connection:Connection)
+    LevelDataChunk: function(self:Protocol, connection:Connection, chunkX:integer, chunkY:integer, chunkZ:integer, sizeX:integer, sizeY:integer, sizeZ:integer, data:string)
+    LevelFinalize: function(self:Protocol, connection:Connection, sizeX:integer, sizeY:integer, sizeZ:integer)
+end
 
 global record Protocol
     __class__: BaseClass
-    Packets: Packets
+    Packets: {integer: Packet}
     record Meta
         Version: integer
     end

@@ -16,7 +16,7 @@ local sharedFunctions = {
         local blocks = {}
         for i = 1, #data, 5 do
             local id, count = string.unpack("<BI4", data:sub(i, i+4))
-            for _ = i, i+(count as integer) do
+            for _ = 1, count do
                 table.insert(blocks, id as integer)
             end
         end

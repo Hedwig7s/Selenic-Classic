@@ -23,9 +23,9 @@ World:
 - [ ] Broadcast world modifications
 - [x] World saving
 - [x] World loading
-- [ ] World autosaving
+- [x] World autosaving
 - [ ] Terrain generation
-- [ ] Pack world into protocol-compliant gzipped byte-array
+- [x] Pack world into protocol-compliant gzipped byte-array
 - [ ] Level initialize, level data chunk and level finalize packets
 - [ ] Split world data into 1024 byte chunks and send to client
 - [ ] Per-world configuration
@@ -33,7 +33,7 @@ World:
 - [ ] Block history
 
 Player:
-- [ ] Player module
+- [x] Player module
 - [ ] Player block modification
 - [ ] Block placement rules
 - [ ] Basic player spawning
