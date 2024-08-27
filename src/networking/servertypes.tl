@@ -1,7 +1,7 @@
 local require = require("customrequire")
 local type uv = require("uv")
-local type _ = require("class")
-local type _ = require("logging")
+local type _ = require("utility.class")
+local type _ = require("utility.logging")
 local type _ = require("networking.protocol.protocol")
 global record Server 
     __class__: BaseClass

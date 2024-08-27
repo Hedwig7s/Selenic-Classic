@@ -1,5 +1,5 @@
 local require = require("customrequire")
-local class = require("class")
+local class = require("utility.class")
 local protocolImpl = require("networking.protocol.protocol")
 local packetUtility = require("networking.packetutility")
 local type _ = require("networking.servertypes")

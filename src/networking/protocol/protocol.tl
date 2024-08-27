@@ -1,5 +1,5 @@
 local require = require("customrequire")
-local class = require("class")
+local class = require("utility.class")
 
 global type Connection
 

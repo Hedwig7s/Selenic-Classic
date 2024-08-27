@@ -1,6 +1,6 @@
 local require = require("customrequire")
-local class = require("class")
-local loggerClass = require("logging")
+local class = require("utility.class")
+local loggerClass = require("utility.logging")
 local uv = require("uv")
 local timer = require("timer")
 
