@@ -3,6 +3,9 @@ local type uv = require("uv")
 local type _ = require("utility.class")
 local type _ = require("utility.logging")
 local type _ = require("networking.protocol.protocol")
+
+global type Player
+
 global record Server 
     __class__: BaseClass
     host: string
@@ -25,5 +28,6 @@ global record Connection
     handlePacket: function(self:Connection, packet:Packet, data:string)
     init: function(self:Connection)
     logger: Logger
+    player: Player
     initialized: boolean
 end

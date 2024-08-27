@@ -3,7 +3,14 @@ local require = require("customrequire")
 local type _ = require("networking.servertypes")
 
 function module.sendPacket(connection:Connection, format:string, ...:any): string
-    return connection:write(string.pack(format, ...))
+    local data = {...}
+    for i, v in ipairs(data) do
+        if v is string then
+            local str = v as string
+            data[i] = str..string.rep("\32", 64 - #str)
+        end
+    end
+    return connection:write(string.pack(format, table.unpack(data)))
 end
 
 function module.parsePacket(format:string, data:string): any...

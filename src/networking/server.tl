@@ -23,11 +23,11 @@ local connectionClass = class("Connection", {
         self.socket = socket
         self.closed = false
         self.initialized = false
-        self.write = function(self:Connection,data:string)
+        self.write = function(self:Connection,data:string): any, string
             if self.closed then
                 return
             end
-            self.socket:write(data)
+            return self.socket:write(data)
         end
         self.logger = loggerClass.new("Connection "..connectionCount)
         connections[connectionCount] = self
@@ -38,7 +38,8 @@ local connectionClass = class("Connection", {
         handlePacket = function(self:Connection, packet:Packet, data:string)
             local receiver = packet.receiver
             if receiver is ClientReceiver then
-                receiver(self.protocol, self, data)
+                xpcall(receiver, function(err:string)
+                end, self.protocol, self, data)
             end
         end,
         init = function(self:Connection)
@@ -54,7 +55,7 @@ local connectionClass = class("Connection", {
                 bytes = bytes or size
             
                 while bytes > size and not self.closed do
-                    timer.sleep(2)
+                    timer.sleep(5)
                     data = table.concat(buffer)
                     size = #data
                 end
@@ -79,11 +80,12 @@ local connectionClass = class("Connection", {
                     table.insert(buffer,data)
                 end
             end)
-
+            local connectTime = os.time()
             self.readRoutine = coroutine.create(function()
                 while not self.closed do
-                    timer.sleep(1)
+                    timer.sleep(5)
                     local data = read_buffer(1)
+                    local loggedIn = self.player and true or false
                     if #data == 1 then
                         local id = string.unpack(">B", data) as integer
                         if id == 0x00 then
@@ -107,6 +109,11 @@ local connectionClass = class("Connection", {
                                 self:handlePacket(packet, data)
                             end
                         end
+                    end
+                    if not loggedIn and os.time() - connectTime > 5 then
+                        self.logger:Warn("Client did not log in within 5 seconds")
+                        self.closed = true
+                        pcall(self.socket.close, self.socket)
                     end
                 end
             end)

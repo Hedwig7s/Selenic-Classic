@@ -2,7 +2,12 @@ local require = require("customrequire")
 local class = require("utility.class")
 local protocolImpl = require("networking.protocol.protocol")
 local packetUtility = require("networking.packetutility")
+local serverConfig = require("data.config.serverconfig")
+local playerClass = require("entity.player")
+local worlds = require("data.worlds.worlds")
 local type _ = require("networking.servertypes")
+
+local packetNameCache: {string: Packet} = {}
 
 local protocolClass = class("Protocol7", {
     singleton = true,
@@ -17,9 +22,9 @@ local protocolClass = class("Protocol7", {
                 size = 131,
                 id = 0x00,
                 name = "Identification",
-                sender = function(self:Protocol, connection:Connection, name:string, motd:string)
-                    local packet = self:PacketFromName("Identification") as Packet
-                    packetUtility.sendPacket(connection,packet.format, packet.id, self.Meta.Version, name, motd, 0x00)
+                sender = function(protocol:Protocol, connection:Connection, name:string, motd:string)
+                    local packet = protocol:PacketFromName("Identification") as Packet
+                    packetUtility.sendPacket(connection,packet.format, packet.id, protocol.Meta.Version, name, motd, 0x00)
                 end,
                 receiver = function(protocol:Protocol, connection:Connection, data:string)
                     local packet = protocol:PacketFromName("Identification") as Packet
@@ -31,7 +36,12 @@ local protocolClass = class("Protocol7", {
                     connection.logger:Debug("Username: "..username)
                     connection.logger:Debug("Protocol: "..tostring(protVersion))
                     connection.logger:Debug("Supports CPE: "..tostring(CPE))
-                    packet.sender(protocol, connection)
+                    packet.sender(protocol, connection, serverConfig:get("server.serverName"), serverConfig:get("server.motd"))
+                    connection.logger:Debug("Creating player")
+                    local player:Player = playerClass(connection, name) as Player
+                    connection.player = player
+                    connection.logger:Debug("Player created, loading world")
+                    player:LoadWorld(worlds:load("world", "hworld")) -- TODO: Default world
                 end
             },
             [0x01] = {
@@ -64,6 +74,16 @@ local protocolClass = class("Protocol7", {
                     local packet = self:PacketFromName("LevelDataChunk") as Packet
                     packetUtility.sendPacket(connection,packet.format, packet.id, #levelData, levelData..string.rep("\0", 1024-#levelData), percentage)
                 end,
+            },
+            [0x04] = {
+                format = ">BHHH",
+                size = 7,
+                id = 0x04,
+                name = "LevelFinalize",
+                sender = function(self:Protocol, connection:Connection, sizeX:integer, sizeY:integer, sizeZ:integer)
+                    local packet = self:PacketFromName("LevelFinalize") as Packet
+                    packetUtility.sendPacket(connection,packet.format, packet.id, sizeX, sizeY, sizeZ)
+                end,
             }
             
         },
@@ -71,8 +91,12 @@ local protocolClass = class("Protocol7", {
             Version = 7
         },
         PacketFromName = function(self:Protocol, name:string): Packet|nil
+            if packetNameCache[name] then
+                return packetNameCache[name]
+            end
             for _, packet in pairs(self.Packets) do
                 if packet.name == name then
+                    packetNameCache[name] = packet
                     return packet
                 end
             end
