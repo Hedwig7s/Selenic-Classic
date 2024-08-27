@@ -33,6 +33,7 @@ local worldClass = class("World", {
         self.blocks = params.blocks or {}
         self.logger = logging.new("World "..self.name)
         worlds[self.name] = self
+        self:Save()
     end,
     values = {
         GetBlock = function(self:World, position:Vector3): Block
@@ -42,11 +43,13 @@ local worldClass = class("World", {
             self.blocks[getIndex(position, self.size)] = block
         end,
         Save = function(self:World)
+            self.logger:Info("Saving world")
             local data = string.pack("<I4HHHHHHBB", WORLD_VERSION, self.size.X, self.size.Y, self.size.Z, self.spawn.X, self.spawn.Y, self.spawn.Z, self.spawn.yaw, self.spawn.pitch)
             local lastBlock = -1
             local count = 0 
             local blocks = {}
-            for i = 1 , self.size.X * self.size.Y * self.size.Z do
+            self.logger:Debug("Packing blocks for save")
+            for i = 1 , self.size.X * self.size.Y * self.size.Z + 1 do
                 local block = self.blocks[i as integer] or blockModule.BLOCK_IDS.AIR
                 if block == lastBlock then
                     count = count + 1
@@ -61,11 +64,13 @@ local worldClass = class("World", {
             if count > 0 then
                 table.insert(blocks, string.pack("<BI4", lastBlock, count))
             end
-            data = data..zlib.deflate(5)(table.concat(blocks))
+            data = data..zlib.deflate(5)(table.concat(blocks), "finish")
             if not fs.existsSync("worlds") then
                 fs.mkdirSync("worlds")
             end
+            self.logger:Debug("Writing world to disk")
             fs.writeFileSync("worlds/"..self.name..".hworld", data)
+            self.logger:Info("World saved")
         end,
         Pack = function(self:World, protocol:Protocol): string
             local function compress(str:string): string
@@ -94,18 +99,12 @@ local worldClass = class("World", {
             local pack = string.pack
             local blocks = {}
             
-            if protoRepl then
-                for i = 1, totalSize do
-                    local block = blockData[i as integer]
-                    if block and block > max then
-                        block = repl[block] or default
-                    end
-                    blocks[i] = pack(">B", block or airBlock)
+            for i = 1, totalSize do
+                local block = blockData[i as integer]
+                if protoRepl and block and block > max then
+                    block = repl[block] or default
                 end
-            else
-                for i = 1, totalSize do
-                    blocks[i as integer] = pack(">B", blockData[i as integer] or airBlock)
-                end
+                blocks[i] = pack(">B", block or airBlock)
             end
             
             data = data .. table.concat(blocks)
