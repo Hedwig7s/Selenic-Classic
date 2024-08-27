@@ -26,8 +26,10 @@ World:
 - [x] World autosaving
 - [ ] Terrain generation
 - [x] Pack world into protocol-compliant gzipped byte-array
-- [ ] Level initialize, level data chunk and level finalize packets
-- [ ] Split world data into 1024 byte chunks and send to client
+- [ ] Multithreaded major world operations + general optimizations
+- [ ] Use uv buffers in place of tables for worlds
+- [x] Level initialize, level data chunk and level finalize packets
+- [x] Split world data into 1024 byte chunks and send to client
 - [ ] Per-world configuration
 - [ ] Block data
 - [ ] Block history
