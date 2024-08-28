@@ -41,7 +41,17 @@ local protocolClass = class("Protocol7", {
                     local player:Player = playerClass(connection, name) as Player
                     connection.player = player
                     connection.logger:Debug("Player created, loading world")
-                    player:LoadWorld(worlds:load("world", "hworld")) -- TODO: Default world
+                    local worldName = serverConfig:get("server.defaultWorld")
+                    if not (worldName is string) then
+                        connection.logger:Error("Default world not set")
+                        return
+                    end
+                    local world = worlds:getWorld(worldName)
+                    if not (world is World) then
+                        connection.logger:Error("World not found")
+                        return
+                    end
+                    player:LoadWorld(world as World)
                 end
             },
             [0x01] = {

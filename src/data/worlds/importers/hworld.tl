@@ -2,6 +2,7 @@ local require = require("customrequire")
 local zlib = require("zlib")
 local EntityPosition = require("datatypes.entityposition")
 local Vector3 = require("datatypes.vector3")
+local Buffer = require("buffer").Buffer
 
 local type _ = require("data.worlds.types")
 
@@ -12,7 +13,7 @@ local sharedFunctions = {
         local spawn = EntityPosition.new(spawnX as integer, spawnY as integer, spawnZ as integer, spawnYaw as integer, spawnPitch as integer)
         return size, spawn
     end,
-    parseBlockData = function(data:string): {integer: Block}
+    parseBlockData = function(data:string, size:Vector3): Buffer
         local blocks = {}
         for i = 1, #data, 5 do
             local id, count = string.unpack("<BI4", data:sub(i, i+4))
@@ -20,7 +21,11 @@ local sharedFunctions = {
                 table.insert(blocks, id as integer)
             end
         end
-        return blocks
+        local blockBuffer = Buffer:new(math.floor(size.X * size.Y * size.Z))
+        for i, block in ipairs(blocks) do
+            blockBuffer:writeUInt8(i, block)
+        end
+        return blockBuffer
     end
 }
 
@@ -29,14 +34,14 @@ return {
         [2] = function(name:string, data:string): WorldParams
             local size, spawn = sharedFunctions.parseHeader(data:sub(1, 18))
             data = data:sub(19)
-            local blocks = sharedFunctions.parseBlockData(data)
+            local blocks = sharedFunctions.parseBlockData(data, size)
             return {name = name, size = size, spawn = spawn, blocks = blocks}
         end,
         [3] = function(name:string, data:string): WorldParams
             local size, spawn = sharedFunctions.parseHeader(data:sub(1, 18))
             data = data:sub(19)
             local blockData = zlib.inflate()(data, "finish")
-            local blocks = sharedFunctions.parseBlockData(blockData)
+            local blocks = sharedFunctions.parseBlockData(blockData, size)
             return {name = name, size = size, spawn = spawn, blocks = blocks}
         end
     },
