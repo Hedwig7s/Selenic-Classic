@@ -11,7 +11,7 @@ logger:Info("Loading config...")
 serverConfig:loadFromFile()
 
 logger:Info("Loading worlds...")
-worldModule:loadOrCreate("world", "hworld", Vector3.new(512, 128, 512))
+worldModule:loadOrCreate(serverConfig:get("server.defaultWorld"), "hworld", Vector3.new(512, 128, 512))
 timer.setInterval(20000, worldModule.saveAll)
 
 logger:Info("Starting server...")

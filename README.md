@@ -27,7 +27,7 @@ World:
 - [ ] Terrain generation
 - [x] Pack world into protocol-compliant gzipped byte-array
 - [ ] Multithreaded major world operations + general optimizations
-- [ ] Use uv buffers in place of tables for worlds
+- [x] Use buffers in place of tables for worlds
 - [x] Level initialize, level data chunk and level finalize packets
 - [x] Split world data into 1024 byte chunks and send to client
 - [ ] Per-world configuration

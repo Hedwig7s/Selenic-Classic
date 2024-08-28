@@ -4,12 +4,13 @@ local type EntityPosition = require("datatypes.entityposition")
 local type _ = require("data.blocks")
 local type _ = require("networking.protocol.protocol")
 local type _ = require("utility.logging")
+local type buffer = require("buffer")
 
 global record WorldParams
     name: string
     size: Vector3
     spawn: EntityPosition
-    blocks: {integer: Block} | nil
+    blocks: buffer.Buffer | nil
 end
 
 global type WorldDataParser = function(name: string, data:string): WorldParams
@@ -24,18 +25,21 @@ global record World
     name: string
     size: Vector3
     spawn: EntityPosition
-    blocks: {integer: Block}
+    blocks: buffer.Buffer
     logger: Logger
     Pack: function(self:World, protocol:Protocol): string
     GetBlock: function(self:World, position:Vector3): Block
     SetBlock: function(self:World, position:Vector3, block:Block)
+    GetIndex: function(self:World, position:Vector3): integer
     Save: function(self:World)
 end
 
 global record WorldModule
     __class__: BaseClass
+    logger: Logger
     new: function(self:WorldModule, name:string, size:Vector3): World
     load: function(self:WorldModule, name:string, filetype:string): World
     loadOrCreate: function(self:WorldModule, name:string, filetype:string, size:Vector3): World
+    getWorld: function(self:WorldModule, name:string): World | nil
     saveAll: function()
 end
