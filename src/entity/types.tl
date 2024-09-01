@@ -2,15 +2,17 @@ local require = require("customrequire")
 local type _ = require("networking.servertypes")
 local type EntityPosition = require("datatypes.entityposition")
 local type _ = require("data.worlds.types")
-local type _ = require("utility.logging")
+local type Logger = require("utility.logging")
 local type _ = require("data.blocks")
 local type _ = require("networking.protocol.protocol")
 
 global record Entity
     __class__: BaseClass
     id: integer
+    worldId: integer
     logger: Logger
     world: World | nil
+    name: string
     position: EntityPosition
     MoveTo: function(self:Entity, position:EntityPosition)
     Spawn: function(self:Entity)
@@ -24,6 +26,7 @@ global record Player
     name: string
     logger: Logger
     world: World | nil
+    worldId: integer
     fancyName: string
     connection: Connection
     position: EntityPosition

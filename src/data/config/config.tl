@@ -1,10 +1,11 @@
 local require = require("customrequire")
 local class = require("utility.class")
-local logging = require("utility.logging")
+local Logger = require("utility.logging")
 local tableUtility = require("utility.table")  
 local toml = require("toml")
 local fs = require("fs")
 local pathModule = require("path")
+
 
 global type SettingsTable = {string: any}
 
@@ -58,7 +59,7 @@ local configClass = class("Config", {
         self.defaults = defaults
         self.settings = {}
         self.loaded = false
-        self.logger = logging.new(name.."-config")
+        self.logger = Logger.new(name.."-config")
     end,
     values = {
         getConfigPath = function(self:Config): string

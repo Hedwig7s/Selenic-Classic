@@ -1,18 +1,18 @@
 local globalSettings = {
     DEBUG = true,
-    DEBUG_COOLDOWN = 0.15,
+    DEBUG_COOLDOWN = 0.05,
     DEBUG_LIMIT = 10,
     DEBUG_TIMEOUT = 5,
-    COOLDOWN_TIME = 0.3,
+    COOLDOWN_TIME = 0.15,
     COOLDOWN_LIMIT = 5,
-    COOLDOWN_TIMEOUT = 10
+    COOLDOWN_TIMEOUT = 5
 }
 
 global record cooldown
     amount: number
     lastTime: number
 end
-global record Logger
+local record Logger
     __index: Logger
     new: function(name:string): Logger
     name: string
@@ -23,6 +23,7 @@ global record Logger
     Info: function(self:Logger, message:string)
     Debug: function(self:Logger, message:string)
     cooldowns: {string: cooldown}
+    globalSettings: {string: any}
 end
 Logger.__index = Logger
 
@@ -92,4 +93,6 @@ function Logger.new(name:string): Logger
     return self
 end
 
-return Logger, globalSettings
+Logger.globalSettings = globalSettings
+
+return Logger

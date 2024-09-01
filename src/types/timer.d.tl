@@ -1,10 +1,11 @@
-local record Timer
-    userdata
-end
-local record Item
-    userdata
-end
+
 local record timer 
+    record Timer
+        userdata
+    end
+    record Item
+        userdata
+    end
     sleep: function(delay:number, thread:thread|nil)
     setTimeout: function(delay:number, callback:function, ...:any): Timer
     setInterval: function(interval:number, callback:function, ...:any): Timer

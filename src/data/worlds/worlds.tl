@@ -1,6 +1,6 @@
 local require = require("customrequire")
 local class = require("utility.class")
-local logging = require("utility.logging")
+local Logger = require("utility.logging")
 local blockModule = require("data.blocks")
 local Vector3 = require("datatypes.vector3")
 local EntityPosition = require("datatypes.entityposition")
@@ -8,12 +8,18 @@ local zlib = require("zlib")
 local fs = require("fs")
 local pathModule = require("path")
 local Buffer = require("buffer").Buffer
+local pb = require("networking.packetbroadcast")
+local packetBroadcaster, criterias = pb.packetBroadcaster, pb.criterias
 local type _ = require("networking.protocol.protocol")
 local type _ = require("data.worlds.types")
 
 local WORLD_VERSION = 3
 
 local worlds: {string:World} = {}
+
+local broadcasters = {
+    setBlock = packetBroadcaster("ServerSetBlock", criterias.sameWorld) as PacketBroadcaster,
+}
 
 local function getIndex(position:Vector3, size:Vector3): integer
     local x, y, z = position.X, position.Y, position.Z
@@ -32,7 +38,7 @@ local worldClass = class("World", {
         self.size = params.size
         self.spawn = params.spawn
         self.blocks = params.blocks or Buffer:new(math.floor(self.size.X * self.size.Y * self.size.Z))
-        self.logger = logging.new("World "..self.name)
+        self.logger = Logger.new("World "..self.name)
         worlds[self.name] = self
         self:Save()
     end,
@@ -43,8 +49,11 @@ local worldClass = class("World", {
         GetBlock = function(self:World, position:Vector3): Block
             return self.blocks:readUInt8(self:GetIndex(position)) or blockModule.BLOCK_IDS.AIR
         end,
-        SetBlock = function(self:World, position:Vector3, block:Block)
+        SetBlock = function(self:World, position:Vector3, block:Block, dontReplicate: boolean | nil, player:Player|nil)
             self.blocks:writeUInt8(self:GetIndex(position), block)
+            if not dontReplicate then
+                broadcasters.setBlock:Broadcast({sourcePlayer = player}, position, block)
+            end
         end,
         Save = function(self:World)
             self.logger:Info("Saving world")
@@ -132,7 +141,7 @@ local worldModule = class("WorldModule", {
     singleton = true,
     constructor = function(self:Instance)
         local self = self as WorldModule
-        self.logger = logging.new("WorldModule")
+        self.logger = Logger.new("WorldModule")
     end,
     values = {
         new = function(_:WorldModule, name:string, size:Vector3): World

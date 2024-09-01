@@ -3,8 +3,10 @@ local type Vector3 = require("datatypes.vector3")
 local type EntityPosition = require("datatypes.entityposition")
 local type _ = require("data.blocks")
 local type _ = require("networking.protocol.protocol")
-local type _ = require("utility.logging")
+local type Logger = require("utility.logging")
 local type buffer = require("buffer")
+
+global type Player
 
 global record WorldParams
     name: string
@@ -29,7 +31,7 @@ global record World
     logger: Logger
     Pack: function(self:World, protocol:Protocol): string
     GetBlock: function(self:World, position:Vector3): Block
-    SetBlock: function(self:World, position:Vector3, block:Block)
+    SetBlock: function(self:World, position:Vector3, block:Block, dontReplicate: boolean | nil, player:Player|nil)
     GetIndex: function(self:World, position:Vector3): integer
     Save: function(self:World)
 end
