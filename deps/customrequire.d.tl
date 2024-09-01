@@ -1,3 +1,3 @@
-local type customRequire =  function(module: string): any
+local type customRequire = function(module: string): any...
 
 return customRequire

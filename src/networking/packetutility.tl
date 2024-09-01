@@ -7,7 +7,7 @@ function module.sendPacket(connection:Connection, format:string, ...:any): strin
     for i, v in ipairs(data) do
         if v is string then
             local str = v as string
-            data[i] = str..string.rep("\32", 64 - #str)
+            data[i] = str..string.rep("\32", math.max(64 - #str, 0))
         end
     end
     return connection:write(string.pack(format, table.unpack(data)))
@@ -28,6 +28,23 @@ function module.parsePacket(format:string, data:string): any...
         end
     end
     return table.unpack(unpackedData)
+end
+
+function module.toFixedPoint(...:number):integer...
+    local data = {...}
+    local fixedData: {integer} = {}
+    for i, v in ipairs(data) do
+        fixedData[i] = math.floor(v * 32)
+    end
+    return table.unpack(fixedData)
+end
+
+function module.fromFixedPoint(...:number):number...
+    local data = {...}
+    for i, v in ipairs(data) do
+        data[i] = v / 32
+    end
+    return table.unpack(data)
 end
 
 return module

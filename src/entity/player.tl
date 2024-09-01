@@ -1,22 +1,30 @@
 local require = require("customrequire")
 local class = require("utility.class")
 local type _ = require("entity.types")
+local type _ = require("networking.protocol.protocol")
 local EntityPosition = require("datatypes.entityposition")
 local entityClass = require("entity.entity")
-local logger = require("utility.logging")
+local Logger = require("utility.logging")
+local pb = require("networking.packetbroadcast")
+local broadcasterClass = pb.packetBroadcaster
+local criterias = pb.criterias
+local playerRegistry = require("entity.playerregistry")
 
-local players = {}
+
+local broadcasters = {
+    spawn = broadcasterClass("SpawnPlayer", criterias.sameWorld) as PacketBroadcaster
+}
 
 local playerClass = class("Player", {
     singleton = false,
     extends = entityClass,
-    constructor = function(self:Instance, connection:Connection, name:string)
+    constructor = function(self:Instance, name:string, connection:Connection)
         local self = self as Player
-        self.name = name
         self.fancyName = name -- TODO: Add fancy name
         self.connection = connection
-        self.logger = logger.new("Player "..self.name)
-        players[self.id] = self
+        self.logger = Logger.new("Player "..self.name)
+        self.logger:Debug("Registering player")
+        playerRegistry:RegisterEntity(self as Entity, self.id)
     end,
     values = {
         MoveTo = function(self:Player, position:EntityPosition)
@@ -27,7 +35,7 @@ local playerClass = class("Player", {
         Spawn = function(self:Player, position:EntityPosition)
             local super = (entityClass.__values__ as Entity).Spawn
             super(self as Entity)
-            -- Add replication code
+            broadcasters.spawn:Broadcast({sourcePlayer = self}, self.id, self.fancyName, position)
         end,
         LoadWorld = function(self:Player, world:World)
             local super = (entityClass.__values__ as Entity).LoadWorld
@@ -42,7 +50,8 @@ local playerClass = class("Player", {
                 self.logger:Error("LevelInitialize packet not found")
                 return
             end
-            levelInitialize.sender(self.connection.protocol, self.connection)
+            local initializeSender = levelInitialize.sender as PacketSenders.LevelInitialize
+            initializeSender(self.connection.protocol, self.connection)
             local worldData = world:Pack(self.connection.protocol)
             local size = #worldData
             local chunkSize = 1024
@@ -52,10 +61,11 @@ local playerClass = class("Player", {
                 self.logger:Error("LevelDataChunk packet not found")
                 return
             end
+            local dataChunkSender = levelDataChunk.sender as PacketSenders.LevelDataChunk
             self.logger:Debug("Sending level data")
             for i = 1, chunks do
                 local chunk = worldData:sub((i - 1) * chunkSize + 1, i * chunkSize)
-                levelDataChunk.sender(self.connection.protocol, self.connection, chunk, (i // chunks) * 100)
+                dataChunkSender(self.connection.protocol, self.connection, chunk, (i // chunks) * 100)
             end
             self.logger:Debug("Sending level finalize")
             local levelFinalize: Packet = self.connection.protocol:PacketFromName("LevelFinalize")
@@ -63,7 +73,8 @@ local playerClass = class("Player", {
                 self.logger:Error("LevelFinalize packet not found")
                 return
             end
-            levelFinalize.sender(self.connection.protocol, self.connection, world.size.X, world.size.Y, world.size.Z)
+            local finalizeSender = levelFinalize.sender as PacketSenders.LevelFinalize
+            finalizeSender(self.connection.protocol, self.connection, world.size)
         end
     }
 })

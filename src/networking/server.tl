@@ -1,6 +1,6 @@
 local require = require("customrequire")
 local class = require("utility.class")
-local loggerClass = require("utility.logging")
+local Logger = require("utility.logging")
 local uv = require("uv")
 local timer = require("timer")
 
@@ -29,7 +29,7 @@ local connectionClass = class("Connection", {
             end
             return self.socket:write(data)
         end
-        self.logger = loggerClass.new("Connection "..connectionCount)
+        self.logger = Logger.new("Connection "..connectionCount)
         connections[connectionCount] = self
         self.id = connectionCount
         connectionCount = connectionCount + 1
@@ -39,6 +39,7 @@ local connectionClass = class("Connection", {
             local receiver = packet.receiver
             if receiver is ClientReceiver then
                 xpcall(receiver, function(err:string)
+                    self.logger:Error("Error processing packet "..packet.name..":\n..."..err:gsub("\n", "...\n"), true)
                 end, self.protocol, self, data)
             end
         end,
@@ -129,7 +130,7 @@ local serverClass = class("Server", {
         local self = self as Server
         self.host = host
         self.port = port
-        self.logger = loggerClass.new("Server")
+        self.logger = Logger.new("Server")
         self.initialized = false
     end,
     values = {

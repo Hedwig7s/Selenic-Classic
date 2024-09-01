@@ -75,6 +75,3 @@ Networking:
 
 Advanced Features:
 - [ ] Physics
-
-Code Improvement:
-- [ ] Code cleanup

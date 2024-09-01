@@ -1,5 +1,6 @@
 local require = require("customrequire")
 local class = require("utility.class")
+local type Vector3 = require("datatypes.vector3")
 
 global type Connection
 
@@ -11,15 +12,16 @@ global record Packet
     format: string
     size: integer
     receiver: ClientReceiver|nil
-    sender: function(self:Protocol, connection:Connection, ...:any)
+    sender: function(protocol:Protocol, connection:Connection, ...:any)
 end
 
-global record ServerPackets
-    Identification: function(self:Protocol, connection:Connection, name:string, motd:string)
-    Ping: function(self:Protocol, connection:Connection)
-    LevelInitialize: function(self:Protocol, connection:Connection)
-    LevelDataChunk: function(self:Protocol, connection:Connection, chunkX:integer, chunkY:integer, chunkZ:integer, sizeX:integer, sizeY:integer, sizeZ:integer, data:string)
-    LevelFinalize: function(self:Protocol, connection:Connection, sizeX:integer, sizeY:integer, sizeZ:integer)
+global record PacketSenders
+    type Identification = function(protocol:Protocol, connection:Connection, name:string, motd:string)
+    type Ping = function(protocol:Protocol, connection:Connection)
+    type LevelInitialize = function(protocol:Protocol, connection:Connection)
+    type LevelDataChunk = function(protocol:Protocol, connection:Connection, levelData:string, percentage:integer)
+    type LevelFinalize = function(protocol:Protocol, connection:Connection, size:Vector3)
+    type ServerSetBlock = function(protocol:Protocol, connection:Connection, position:Vector3, blockID:integer)
 end
 
 global record Protocol
@@ -28,7 +30,7 @@ global record Protocol
     record Meta
         Version: integer
     end
-    PacketFromName: function(self:Protocol, name:string): Packet|nil
+    PacketFromName: function(protocol:Protocol, name:string): Packet|nil
 end
 
 local protocolImpl = class("ProtocolImpl", {

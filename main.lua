@@ -9,6 +9,7 @@ local timer = require("timer")
 
 logger:Info("Loading config...")
 serverConfig:loadFromFile()
+loggerClass.globalSettings.DEBUG = serverConfig:get("server.debug")
 
 logger:Info("Loading worlds...")
 worldModule:loadOrCreate(serverConfig:get("server.defaultWorld"), "hworld", Vector3.new(512, 128, 512))

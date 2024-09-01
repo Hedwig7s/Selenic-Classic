@@ -1,25 +1,20 @@
 local require = require("customrequire")
 local class = require("utility.class")
-local logging = require("utility.logging")
+local Logger = require("utility.logging")
 local Vector3 = require("datatypes.vector3")
 local EntityPosition = require("datatypes.entityposition")
+local entityRegistry = require("entity.entityregistry").entityRegistry
 local type _ = require("entity.types")
 
-local entities = {}
 
 local entityClass = class("Entity", {
     singleton = false,
-    constructor = function(self:Instance)
+    constructor = function(self:Instance, name:string)
         local self = self as Entity
-        for i=1, 255 do
-            if not entities[i] then
-                self.id = i
-                break
-            end
-        end
+        entityRegistry:RegisterEntity(self)
+        self.name = name
         self.position = EntityPosition.new(0, 0, 0, 0, 0)
-        self.logger = logging.new(self.__class__.__name__.." "..self.id)
-        entities[self.id] = self
+        self.logger = Logger.new(self.__class__.__name__.." "..self.id)
     end,
     values = {
         MoveTo = function(self:Entity, position:EntityPosition)
