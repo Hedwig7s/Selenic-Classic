@@ -1,13 +1,16 @@
 local require = require("customrequire")
 local type _ = require("networking.servertypes")
 local type EntityPosition = require("datatypes.entityposition")
+local type Vector3 = require("datatypes.vector3")
 local type _ = require("data.worlds.types")
 local type Logger = require("utility.logging")
 local type _ = require("data.blocks")
 local type _ = require("networking.protocol.protocol")
 
 global record Entity
-    __class__: BaseClass
+    initialize: function(self:Entity, name:string)
+    new: function(self:Entity, name:string): Entity
+    extend: function(self:Entity):  Entity
     id: integer
     worldId: integer
     logger: Logger
@@ -16,12 +19,14 @@ global record Entity
     position: EntityPosition
     MoveTo: function(self:Entity, position:EntityPosition)
     Spawn: function(self:Entity)
-    SetBlock: function(self:Entity, position:EntityPosition, block:Block)
+    SetBlock: function(self:Entity, position:Vector3, block:Block)
     LoadWorld: function(self:Entity, world:World)
 end
 
 global record Player
-    __class__: BaseClass
+    initialize: function(self:Player, name:string, connection:Connection)
+    new: function(self:Player, name:string, connection:Connection): Player
+    extend: function(self:Player):  Player
     id: integer
     name: string
     logger: Logger
@@ -30,8 +35,8 @@ global record Player
     fancyName: string
     connection: Connection
     position: EntityPosition
-    MoveTo: function(self:Player)
-    Spawn: function(self:Player, position:EntityPosition)
+    MoveTo: function(self:Player, position:EntityPosition)
+    Spawn: function(self:Player)
     SetBlock: function(self:Player, position:EntityPosition, block:Block)
     LoadWorld: function(self:Player, world:World)
 end

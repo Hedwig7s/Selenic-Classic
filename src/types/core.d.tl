@@ -1,7 +1,12 @@
 local record core
     record Object
-        create: function(self:Object): Object
-        new: function(self:Object, ...:any): Object
+        initialize: function(self:Object)
+        create: function(self:Object): Instance
+        new: function(self:Object, ...:any): Instance
+        extend: function(self:Object): Object
+    end
+    record Instance
+    
     end
 end
 return core

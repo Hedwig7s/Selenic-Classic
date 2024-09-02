@@ -1,5 +1,6 @@
 local require = require("customrequire")
-local class = require("utility.class")
+local core = require("core")
+local Object = core.Object
 local type Vector3 = require("datatypes.vector3")
 
 global type Connection
@@ -24,30 +25,42 @@ global record PacketSenders
     type ServerSetBlock = function(protocol:Protocol, connection:Connection, position:Vector3, blockID:integer)
 end
 
+local record Meta
+    Version: integer
+end
+
 global record Protocol
-    __class__: BaseClass
+    initialize: function(self:Protocol)
+    new: function(self:Protocol): Protocol
+    extend: function(self:Protocol): Protocol
     Packets: {integer: Packet}
-    record Meta
-        Version: integer
-    end
+    Meta: Meta
     PacketFromName: function(protocol:Protocol, name:string): Packet|nil
 end
 
-local protocolImpl = class("ProtocolImpl", {
-    singleton = true,
-    constructor = function()
+local packetNameCache:{integer:{string:Packet}} = {}
 
-    end,
-    values = {
-        Packets = {},
-        Meta = {
-            Version = -1
-        },
-        PacketFromName = function(): Packet|nil
-            
+local protocolImpl = Object:extend() as Protocol
+function protocolImpl:initialize()
+
+end
+protocolImpl.Packets = {}
+
+function protocolImpl:PacketFromName(name:string): Packet|nil
+    if not packetNameCache[self.Meta.Version] then
+        packetNameCache[self.Meta.Version] = {}
+    end
+    local cache = packetNameCache[self.Meta.Version]
+    if cache[name] then
+        return cache[name]
+    end
+    for _, packet in pairs(self.Packets) do
+        if packet.name == name then
+            cache[name] = packet
+            return packet
         end
-    }
-})
-
+    end
+    return nil
+end
 
 return protocolImpl

@@ -17,5 +17,5 @@ timer.setInterval(20000, worldModule.saveAll)
 
 logger:Info("Starting server...")
 
-local server = serverClass("0.0.0.0", 25565)
+local server = serverClass:new("0.0.0.0", 25565)
 server:init()

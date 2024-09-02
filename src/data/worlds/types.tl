@@ -23,7 +23,9 @@ global record WorldParser
 end
 
 global record World 
-    __class__: BaseClass
+    initialize: function(self:World, params:WorldParams)
+    new: function(self:World, params:WorldParams): World
+    extend: function(self:World):  World
     name: string
     size: Vector3
     spawn: EntityPosition
@@ -37,11 +39,13 @@ global record World
 end
 
 global record WorldModule
-    __class__: BaseClass
     logger: Logger
-    new: function(self:WorldModule, name:string, size:Vector3): World
-    load: function(self:WorldModule, name:string, filetype:string): World
+    initialize: function(self:WorldModule)
+    new: function(self:WorldModule): WorldModule
+    extend: function(self:WorldModule): WorldModule
+    newWorld: function(self:WorldModule, name:string, size:Vector3): World
+    load: function(self:WorldModule, path:string): World | nil
     loadOrCreate: function(self:WorldModule, name:string, filetype:string, size:Vector3): World
     getWorld: function(self:WorldModule, name:string): World | nil
-    saveAll: function()
+    saveAll: function(self:WorldModule)
 end
