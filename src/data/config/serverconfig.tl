@@ -1,7 +1,7 @@
 local require = require("customrequire")
 local configClass = require("data.config.config")
 
-local serverConfig = configClass("server", {
+local serverConfig = configClass:new("server", {
     server = {
         port = 25565,
         maxPlayers = 20,

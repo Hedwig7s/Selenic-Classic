@@ -15,6 +15,7 @@ end
 local record Logger
     __index: Logger
     new: function(name:string): Logger
+    extend: function(self:Logger):  Logger
     name: string
     getPrefix: function(self:Logger, level:string): string
     checkCooldown: function(self:Logger, message:string, debug:boolean): boolean

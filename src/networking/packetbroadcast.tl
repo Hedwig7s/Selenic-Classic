@@ -1,9 +1,10 @@
 local require = require("customrequire")
-local class = require("utility.class")
 local playerRegistry = require("entity.playerregistry")
 local type _ = require("networking.protocol.protocol")
 local type _ = require("networking.servertypes")
 local type _ = require("entity.types")
+local core = require("core")
+local Object = core.Object
 
 global record CriteriaData
     sourcePlayer: Player -- The player related to the packet (e.g. movement), if any
@@ -12,36 +13,34 @@ end
 global type BroadcastCriteria = function(player:Player, data:CriteriaData): boolean
 
 global record PacketBroadcaster
-    __class__: BaseClass
+    initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria)
+    new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria): PacketBroadcaster
+    extend: function(self:PacketBroadcaster):  PacketBroadcaster
     packet: string
     criteria: BroadcastCriteria
     Broadcast: function(self:PacketBroadcaster, criteriaData:CriteriaData, ...:any)
 end
 
-local packetBroadcasterClass = class("PacketBroadcaster", {
-    singleton = false,
-    constructor = function(self:Instance, packet:string, criteria:BroadcastCriteria)
-        local self = self as PacketBroadcaster
-        self.packet = packet
-        self.criteria = criteria
-    end,
-    values = {
-        Broadcast = function(self:PacketBroadcaster, criteriaData:CriteriaData, ...:any)
-            for _, player in ipairs(playerRegistry:GetEntities()) do
-                local player = player as Player
-                local connection = player.connection
-                if (self.criteria and self.criteria(player, criteriaData)) or not self.criteria then
-                    local p = connection.protocol:PacketFromName(self.packet)
-                    if not p then
-                        error("Couldn't find packet of name "..self.packet)
-                    end
-                    local packet = p as Packet
-                    packet.sender(connection.protocol, connection, ...)
-                end
+local packetBroadcasterClass = Object:extend() as PacketBroadcaster
+
+function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria)
+    self.packet = packet
+    self.criteria = criteria
+end
+function packetBroadcasterClass:Broadcast(criteriaData:CriteriaData, ...:any)
+    for _, player in ipairs(playerRegistry:GetEntities()) do
+        local player = player as Player
+        local connection = player.connection
+        if (self.criteria and self.criteria(player, criteriaData)) or not self.criteria then
+            local p = connection.protocol:PacketFromName(self.packet)
+            if not p then
+                error("Couldn't find packet of name "..self.packet)
             end
-        end,
-    }
-})
+            local packet = p as Packet
+            packet.sender(connection.protocol, connection, ...)
+        end
+    end
+end
 
 local record criterias
     notSelf: BroadcastCriteria
