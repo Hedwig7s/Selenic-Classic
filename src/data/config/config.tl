@@ -76,6 +76,10 @@ function config:loadFromFile(reload:boolean|nil)
         self.logger:Warn("Attempted to load config when already loaded without reload")
         return
     end
+    if not self.settings then
+        self.logger:Error("Cannot load into a nil settings table")
+        return
+    end
     local filePath = self:getConfigPath()
     local exists = type(fs.statSync(pathModule.dirname(filePath))) == "table"
     if not exists then
@@ -103,7 +107,7 @@ function config:loadFromFile(reload:boolean|nil)
                 elseif settings[k] == nil then
                     settings[k] = v
                 elseif type(settings[k]) ~= type(v) then
-                    self.logger:Error(string.format("Setting %s is not the correct type. Expected %s, got %s", k, type(settings[k]), type(v)))
+                    error(string.format("Setting %s is not the correct type. Expected %s, got %s", k, type(settings[k]), type(v)))
                 end
             end
         end
@@ -113,7 +117,8 @@ function config:loadFromFile(reload:boolean|nil)
         self.logger:Debug("Loaded successfully")
         self:saveToFile()
     end, function(err)
-        self.logger:Error("Failed to load config: "..(err and tostring(err)) or "Unknown error")
+        self.logger:Warn("Failed to load config: "..((err and tostring(err)) or "Unknown error")..". Using defaults")
+        self.settings = tableUtility.deepCopy(self.defaults) as SettingsTable
     end)
     
 end

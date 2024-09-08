@@ -58,7 +58,7 @@ Vector3.__pow = function(self:Vector3, other:Vector3): Vector3
     return Vector3.new(self.X ^ other.X, self.Y ^ other.Y, self.Z ^ other.Z)
 end
 Vector3.__tostring = function(self:Vector3): string
-    return string.format("%d, %d, %d", self.X, self.Y, self.Z)
+    return string.format("Vector3(%3f, %3f, %3f)", self.X, self.Y, self.Z)
 end
 Vector3.__eq = function(self:Vector3, other:Vector3): boolean
     return self.X == other.X and self.Y == other.Y and self.Z == other.Z

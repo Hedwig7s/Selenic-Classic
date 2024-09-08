@@ -9,11 +9,13 @@ local Logger = require("utility.logging")
 local pb = require("networking.packetbroadcast")
 local broadcasterClass = pb.packetBroadcaster
 local criterias = pb.criterias
+local combineCriterias = pb.combineCriterias
 local playerRegistry = require("entity.playerregistry")
 
 
 local broadcasters = {
-    spawn = broadcasterClass:new("SpawnPlayer", criterias.sameWorld) as PacketBroadcaster
+    spawn = broadcasterClass:new("SpawnPlayer", criterias.sameWorld) as PacketBroadcaster,
+    positionAndOrientation = broadcasterClass:new("PositionAndOrientation", combineCriterias(criterias.sameWorld, criterias.notSelf)) as PacketBroadcaster,
 }
 
 local playerClass = entityClass:extend() as Player
@@ -29,15 +31,21 @@ function playerClass:initialize(name:string, connection:Connection)
     playerRegistry:RegisterEntity(self as Entity, self.id)
 end
 
-function playerClass:MoveTo(position:EntityPosition)
+function playerClass:MoveTo(position:EntityPosition, dontReplicate: boolean | nil, clientMovement: boolean | nil)
     local super = entityClass.MoveTo
-    super(self as Entity, position)
-    -- Add replication code
+    super(self as Entity, position, true)
+    if not dontReplicate then
+        broadcasters.positionAndOrientation:Broadcast({sourcePlayer = self}, self.position)
+    end
 end
 function playerClass:Spawn()
     local super = entityClass.Spawn
     super(self as Entity)
-    broadcasters.spawn:Broadcast({sourcePlayer = self}, self.id, self.fancyName, self.position)
+    broadcasters.spawn:Broadcast({sourcePlayer = self}, self.fancyName, self.position)
+    for _, player in ipairs(playerRegistry:GetEntities()) do
+        local player = player as Player
+        broadcasters.spawn:sendTo(self, {sourcePlayer = player}, player.fancyName, player.position)
+    end
 end
 function playerClass:LoadWorld(world:World)
     local super = entityClass.LoadWorld
@@ -77,6 +85,8 @@ function playerClass:LoadWorld(world:World)
     end
     local finalizeSender = levelFinalize.sender as PacketSenders.LevelFinalize
     finalizeSender(self.connection.protocol, self.connection, world.size)
+    self:MoveTo(world.spawn, true)
+    self:Spawn()
 end
 
 return playerClass

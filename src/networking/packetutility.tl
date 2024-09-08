@@ -1,6 +1,7 @@
 local module = {}
 local require = require("customrequire")
 local type _ = require("networking.servertypes")
+local type EntityPosition = require("datatypes.entityposition")
 
 function module.sendPacket(connection:Connection, format:string, ...:any): string
     local data = {...}
@@ -33,8 +34,8 @@ end
 function module.toFixedPoint(...:number):integer...
     local data = {...}
     local fixedData: {integer} = {}
-    for i, v in ipairs(data) do
-        fixedData[i] = math.floor(v * 32)
+    for _, v in ipairs(data) do
+        table.insert(fixedData, math.floor(v * 32))
     end
     return table.unpack(fixedData)
 end
@@ -44,6 +45,13 @@ function module.fromFixedPoint(...:number):number...
     for i, v in ipairs(data) do
         data[i] = v / 32
     end
+    return table.unpack(data)
+end
+
+function module.formatEntityPosition(position:EntityPosition):number...
+    local data = {module.toFixedPoint(position.X, position.Y, position.Z)}
+    table.insert(data, position.yaw)
+    table.insert(data, position.pitch)
     return table.unpack(data)
 end
 

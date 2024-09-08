@@ -15,11 +15,11 @@ function entityClass:initialize(name:string)
     self.logger = Logger.new("Entity".." "..self.id)
 end
 
-function entityClass:MoveTo(position:EntityPosition)
+function entityClass:MoveTo(position:EntityPosition, dontReplicate: boolean | nil)
     self.position = position
 end
 function entityClass:Spawn()
-    self.logger:Error("Not implemented")
+    
 end
 function entityClass:SetBlock(position:Vector3, block:Block)
     local world = self.world
