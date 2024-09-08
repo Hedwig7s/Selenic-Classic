@@ -35,9 +35,11 @@ end
 function connectionClass:handlePacket(packet:Packet, data:string)
     local receiver = packet.receiver
     if receiver is ClientReceiver then
-        xpcall(receiver, function(err:string)
-            self.logger:Error("Error processing packet "..packet.name..":\n..."..err:gsub("\n", "...\n"), true)
-        end, self.protocol, self, data)
+        local co = coroutine.create(receiver)
+        local success, err = coroutine.resume(co, self.protocol, self, data)
+        if not success then
+            self.logger:Error(("Error processing packet "..packet.name..":\n"..(err as string).."\n"..debug.traceback(co)):gsub("\n", "\n\t"), true)
+        end
     end
 end
 function connectionClass:init()

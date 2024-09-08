@@ -23,6 +23,7 @@ global record PacketSenders
     type LevelDataChunk = function(protocol:Protocol, connection:Connection, levelData:string, percentage:integer)
     type LevelFinalize = function(protocol:Protocol, connection:Connection, size:Vector3)
     type ServerSetBlock = function(protocol:Protocol, connection:Connection, position:Vector3, blockID:integer)
+    type SpawnPlayer = function(protocol:Protocol, connection:Connection, _:integer, position:Vector3, block:integer)
 end
 
 local record Meta

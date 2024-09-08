@@ -124,7 +124,7 @@ protocolClass.Packets = {
         size = 9,
         id = 0x06,
         name = "ServerSetBlock",
-        sender = function(protocol:Protocol, connection:Connection, position:Vector3, block:Block)
+        sender = function(protocol:Protocol, connection:Connection, _:integer, position:Vector3, block:Block)
             local packet = protocol:PacketFromName("ServerSetBlock") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, position.X, position.Y, position.Z, block)
         end,
@@ -136,8 +136,29 @@ protocolClass.Packets = {
         name = "SpawnPlayer",
         sender = function(protocol:Protocol, connection:Connection, entityId:integer, name:string, position:EntityPosition)
             local packet = protocol:PacketFromName("SpawnPlayer") as Packet
-            packetUtility.sendPacket(connection,packet.format, packet.id, entityId, name, position.X, position.Y, position.Z, position.yaw, position.pitch)
+            packetUtility.sendPacket(connection,packet.format, packet.id, entityId, name, packetUtility.formatEntityPosition(position))
         end,
+    },
+    [0x08] = {
+        format = ">BbHHHBB",
+        size = 10,
+        id = 0x08,
+        name = "PositionAndOrientation",
+        sender = function(protocol:Protocol, connection:Connection, entityId:integer, position:EntityPosition)
+            local packet = protocol:PacketFromName("PositionAndOrientation") as Packet
+            packetUtility.sendPacket(connection,packet.format, packet.id, entityId, packetUtility.formatEntityPosition(position))
+        end,
+        receiver = function(protocol:Protocol, connection:Connection, data:string)
+            local packet = protocol:PacketFromName("PositionAndOrientation") as Packet
+            local _, entityId, x, y, z, yaw, pitch = packetUtility.parsePacket(packet.format, data)
+            x, y, z = packetUtility.fromFixedPoint(x as number, y as number, z as number)
+            local player = connection.player
+            if not (player is Player) then
+                connection.logger:Error("Player not set")
+                return
+            end
+            player:MoveTo(EntityPosition.new(x as number, y as number, z as number, yaw as number, pitch as number))
+        end
     }
 }
 protocolClass.Meta = {

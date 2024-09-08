@@ -22,7 +22,7 @@ World:
 - [x] World module
 - [x] World creation
 - [x] World modification
-- [ ] Broadcast world modifications
+- [x] Broadcast world modifications
 - [x] World saving
 - [x] World loading
 - [x] World autosaving
@@ -41,7 +41,7 @@ Player:
 - [x] Player block modification
 - [ ] Block placement rules
 - [x] Basic player spawning
-- [ ] Player movement
+- [x] Player movement
 - [ ] Relative player movement
 - [ ] Player cleanup
 - [ ] Console player

@@ -13,32 +13,39 @@ end
 global type BroadcastCriteria = function(player:Player, data:CriteriaData): boolean
 
 global record PacketBroadcaster
-    initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria)
-    new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria): PacketBroadcaster
+    initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
+    new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil): PacketBroadcaster
     extend: function(self:PacketBroadcaster):  PacketBroadcaster
     packet: string
+    changeId: boolean
     criteria: BroadcastCriteria
+    sendTo: function(self:PacketBroadcaster, player:Player, criteriaData:CriteriaData, ...:any)
     Broadcast: function(self:PacketBroadcaster, criteriaData:CriteriaData, ...:any)
 end
 
 local packetBroadcasterClass = Object:extend() as PacketBroadcaster
 
-function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria)
+function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
     self.packet = packet
     self.criteria = criteria
+    self.changeId = not leaveId
+end
+function packetBroadcasterClass:sendTo(player:Player, criteriaData:CriteriaData, ...:any)
+    local connection = player.connection
+    if (self.criteria and self.criteria(player, criteriaData)) or not self.criteria then
+        local p = connection.protocol:PacketFromName(self.packet)
+        if not p then
+            error("Couldn't find packet of name "..self.packet)
+        end
+        local packet = p as Packet
+        local id = self.changeId and criteriaData.sourcePlayer and criteriaData.sourcePlayer.id == player.id and -1 or player.id
+        packet.sender(connection.protocol, connection, id, ...)
+    end
 end
 function packetBroadcasterClass:Broadcast(criteriaData:CriteriaData, ...:any)
     for _, player in ipairs(playerRegistry:GetEntities()) do
         local player = player as Player
-        local connection = player.connection
-        if (self.criteria and self.criteria(player, criteriaData)) or not self.criteria then
-            local p = connection.protocol:PacketFromName(self.packet)
-            if not p then
-                error("Couldn't find packet of name "..self.packet)
-            end
-            local packet = p as Packet
-            packet.sender(connection.protocol, connection, ...)
-        end
+        self:sendTo(player, criteriaData, ...)
     end
 end
 
