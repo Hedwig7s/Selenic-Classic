@@ -3,11 +3,13 @@ A Classic server written in Lua because I hate myself
 Name comes from Selene (greek personification of the moon and a pun on the fact that Lua is Moon in Portuguese) + -ic (pertaining to) and Classic (Minecraft Classic)
 
 ## Setup
+Note: This is only intended for linux or other unix-like environments
 Install [Luvit](https://luvit.io/install.html)  
 Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download)   
 Clone the repository or download a release source zip  
-Run `./install-dependencies.sh` (Linux)
-Run `./run.sh`  
+Source set-path.sh
+Run install-dependencies.sh
+Run run.sh (server files will be under ./build)
 
 ## Features
 
@@ -36,9 +38,9 @@ World:
 
 Player:
 - [x] Player module
-- [ ] Player block modification
+- [x] Player block modification
 - [ ] Block placement rules
-- [ ] Basic player spawning
+- [x] Basic player spawning
 - [ ] Player movement
 - [ ] Relative player movement
 - [ ] Player cleanup
@@ -70,7 +72,6 @@ Networking:
 - [ ] Name verification
 - [ ] Salt caching
 - [ ] Full CPE
-- [ ] Better CPE extension mechanism
 - [ ] Web client
 
 Advanced Features:
