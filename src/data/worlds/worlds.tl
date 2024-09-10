@@ -114,7 +114,6 @@ function worldClass:Pack(protocol:Protocol): string
         max = protoRepl.MAX
     end
     
-    local pack = string.pack
     local blocks = Buffer:new(totalSize)
     self.logger:Debug("Packing blocks")
     for i = 1, totalSize do

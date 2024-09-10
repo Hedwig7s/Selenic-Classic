@@ -19,8 +19,11 @@ global record Entity
     position: EntityPosition
     MoveTo: function(self:Entity, position:EntityPosition, dontReplicate: boolean | nil)
     Spawn: function(self:Entity)
+    Despawn: function(self:Entity)
     SetBlock: function(self:Entity, position:Vector3, block:Block)
     LoadWorld: function(self:Entity, world:World)
+    Remove: function(self:Entity)
+    removed: boolean
 end
 
 global record Player
@@ -37,6 +40,9 @@ global record Player
     position: EntityPosition
     MoveTo: function(self:Player, position:EntityPosition, dontReplicate: boolean | nil, clientMovement: boolean | nil)
     Spawn: function(self:Player)
+    Despawn: function(self:Player)
     SetBlock: function(self:Player, position:EntityPosition, block:Block)
     LoadWorld: function(self:Player, world:World)
+    Remove: function(self:Player)
+    removed: boolean
 end

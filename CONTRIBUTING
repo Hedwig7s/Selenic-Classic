@@ -1,7 +1,10 @@
 ## Some general notes for anyone wanting to contribute:
 All teal files should be within the src directory for building to work correctly. This excludes .d.tl as they are not compiled.
-Repetitive tasks (such as requiring or classes) should have dedicated scripts for handling them to make changes (such as moving the require root) easier to manage.
+Repetitive tasks (such as requiring) should have dedicated scripts for handling them to make changes (such as moving the require root) easier to manage.
 Classes are generally preferred over modules, although if a module may be more convenient (such as simple helper functions), it may be better to use one.
-When making classes specifically for the project (such as the server class), it should be made through the class module. If the class is not limited to this project (such as logging), it should not be made through the class module for the sake of portability.
-If there's a good chance of circular type dependencies for a specific module/class (such as server and protocol), the types should be seperated into a seperate type file (NOT type decleration file).
+When making classes specifically for the project (such as the server class), it should be made through the core module. If the class is not limited to this project (such as logging), it should not be made through the core module for the sake of portability.
+If there's a good chance of circular type dependencies for a specific module/class (such as server and protocol), the types should be separated into a separate type file (NOT type declaration file).
 Printing should be avoided at all costs. Use a logger where possible (outside of temporary debugging).
+Packet senders should merely verify and send packets. They should do no more.
+Packet receivers on the other hand (within protocol 7) may handle the request.
+Protocols other than 7 should be translation layers for the layer above them.

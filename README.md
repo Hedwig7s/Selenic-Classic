@@ -13,10 +13,6 @@ Run run.sh (server files will be under ./build)
 
 ## Features
 
-- [x] Basic TCP server
-- [x] Add framework to handle incoming packets based on ID
-- [x] Parse login packet
-- [x] Send server identification
 
 World:
 - [x] World module
@@ -43,11 +39,12 @@ Player:
 - [x] Basic player spawning
 - [x] Player movement
 - [ ] Relative player movement
-- [ ] Player cleanup
+- [x] Player cleanup
 - [ ] Console player
 - [ ] Console input
-- [ ] Duplicate name blocking
-- [ ] Enforce max players
+- [x] Duplicate name blocking
+- [x] Enforce max players
+- [ ] Name verification
 - [ ] Persistent player information (including bans)
 - [ ] Fancy names & Nicknames
 
@@ -63,16 +60,23 @@ Server Management:
 - [ ] Permissions/Ranks
 - [x] Config creation
 - [x] Config loading
-- [ ] Full config usage
+- [x] Full config usage
 - [x] Logging system
 
 Networking:
+- [x] Basic TCP server
+- [x] Add framework to handle incoming packets based on ID
+- [x] Parse login packet
+- [x] Send server identification
 - [ ] Support all protocols (with toggles)
 - [ ] Heartbeat
-- [ ] Name verification
 - [ ] Salt caching
 - [ ] Full CPE
 - [ ] Web client
 
 Advanced Features:
 - [ ] Physics
+
+Safety:
+- [ ] Function assertions
+- [ ] Unit tests
