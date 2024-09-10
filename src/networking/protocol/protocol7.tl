@@ -1,8 +1,12 @@
 local require = require("customrequire")
 local core = require("core")
+local md5 = require("md5")
+local timer = require("timer")
 local protocolImpl = require("networking.protocol.protocol")
 local packetUtility = require("networking.packetutility")
+local tableUtility = require("utility.table")
 local serverConfig = require("data.config.serverconfig")
+local persistentData = require("data.persistent")
 local playerClass = require("entity.player")
 local playerRegistry = require("entity.playerregistry")
 local worlds = require("data.worlds.worlds")
@@ -51,7 +55,20 @@ protocolClass.Packets = {
                 connection.logger:Warn("Server is full")
                 return
             end
-            local player:Player = playerClass:new(name as string, connection) as Player
+            local localIPs = {
+                "127.0.0.1",
+                "localhost",
+                serverConfig:get("server.host")
+            }
+            local ip = connection.socket:getpeername().ip
+            local bypass = serverConfig:get("server.localBypassVerification") and tableUtility.find(localIPs, ip)
+            if serverConfig:get("server.verifyNames") == true and verificationKey ~= md5.sumhexa(persistentData.Salt..username) and not bypass then 
+                local err = "Invalid verification key"
+                connection.logger:Warn(err)
+                disconnectPacket.sender(protocol, connection, err)
+                return
+            end
+            local player:Player = playerClass:new(name as string, connection)
             connection.player = player
             connection.logger:Debug("Player created, loading world")
             local worldName = serverConfig:get("server.defaultWorld")
@@ -237,6 +254,11 @@ protocolClass.Packets = {
         sender = function(protocol:Protocol, connection:Connection, reason:string)
             local packet = protocol:PacketFromName("Disconnect") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, reason)
+            timer.setTimeout(500, function()
+                if connection and not connection.closed then
+                    connection:Close() -- Force disconnect
+                end
+            end)
         end,
     },
     [0x0F] = {
