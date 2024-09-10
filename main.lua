@@ -36,7 +36,7 @@ logger:Info("Starting server...")
 
 do 
     local success, err = pcall(function()
-        local server = serverClass:new("0.0.0.0", 25565)
+        local server = serverClass:new(serverConfig:get("server.host"), serverConfig:get("server.port"))
         server:init()
     end)
     if not success then
