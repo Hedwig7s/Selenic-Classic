@@ -3,6 +3,7 @@ local serverClass = require("networking/server")
 local serverConfig = require("data/config/serverconfig")
 local loggerClass = require("utility.logging")
 local logger = loggerClass.new("Main")
+local heartbeat = require("networking/heartbeat")
 local worldModule = require("data/worlds/worlds")
 local Vector3 = require("datatypes/vector3")
 local timer = require("timer")
@@ -31,7 +32,6 @@ do
     end
 end
 
-
 logger:Info("Starting server...")
 
 do 
@@ -41,5 +41,16 @@ do
     end)
     if not success then
         logger:Fatal("Fatal error occured while running server: " .. err)
+    end
+end
+
+if serverConfig:get("heartbeat.enabled") then
+    logger:Info("Starting heartbeat...")
+    local success, err = pcall(function()
+        local hb = heartbeat:new()
+        hb:start()
+    end)
+    if not success then
+        logger:Error("Fatal error occured while starting heartbeat: " .. err, true)
     end
 end

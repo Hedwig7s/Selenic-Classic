@@ -11,6 +11,8 @@ local broadcasterClass = pb.packetBroadcaster
 local criterias = pb.criterias
 local combineCriterias = pb.combineCriterias
 local playerRegistry = require("entity.playerregistry")
+local chat = require("messaging.chat")
+local messageCriterias = require("messaging.criterias")
 
 
 local broadcasters = {
@@ -54,12 +56,29 @@ function playerClass:Despawn()
     broadcasters.despawn:Broadcast({sourcePlayer = self})
 end
 
+function playerClass:Kick(reason:string)
+    self.logger:Info("Kicking player for reason: "..reason)
+    local kickPacket: Packet = self.connection.protocol:PacketFromName("Disconnect")
+    if kickPacket is nil then
+        self.logger:Error("Disconnect packet not found", true)
+        self:Remove()
+        return
+    end
+    kickPacket.sender(self.connection.protocol, self.connection, reason)
+    self:Remove()
+end
+
 function playerClass:Remove()
+    if self.removed then return end
     local super = entityClass.Remove
     super(self as Entity)
     playerRegistry:UnregisterEntity(self.id)
     self.connection:Close()
     self.logger:Info("Player removed")
+end
+
+function playerClass:Chat(message:string)
+    chat:Broadcast(message, nil, {sourcePlayer = self})
 end
 
 function playerClass:LoadWorld(world:World)

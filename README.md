@@ -44,12 +44,13 @@ Player:
 - [ ] Console input
 - [x] Duplicate name blocking
 - [x] Enforce max players
-- [ ] Name verification
+- [x] Name verification
 - [ ] Persistent player information (including bans)
 - [ ] Fancy names & Nicknames
 
 Messages:
-- [ ] Chat
+- [x] Color code module
+- [x] Chat
 - [ ] Join/Leave messages
 - [ ] Global Chat/Join/Leave messages
 - [ ] Translation file
@@ -69,7 +70,7 @@ Networking:
 - [x] Parse login packet
 - [x] Send server identification
 - [ ] Support all protocols (with toggles)
-- [ ] Heartbeat
+- [x] Heartbeat
 - [ ] Salt caching
 - [ ] Full CPE
 - [ ] Web client
@@ -80,3 +81,6 @@ Advanced Features:
 Safety:
 - [ ] Function assertions
 - [ ] Unit tests
+
+Misc:
+- [ ] Refactor to remove global types

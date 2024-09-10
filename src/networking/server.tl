@@ -35,11 +35,7 @@ end
 function connectionClass:handlePacket(packet:Packet, data:string)
     local receiver = packet.receiver
     if receiver is ClientReceiver then
-        local co = coroutine.create(receiver)
-        local success, err = coroutine.resume(co, self.protocol, self, data)
-        if not success then
-            self.logger:Error(("Error processing packet "..packet.name..":\n"..(err as string).."\n"..debug.traceback(co)):gsub("\n", "\n\t"), true)
-        end
+        receiver(self.protocol, self, data) -- Error handling handled by the routine loop
     end
 end
 function connectionClass:Close()
@@ -67,6 +63,7 @@ function connectionClass:init()
             data = table.concat(buffer)
             size = #data
         end
+        if self.closed then return nil end
     
         if bytes == size and not leaveData then
             buffer = {}
@@ -93,16 +90,23 @@ function connectionClass:init()
             self:Close()
         end
     end)
-    local connectTime = os.time()
+    timer.setTimeout(5000, function()
+        if not self.player then
+            self.logger:Warn("Client did not log in within 5 seconds")
+            self:Close()
+        end
+    end)
     self.readRoutine = coroutine.create(function()
-        while not self.closed do
-            timer.sleep(5)
+        local function process()
             local data = read_buffer(1)
-            local loggedIn = self.player and true or false
-            if #data == 1 then
+            if data and #data == 1 then
                 local id = string.unpack(">B", data) as integer
                 if id == 0x00 then
-                    local protVersion = string.unpack(">B", read_buffer(1,true)) as integer
+                    local protVerString = read_buffer(1,true)
+                    if not protVerString then
+                        return
+                    end
+                    local protVersion = string.unpack(">B", protVerString) as integer
                     if protVersion < 2 or protVersion > 7 then
                         protVersion = 1 -- c0.0.15a
                     end
@@ -115,7 +119,12 @@ function connectionClass:init()
                 if self.protocol then
                     local packet = self.protocol.Packets[id]
                     if not packet then 
-                        self.logger:Warn("Received unknown packet id: " .. id)
+                        self.logger:Error("Received unknown packet id: " .. id, true)
+                        if self.player then
+                            self.player:Kick("Unknown packet id: " .. id)
+                        else
+                            self:Close()
+                        end
                     else
                         local size = packet.size
                         data = data..read_buffer(size-1)
@@ -123,10 +132,13 @@ function connectionClass:init()
                     end
                 end
             end
-            if not loggedIn and os.time() - connectTime > 5 then
-                self.logger:Warn("Client did not log in within 5 seconds")
-                self.closed = true
-                pcall(self.socket.close, self.socket)
+        end
+        while not self.closed do
+            timer.sleep(5)
+            local co = coroutine.create(process)
+            local success, err = coroutine.resume(co)
+            if not success then
+                self.logger:Error("Error processing packet:\n"..(err as string).."\n"..debug.traceback(co):gsub("\n", "\n\t"), true)
             end
         end
     end)
