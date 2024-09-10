@@ -6,12 +6,18 @@ local serverConfig = configClass:new("server", {
         host = "0.0.0.0",
         port = 25565,
         maxPlayers = 20,
-        motd = "A Minecraft Server",
+        motd = "A Selenic Server",
         debug = false,
         serverName = "Selenic Server",
         defaultWorld = "world",
         localBypassVerification = false,
         verifyNames = true,
+    },
+    heartbeat = {
+        enabled = true,
+        public = true,
+        interval = 10000,
+        url = "http://www.classicube.net/server/heartbeat/"
     }
 })
 

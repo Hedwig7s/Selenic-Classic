@@ -42,7 +42,9 @@ global record Player
     Spawn: function(self:Player)
     Despawn: function(self:Player)
     SetBlock: function(self:Player, position:EntityPosition, block:Block)
+    Chat: function(self:Player, message:string)
     LoadWorld: function(self:Player, world:World)
     Remove: function(self:Player)
+    Kick: function(self:Player, reason:string)
     removed: boolean
 end

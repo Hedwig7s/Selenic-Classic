@@ -6,7 +6,7 @@ local protocolImpl = require("networking.protocol.protocol")
 local packetUtility = require("networking.packetutility")
 local tableUtility = require("utility.table")
 local serverConfig = require("data.config.serverconfig")
-local persistentData = require("data.persistent")
+local internalInfo = require("data.internalinfo")
 local playerClass = require("entity.player")
 local playerRegistry = require("entity.playerregistry")
 local worlds = require("data.worlds.worlds")
@@ -62,7 +62,7 @@ protocolClass.Packets = {
             }
             local ip = connection.socket:getpeername().ip
             local bypass = serverConfig:get("server.localBypassVerification") and tableUtility.find(localIPs, ip)
-            if serverConfig:get("server.verifyNames") == true and verificationKey ~= md5.sumhexa(persistentData.Salt..username) and not bypass then 
+            if serverConfig:get("server.verifyNames") == true and verificationKey ~= md5.sumhexa(internalInfo.Salt..username) and not bypass then 
                 local err = "Invalid verification key"
                 connection.logger:Warn(err)
                 disconnectPacket.sender(protocol, connection, err)
@@ -238,13 +238,22 @@ protocolClass.Packets = {
     },
     [0x0D] = {
         format = ">Bbc64",
-        size = 2,
+        size = 66,
         id = 0x0D,
         name = "Message",
         sender = function(protocol:Protocol, connection:Connection, id:integer, message:string)
             local packet = protocol:PacketFromName("Message") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, id, message)
         end,
+        receiver = function(protocol:Protocol, connection:Connection, data:string)
+            local packet = protocol:PacketFromName("Message") as Packet
+            if not connection.player then
+                connection.logger:Error("Player not set")
+                return
+            end
+            local _, _, message = packetUtility.parsePacket(packet.format, data)
+            connection.player:Chat(message as string)
+        end
     },
     [0x0E] = {
         format = ">Bc64",

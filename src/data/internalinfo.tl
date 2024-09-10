@@ -16,5 +16,12 @@ end
 
 local data = {
     Salt = table.concat(salt),
+    Software = "Selenic Classic",
+    Version = "v1.1.0-alpha",
+    Author = "Hedwig7s",
+    Source = "https://github.com/Hedwig7s/Selenic-Classic",
+    FancySoftware = ""
 }
+data.FancySoftware = string.format("&9%s &a%s", data.Software, data.Version)
+
 return data
