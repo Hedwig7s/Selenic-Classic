@@ -42,6 +42,14 @@ function connectionClass:handlePacket(packet:Packet, data:string)
         end
     end
 end
+function connectionClass:Close()
+    if self.player and not self.player.removed then  -- Should be safe since removed is set before Close is called
+        self.player:Remove()
+    else
+        self.closed = true
+        pcall(self.socket.close, self.socket)
+    end
+end
 function connectionClass:init()
     if self.initialized then
         return
@@ -72,12 +80,17 @@ function connectionClass:init()
     self.socket:read_start(function(err:string|nil, data:string|nil)
         if err then
             self.logger:Error("Failed to read TCP data: " .. err, true)
-            self.closed = true
-            pcall(self.socket.close, self.socket)
+            self:Close()
             return
         end
         if data and #data > 0 then
             table.insert(buffer,data)
+        elseif not data then
+            if self.player then
+                self.player:Remove()
+            end
+            self.logger:Debug("Client disconnected")
+            self:Close()
         end
     end)
     local connectTime = os.time()

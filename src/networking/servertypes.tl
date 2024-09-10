@@ -33,4 +33,5 @@ global record Connection
     logger: Logger
     player: Player
     initialized: boolean
+    Close: function(self:Connection)
 end

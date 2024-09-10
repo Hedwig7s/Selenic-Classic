@@ -14,8 +14,9 @@ local playerRegistry = require("entity.playerregistry")
 
 
 local broadcasters = {
-    spawn = broadcasterClass:new("SpawnPlayer", criterias.sameWorld) as PacketBroadcaster,
-    positionAndOrientation = broadcasterClass:new("PositionAndOrientation", combineCriterias(criterias.sameWorld, criterias.notSelf)) as PacketBroadcaster,
+    spawn = broadcasterClass:new("SpawnPlayer", criterias.sameWorld),
+    despawn = broadcasterClass:new("DespawnPlayer", criterias.sameWorld),
+    positionAndOrientation = broadcasterClass:new("PositionAndOrientation", combineCriterias(criterias.sameWorld, criterias.notSelf)),
 }
 
 local playerClass = entityClass:extend() as Player
@@ -47,6 +48,20 @@ function playerClass:Spawn()
         broadcasters.spawn:sendTo(self, {sourcePlayer = player}, player.fancyName, player.position)
     end
 end
+function playerClass:Despawn()
+    local super = entityClass.Despawn
+    super(self as Entity)
+    broadcasters.despawn:Broadcast({sourcePlayer = self})
+end
+
+function playerClass:Remove()
+    local super = entityClass.Remove
+    super(self as Entity)
+    playerRegistry:UnregisterEntity(self.id)
+    self.connection:Close()
+    self.logger:Info("Player removed")
+end
+
 function playerClass:LoadWorld(world:World)
     local super = entityClass.LoadWorld
     super(self as Entity, world)
