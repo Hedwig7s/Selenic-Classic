@@ -38,6 +38,18 @@ function registryClass:initialize(name:string, supers: {EntityRegistry} | nil)
     self.logger = Logger.new(name.."Registry")
 end
 
+local function checkExists(registry:EntityRegistry, entity:Entity, id:integer): boolean
+    local ent = registry:GetEntity(id)
+    if ent and ent == entity then
+        return true
+    end
+    if not ent then
+        return true
+    end
+    return false
+    
+end
+
 function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
     if not entity is Entity then
         self.logger:Error("Attempted to register non-entity")
@@ -49,16 +61,16 @@ function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
             return true
         end
         for _, v in ipairs(supers) do
-            if v.entities[i] == entity then -- In case of double registration
-                return true
-            elseif v.entities[i] then
+            if not checkExists(v,entity, i) then
                 return false
+            elseif not v.entities[i] then
+                v:RegisterEntity(entity, i)
             end
         end
         return true
     end
     if not id is nil then
-        if not self.entities[id] and checkSupers(id) then
+        if checkExists(self,entity, id) and checkSupers(id) then
             entity.id = id
             self.entities[id] = entity
             return
@@ -67,8 +79,8 @@ function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
             return
         end
     end
-    for i=1, 1024 do
-        if not self.entities[i] and checkSupers(i) then
+    for i=1, 255 do
+        if checkExists(self,entity, i) and checkSupers(i) then
             entity.id = i
             self.entities[i] = entity
             break
@@ -99,6 +111,11 @@ function registryClass:UnregisterEntity(entity:Entity | integer)
                 self.entities[i] = nil
                 break
             end
+        end
+    end
+    if self.supers then
+        for _, v in ipairs(self.supers as {EntityRegistry}) do
+            v:UnregisterEntity(entity)
         end
     end
 end

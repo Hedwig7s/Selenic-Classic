@@ -38,14 +38,15 @@ function packetBroadcasterClass:sendTo(player:Player, criteriaData:CriteriaData,
             error("Couldn't find packet of name "..self.packet)
         end
         local packet = p as Packet
-        local id = self.changeId and criteriaData.sourcePlayer and criteriaData.sourcePlayer.id == player.id and -1 or player.id
+        local id = (self.changeId and criteriaData.sourcePlayer and criteriaData.sourcePlayer.id == player.id and -1) or 
+                    (criteriaData.sourcePlayer and criteriaData.sourcePlayer.id) or -1
+
         packet.sender(connection.protocol, connection, id, ...)
     end
 end
 function packetBroadcasterClass:Broadcast(criteriaData:CriteriaData, ...:any)
     for _, player in ipairs(playerRegistry:GetEntities()) do
-        local player = player as Player
-        self:sendTo(player, criteriaData, ...)
+        self:sendTo(player as Player, criteriaData, ...)
     end
 end
 
