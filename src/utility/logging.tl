@@ -54,10 +54,21 @@ local function checkCooldown(cool:cooldown, isDebug:boolean): boolean
 end
 
 function Logger:checkCooldown(message:string, isDebug:boolean|nil):boolean
-    if not self.cooldowns[message] then
-        self.cooldowns[message] = {amount = 0, lastTime = 0}
+    local cooldownTime:number do
+        if isDebug then
+            cooldownTime = globalSettings.DEBUG_COOLDOWN
+        else
+            cooldownTime = globalSettings.COOLDOWN_TIME
+        end
     end
-    return checkCooldown(self.cooldowns[message], isDebug or false)
+    if not self.cooldowns[message] then
+        self.cooldowns[message] = {amount = 0, lastTime = os.clock()-cooldownTime}
+    end
+    local pass = checkCooldown(self.cooldowns[message], isDebug or false)
+    if pass and os.clock() - self.cooldowns[message].lastTime > cooldownTime * 2 then
+        self.cooldowns[message] = nil
+    end
+    return pass
 end
 
 function Logger:sendMessage(funcName: logFunctions, message: string, isDebug:boolean|nil)
