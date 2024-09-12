@@ -60,7 +60,8 @@ protocolClass.Packets = {
                 "localhost",
                 serverConfig:get("server.host")
             }
-            local ip = connection.socket:getpeername().ip
+            local data = connection.socket:getpeername()
+            local ip = data and data.ip or "unknown"
             local bypass = serverConfig:get("server.localBypassVerification") and tableUtility.find(localIPs, ip)
             if serverConfig:get("server.verifyNames") == true and verificationKey ~= md5.sumhexa(internalInfo.Salt..username) and not bypass then 
                 local err = "Invalid verification key"

@@ -11,14 +11,16 @@ local pathModule = require("path")
 global type SettingsTable = {string: any}
 
 global record Config 
-    initialize: function(self:Config, name:string, defaults: {string: any})
-    new: function(self:Config, name:string, defaults: {string: any}): Config
+    initialize: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
+    new: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil): Config
     extend: function(self:Config): Config
     name: string
     defaults: SettingsTable
     settings: SettingsTable
     loaded: boolean
     logger: Logger
+    version: integer
+    updaters: {integer: function(self:Config)}
     getConfigPath: function(self:Config): string
     loadFromFile: function(self:Config, reload:boolean|nil)
     saveToFile: function(self:Config)
@@ -47,10 +49,12 @@ local function parseKey(key:string, current:SettingsTable, currentDefault:Settin
 end
 
 local config = Object:extend() as Config
-function config:initialize(name:string, defaults: {string: any})
+function config:initialize(name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
     local self = self as Config
     self.name = name
+    self.version = version
     self.defaults = defaults
+    self.updaters = updaters
     self.settings = {}
     self.loaded = false
     self.logger = Logger.new(name.."-config")
@@ -63,7 +67,9 @@ function config:saveToFile()
         self.logger:Error("Cannot save an unloaded config")
         return
     end
-    local data = toml.encode(self.settings)
+    local copy = tableUtility.deepCopy(self.settings) as SettingsTable
+    copy.version = self.version
+    local data = toml.encode(copy)
     xpcall(function()
         fs.writeFileSync(pathModule.join(pathModule.resolve("."), "config/"..self.name..".toml"), data)
         self.logger:Debug("Saved successfully")
@@ -85,17 +91,34 @@ function config:loadFromFile(reload:boolean|nil)
     if not exists then
         fs.mkdirSync(pathModule.dirname(filePath))
     end
-    if not fs.existsSync(filePath) then
-        self.logger:Warn("Config file does not exist. Creating a new one")
+    local function loadDefaults()
         self.settings = tableUtility.deepCopy(self.defaults) as SettingsTable
         self.loaded = true
         self:saveToFile()
+    end
+    if not fs.existsSync(filePath) then
+        self.logger:Warn("Config file does not exist. Creating a new one")
+        loadDefaults()
         return
     end
     xpcall(function()
         local data = fs.readFileSync(filePath)
         local settings = toml.decode(data)
-        
+        local version = settings.version
+        if not version is integer then
+            self.logger:Error("Config file does not have a version. Using defaults", true)
+            loadDefaults()
+            return
+        end
+        if self.updaters and version < self.version then
+            self.logger:Debug("Running updaters on config")
+            for i, updater in pairs(self.updaters) do
+                if i >= self.version then -- If the updater is for a version after the current version,
+                    break
+                end
+                updater(self)
+            end
+        end
         local function parseSettings(settings:SettingsTable, defaults:SettingsTable)
             for k, v in pairs(defaults) do
                 if v is table then
