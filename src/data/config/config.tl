@@ -92,6 +92,9 @@ function config:loadFromFile(reload:boolean|nil)
         fs.mkdirSync(pathModule.dirname(filePath))
     end
     local function loadDefaults()
+        if fs.existsSync(filePath) then
+            fs.renameSync(filePath, filePath..".old")
+        end
         self.settings = tableUtility.deepCopy(self.defaults) as SettingsTable
         self.loaded = true
         self:saveToFile()
