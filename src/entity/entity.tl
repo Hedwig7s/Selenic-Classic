@@ -5,7 +5,10 @@ local Logger = require("utility.logging")
 local Vector3 = require("datatypes.vector3")
 local EntityPosition = require("datatypes.entityposition")
 local entityRegistry = require("entity.entityregistry").entityRegistry
-local type _ = require("entity.types")
+local type Entities = require("entity.types")
+local type Entity = Entities.Entity
+local type Worlds = require("data.worlds.types")
+local type World = Worlds.World
 
 local entityClass = Object:extend() as Entity
 function entityClass:initialize(name:string)

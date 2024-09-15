@@ -4,7 +4,8 @@ local Logger = require("utility.logging")
 local Object = core.Object
 local playerRegistry = require("entity.playerregistry")
 local colorcodes = require("utility.colorcodes")
-local type _ = require("entity.types")
+local type Entities = require("entity.types")
+local type Player = Entities.Player
 local type _ = require("messaging.criterias")
 
 global record MessagingBase

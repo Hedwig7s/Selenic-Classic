@@ -4,7 +4,9 @@ local EntityPosition = require("datatypes.entityposition")
 local Vector3 = require("datatypes.vector3")
 local Buffer = require("buffer").Buffer
 
-local type _ = require("data.worlds.types")
+local type Worlds = require("data.worlds.types")
+local type WorldParams = Worlds.WorldParams
+local type WorldParser = Worlds.WorldParser
 
 local sharedFunctions = {
     parseHeader = function(data:string): Vector3, EntityPosition

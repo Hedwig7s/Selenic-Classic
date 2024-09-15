@@ -6,6 +6,8 @@ local combineCriterias = cr.combineCriterias
 local Logger = require("utility.logging")
 
 global type Chat = MessagingBase
+global type Entities = require("entity.types")
+global type Player = Entities.Player
 
 local chatClass = base:new("Chat") as Chat
 
@@ -40,10 +42,12 @@ local cachedMessages: {string:{string}} = setmetatable({}, {
 local function splitMessage(message:string): {string}
     if cachedMessages[message] then
         return cachedMessages[message]
-    elseif #(cachedMessages as {any}) > 5 then -- Hack fix
+    elseif #(cachedMessages as {any}) --[[Hack fix]] > 5 then -- Limit the cache to 5 messages
         for k, v in pairs(cachedMessages) do
-            cachedMessages[k] = nil
-            break
+            if k and k ~= message then
+                cachedMessages[k] = nil
+                break
+            end
         end
     end
     local newline = false

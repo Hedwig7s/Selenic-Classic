@@ -12,7 +12,13 @@ local Buffer = require("buffer").Buffer
 local pb = require("networking.packetbroadcast")
 local packetBroadcaster, criterias = pb.packetBroadcaster, pb.criterias
 local type _ = require("networking.protocol.protocol")
-local type _ = require("data.worlds.types")
+local type Worlds = require("data.worlds.types")
+local type World = Worlds.World
+local type WorldParams = Worlds.WorldParams
+local type WorldParser = Worlds.WorldParser
+local type WorldModule = Worlds.WorldModule
+local type Entities = require("entity.types")
+local type Player = Entities.Player
 
 local WORLD_VERSION = 3
 

@@ -5,7 +5,9 @@ local timer = require("timer")
 local core = require("core")
 local Object = core.Object
 
-local type _ = require("networking.servertypes")
+local type ServerModule = require("networking.servertypes")
+local type Server = ServerModule.Server
+local type Connection = ServerModule.Connection
 
 local connections: {integer:Connection} = {}
 local connectionCount = 0

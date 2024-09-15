@@ -1,5 +1,6 @@
 local require = require("customrequire")
-local type _ = require("entity.types")
+local type Entities = require("entity.types")
+local Player = Entities.Player
 
 global record MessageCriteriaData 
     sourcePlayer: Player

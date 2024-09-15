@@ -1,8 +1,14 @@
 local require = require("customrequire")
 local core = require("core")
 local Object = core.Object
-local type _ = require("entity.types")
+local type Entities = require("entity.types")
+local type Entity = Entities.Entity
+local type Player = Entities.Player
 local type _ = require("networking.protocol.protocol")
+local type ServerModule = require("networking.servertypes")
+local type Connection = ServerModule.Connection
+local type Worlds = require("data.worlds.types")
+local type World = Worlds.World
 local EntityPosition = require("datatypes.entityposition")
 local entityClass = require("entity.entity")
 local Logger = require("utility.logging")

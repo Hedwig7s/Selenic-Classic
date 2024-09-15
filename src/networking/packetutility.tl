@@ -1,6 +1,7 @@
 local module = {}
 local require = require("customrequire")
-local type _ = require("networking.servertypes")
+local type ServerModule = require("networking.servertypes")
+local type Connection = ServerModule.Connection
 local type EntityPosition = require("datatypes.entityposition")
 
 function module.sendPacket(connection:Connection, format:string, ...:any): string

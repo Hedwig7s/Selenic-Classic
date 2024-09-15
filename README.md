@@ -57,7 +57,7 @@ Messages:
 
 Server Management:
 - [ ] Commands
-- [ ] Cooldowns
+- [ ] Action cooldowns
 - [ ] Permissions/Ranks
 - [x] Config creation
 - [x] Config loading
@@ -83,4 +83,5 @@ Safety:
 - [ ] Unit tests
 
 Misc:
-- [ ] Refactor to remove global types
+- [x] Refactor to remove global types -- NOTE: Only removed where possible, may refactor codebase so all files use type files
+- [ ] GUI
