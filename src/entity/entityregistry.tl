@@ -2,7 +2,8 @@ local require = require("customrequire")
 local core = require("core")
 local Object = core.Object
 local Logger = require("utility.logging")
-local type _ = require("entity.types")
+local type Entities = require("entity.types")
+local type Entity = Entities.Entity
 
 global record EntityRegistry
     initialize: function(self:EntityRegistry, name:string, supers: {EntityRegistry} | nil)

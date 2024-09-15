@@ -1,8 +1,10 @@
 local require = require("customrequire")
 local playerRegistry = require("entity.playerregistry")
 local type _ = require("networking.protocol.protocol")
-local type _ = require("networking.servertypes")
-local type _ = require("entity.types")
+local type ServerModule = require("networking.servertypes")
+local type Connection = ServerModule.Connection
+local type Entities = require("entity.types")
+local type Player = Entities.Player
 local core = require("core")
 local Object = core.Object
 

@@ -13,8 +13,12 @@ local worlds = require("data.worlds.worlds")
 local blockModule = require("data.blocks")
 local Vector3 = require("datatypes.vector3")
 local EntityPosition = require("datatypes.entityposition")
-local type _ = require("networking.servertypes")
-local type _ = require("networking.protocol.protocol")
+local type ServerModule = require("networking.servertypes")
+local type Connection = ServerModule.Connection
+local type Entities = require("entity.types")
+local type Player = Entities.Player
+local type Worlds = require("data.worlds.types")
+local type World = Worlds.World
 
 local protocolClass = protocolImpl:extend() 
 protocolClass.Packets = {
