@@ -1,7 +1,8 @@
 local require = require("customrequire")
 local type uv = require("uv")
 local type Logger = require("utility.logging")
-local type _ = require("networking.protocol.protocol")
+global type Protocol
+global type Packet
 
 global type Player
 

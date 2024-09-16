@@ -3,7 +3,7 @@ local core = require("core")
 local Object = core.Object
 local type Vector3 = require("datatypes.vector3")
 
-global type ServerModule
+local type ServerModule = require("networking.servertypes")
 
 global type ClientReceiver = function(protocol:Protocol, connection:ServerModule.Connection, data:string)
 
