@@ -56,13 +56,18 @@ Messages:
 - [ ] Translation file
 
 Server Management:
-- [ ] Commands
 - [ ] Action cooldowns
 - [ ] Permissions/Ranks
 - [x] Config creation
 - [x] Config loading
 - [x] Full config usage
 - [x] Logging system
+
+Plugins:
+- [ ] Basic system
+- [ ] Full API
+- [ ] Events
+- [ ] Commands
 
 Networking:
 - [x] Basic TCP server

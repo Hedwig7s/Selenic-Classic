@@ -7,4 +7,4 @@ If there's a good chance of circular type dependencies for a specific module/cla
 Printing should be avoided at all costs. Use a logger where possible (outside of temporary debugging).
 Packet senders should merely verify and send packets. They should do no more.
 Packet receivers on the other hand (within protocol 7) may handle the request.
-Protocols other than 7 should be translation layers for the layer above them.
+Packet receivers other than those within Protocol 7 should be translation layers for the layer above them.

@@ -27,12 +27,12 @@ protocolClass.Packets = {
         size = 131,
         id = 0x00,
         name = "Identification",
-        sender = function(protocol:Protocol, connection:Connection, name:string, motd:string)
-            local packet = protocol:PacketFromName("Identification") as Packet
-            packetUtility.sendPacket(connection,packet.format, packet.id, protocol.Meta.Version, name, motd, 0x00)
+        sender = function(connection:Connection, name:string, motd:string)
+            local packet = protocolClass:PacketFromName("Identification") as Packet
+            packetUtility.sendPacket(connection,packet.format, packet.id, connection.protocol.Meta.Version, name, motd, 0x00)
         end,
-        receiver = function(protocol:Protocol, connection:Connection, data:string)
-            local packet = protocol:PacketFromName("Identification") as Packet
+        receiver = function(connection:Connection, data:string)
+            local packet = protocolClass:PacketFromName("Identification") as Packet
             local _, protVersion, name, verkey, CPEcode = packetUtility.parsePacket(packet.format, data)
             local verificationKey = tostring(verkey)
             local username = tostring(name)
@@ -42,20 +42,25 @@ protocolClass.Packets = {
             connection.logger:Debug("Username: "..username)
             connection.logger:Debug("Protocol: "..tostring(protVersion))
             connection.logger:Debug("Supports CPE: "..tostring(CPE))
-            packet.sender(protocol, connection, serverConfig:get("server.serverName"), serverConfig:get("server.motd"))
+            local identPacket = connection.protocol:PacketFromName("Identification")
+            if identPacket is nil then
+                connection.logger:Error("Identification packet not found")
+                return
+            end
+            identPacket.sender(connection, serverConfig:get("server.serverName"), serverConfig:get("server.motd"))
             connection.logger:Debug("Creating player")
-            local disconnectPacket = protocol:PacketFromName("Disconnect")
+            local disconnectPacket = connection.protocol:PacketFromName("Disconnect")
             if disconnectPacket is nil then
                 connection.logger:Error("Disconnect packet not found")
                 return
             end
             if playerRegistry:GetEntityByName(username) then
                 connection.logger:Warn("Player with this username already exists")
-                disconnectPacket.sender(protocol, connection, "Username already in use")
+                disconnectPacket.sender(connection, "Username already in use")
                 return
             end
             if #playerRegistry:GetEntities() >= serverConfig:get("server.maxPlayers") as integer then
-                disconnectPacket.sender(protocol, connection, "Server is full")
+                disconnectPacket.sender(connection, "Server is full")
                 connection.logger:Warn("Server is full")
                 return
             end
@@ -70,7 +75,7 @@ protocolClass.Packets = {
             if serverConfig:get("server.verifyNames") == true and verificationKey ~= md5.sumhexa(internalInfo.Salt..username) and not bypass then 
                 local err = "Invalid verification key"
                 connection.logger:Warn(err)
-                disconnectPacket.sender(protocol, connection, err)
+                disconnectPacket.sender(connection, err)
                 return
             end
             local player:Player = playerClass:new(name as string, connection)
@@ -78,13 +83,13 @@ protocolClass.Packets = {
             connection.logger:Debug("Player created, loading world")
             local worldName = serverConfig:get("server.defaultWorld")
             if not (worldName is string) then
-                disconnectPacket.sender(protocol, connection, "Could not find world")
+                disconnectPacket.sender(connection, "Could not find world")
                 connection.logger:Error("Default world not set")
                 return
             end
             local world = worlds:getWorld(worldName)
             if not (world is World) then
-                disconnectPacket.sender(protocol, connection, "Could not find world")
+                disconnectPacket.sender(connection, "Could not find world")
                 connection.logger:Error("World not found")
                 return
             end
@@ -96,8 +101,8 @@ protocolClass.Packets = {
         size = 1,
         id = 0x01,
         name = "Ping",
-        sender = function(protocol:Protocol, connection:Connection)
-            local packet = protocol:PacketFromName("Ping") as Packet
+        sender = function(connection:Connection)
+            local packet = protocolClass:PacketFromName("Ping") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id)
         end,
     },
@@ -106,8 +111,8 @@ protocolClass.Packets = {
         size = 1,
         id = 0x02,
         name = "LevelInitialize",
-        sender = function(protocol:Protocol, connection:Connection)
-            local packet = protocol:PacketFromName("LevelInitialize") as Packet
+        sender = function(connection:Connection)
+            local packet = protocolClass:PacketFromName("LevelInitialize") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id)
         end,
     },
@@ -116,12 +121,12 @@ protocolClass.Packets = {
         size = 1028,
         id = 0x03,
         name = "LevelDataChunk",
-        sender = function(protocol:Protocol, connection:Connection, levelData:string, percentage:integer)
+        sender = function(connection:Connection, levelData:string, percentage:integer)
             if #levelData > 1024 then
                 connection.logger:Error("Level data chunk too large")
                 return
             end
-            local packet = protocol:PacketFromName("LevelDataChunk") as Packet
+            local packet = protocolClass:PacketFromName("LevelDataChunk") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, #levelData, levelData..string.rep("\0", 1024-#levelData), percentage)
         end,
     },
@@ -130,8 +135,8 @@ protocolClass.Packets = {
         size = 7,
         id = 0x04,
         name = "LevelFinalize",
-        sender = function(protocol:Protocol, connection:Connection, size:Vector3)
-            local packet = protocol:PacketFromName("LevelFinalize") as Packet
+        sender = function(connection:Connection, size:Vector3)
+            local packet = protocolClass:PacketFromName("LevelFinalize") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, size.X, size.Y, size.Z)
         end,
     },
@@ -140,8 +145,8 @@ protocolClass.Packets = {
         size = 9,
         id = 0x05,
         name = "ClientSetBlock",
-        receiver = function(protocol:Protocol, connection:Connection, data:string)
-            local packet = protocol:PacketFromName("ClientSetBlock") as Packet
+        receiver = function(connection:Connection, data:string)
+            local packet = protocolClass:PacketFromName("ClientSetBlock") as Packet
             local _, x, y, z, mode, block = packetUtility.parsePacket(packet.format, data) 
 
             local player = connection.player
@@ -165,8 +170,8 @@ protocolClass.Packets = {
         size = 9,
         id = 0x06,
         name = "ServerSetBlock",
-        sender = function(protocol:Protocol, connection:Connection, _:integer, position:Vector3, block:Block)
-            local packet = protocol:PacketFromName("ServerSetBlock") as Packet
+        sender = function(connection:Connection, _:integer, position:Vector3, block:Block)
+            local packet = protocolClass:PacketFromName("ServerSetBlock") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, position.X, position.Y, position.Z, block)
         end,
     },
@@ -175,8 +180,8 @@ protocolClass.Packets = {
         size = 74,
         id = 0x07,
         name = "SpawnPlayer",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer, name:string, position:EntityPosition)
-            local packet = protocol:PacketFromName("SpawnPlayer") as Packet
+        sender = function(connection:Connection, entityId:integer, name:string, position:EntityPosition)
+            local packet = protocolClass:PacketFromName("SpawnPlayer") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId, name, packetUtility.formatEntityPosition(position))
         end,
     },
@@ -185,12 +190,12 @@ protocolClass.Packets = {
         size = 10,
         id = 0x08,
         name = "PositionAndOrientation",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer, position:EntityPosition)
-            local packet = protocol:PacketFromName("PositionAndOrientation") as Packet
+        sender = function(connection:Connection, entityId:integer, position:EntityPosition)
+            local packet = protocolClass:PacketFromName("PositionAndOrientation") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId, packetUtility.formatEntityPosition(position))
         end,
-        receiver = function(protocol:Protocol, connection:Connection, data:string)
-            local packet = protocol:PacketFromName("PositionAndOrientation") as Packet
+        receiver = function(connection:Connection, data:string)
+            local packet = protocolClass:PacketFromName("PositionAndOrientation") as Packet
             local _, entityId, x, y, z, yaw, pitch = packetUtility.parsePacket(packet.format, data)
             x, y, z = packetUtility.fromFixedPoint(x as number, y as number, z as number)
             local player = connection.player
@@ -206,8 +211,8 @@ protocolClass.Packets = {
         size = 7,
         id = 0x09,
         name = "PositionAndOrientationUpdate",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer, position:EntityPosition)
-            local packet = protocol:PacketFromName("PositionAndOrientationUpdate") as Packet
+        sender = function(connection:Connection, entityId:integer, position:EntityPosition)
+            local packet = protocolClass:PacketFromName("PositionAndOrientationUpdate") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId, packetUtility.formatEntityPosition(position))
         end,
     },
@@ -216,8 +221,8 @@ protocolClass.Packets = {
         size = 5,
         id = 0x0A,
         name = "PositionUpdate",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer, position:EntityPosition)
-            local packet = protocol:PacketFromName("PositionUpdate") as Packet
+        sender = function(connection:Connection, entityId:integer, position:EntityPosition)
+            local packet = protocolClass:PacketFromName("PositionUpdate") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId, packetUtility.toFixedPoint(position.X, position.Y, position.Z))
         end,
     },
@@ -226,8 +231,8 @@ protocolClass.Packets = {
         size = 4,
         id = 0x0B,
         name = "OrientationUpdate",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer, position:EntityPosition)
-            local packet = protocol:PacketFromName("OrientationUpdate") as Packet
+        sender = function(connection:Connection, entityId:integer, position:EntityPosition)
+            local packet = protocolClass:PacketFromName("OrientationUpdate") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId, position.yaw, position.pitch)
         end,
     },
@@ -236,8 +241,8 @@ protocolClass.Packets = {
         size = 2,
         id = 0x0C,
         name = "DespawnPlayer",
-        sender = function(protocol:Protocol, connection:Connection, entityId:integer)
-            local packet = protocol:PacketFromName("DespawnPlayer") as Packet
+        sender = function(connection:Connection, entityId:integer)
+            local packet = protocolClass:PacketFromName("DespawnPlayer") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, entityId)
         end,
     },
@@ -246,12 +251,12 @@ protocolClass.Packets = {
         size = 66,
         id = 0x0D,
         name = "Message",
-        sender = function(protocol:Protocol, connection:Connection, id:integer, message:string)
-            local packet = protocol:PacketFromName("Message") as Packet
+        sender = function(connection:Connection, id:integer, message:string)
+            local packet = protocolClass:PacketFromName("Message") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, id, message)
         end,
-        receiver = function(protocol:Protocol, connection:Connection, data:string)
-            local packet = protocol:PacketFromName("Message") as Packet
+        receiver = function(connection:Connection, data:string)
+            local packet = protocolClass:PacketFromName("Message") as Packet
             if not connection.player then
                 connection.logger:Error("Player not set")
                 return
@@ -265,8 +270,8 @@ protocolClass.Packets = {
         size = 65,
         id = 0x0E,
         name = "Disconnect",
-        sender = function(protocol:Protocol, connection:Connection, reason:string)
-            local packet = protocol:PacketFromName("Disconnect") as Packet
+        sender = function(connection:Connection, reason:string)
+            local packet = protocolClass:PacketFromName("Disconnect") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, reason)
             timer.setTimeout(500, function()
                 if connection and not connection.closed then
@@ -280,8 +285,8 @@ protocolClass.Packets = {
         size = 2,
         id = 0x0F,
         name = "UpdateUserType",
-        sender = function(protocol:Protocol, connection:Connection, userType:boolean)
-            local packet = protocol:PacketFromName("UpdateUserType") as Packet
+        sender = function(connection:Connection, userType:boolean)
+            local packet = protocolClass:PacketFromName("UpdateUserType") as Packet
             packetUtility.sendPacket(connection,packet.format, packet.id, userType and 0x64 or 0x00)
         end,
     }

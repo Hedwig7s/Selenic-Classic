@@ -17,7 +17,7 @@ function chatClass:RawSend(target:Player, message:string)
         self.logger:Error("Failed to send message to player, no message packet found")
         return
     end
-    packet.sender(target.connection.protocol, target.connection, 0, message)
+    packet.sender(target.connection, 0, message)
 end
 
 function chatClass:ProcessMessage(target:Player, message:string, criteria:MessageCriteria, data:MessageCriteriaData): string|nil
