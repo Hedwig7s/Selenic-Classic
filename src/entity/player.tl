@@ -70,7 +70,7 @@ function playerClass:Kick(reason:string)
         self:Remove()
         return
     end
-    kickPacket.sender(self.connection.protocol, self.connection, reason)
+    kickPacket.sender(self.connection, reason)
     self:Remove()
 end
 
@@ -101,7 +101,7 @@ function playerClass:LoadWorld(world:World)
         return
     end
     local initializeSender = levelInitialize.sender as PacketSenders.LevelInitialize
-    initializeSender(self.connection.protocol, self.connection)
+    initializeSender(self.connection)
     local worldData = world:Pack(self.connection.protocol)
     local size = #worldData
     local chunkSize = 1024
@@ -115,7 +115,7 @@ function playerClass:LoadWorld(world:World)
     self.logger:Debug("Sending level data")
     for i = 1, chunks do
         local chunk = worldData:sub((i - 1) * chunkSize + 1, i * chunkSize)
-        dataChunkSender(self.connection.protocol, self.connection, chunk, (i // chunks) * 100)
+        dataChunkSender(self.connection, chunk, (i // chunks) * 100)
     end
     self.logger:Debug("Sending level finalize")
     local levelFinalize: Packet = self.connection.protocol:PacketFromName("LevelFinalize")
@@ -124,7 +124,7 @@ function playerClass:LoadWorld(world:World)
         return
     end
     local finalizeSender = levelFinalize.sender as PacketSenders.LevelFinalize
-    finalizeSender(self.connection.protocol, self.connection, world.size)
+    finalizeSender(self.connection, world.size)
     self:MoveTo(world.spawn, true)
     self:Spawn()
 end

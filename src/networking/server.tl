@@ -37,7 +37,7 @@ end
 function connectionClass:handlePacket(packet:Packet, data:string)
     local receiver = packet.receiver
     if receiver is ClientReceiver then
-        receiver(self.protocol, self, data) -- Error handling handled by the routine loop
+        receiver(self, data) -- Error handling handled by the routine loop
     end
 end
 function connectionClass:Close()

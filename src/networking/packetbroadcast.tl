@@ -43,7 +43,7 @@ function packetBroadcasterClass:sendTo(player:Player, criteriaData:CriteriaData,
         local id = (self.changeId and criteriaData.sourcePlayer and criteriaData.sourcePlayer.id == player.id and -1) or 
                     (criteriaData.sourcePlayer and criteriaData.sourcePlayer.id) or -1
 
-        packet.sender(connection.protocol, connection, id, ...)
+        packet.sender(connection, id, ...)
     end
 end
 function packetBroadcasterClass:Broadcast(criteriaData:CriteriaData, ...:any)
