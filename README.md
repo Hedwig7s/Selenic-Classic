@@ -11,8 +11,12 @@ Source set-path.sh
 Run install-dependencies.sh
 Run run.sh (server files will be under ./build)
 
-## Features
+## Plugins
+Requires are relative to the root of src, as such all APIs are available.
+Documentation might be written at some point.
+Plugins must define a version and a name. They may also define dependencies and incompatibilities. These are defined on the class, not in the initializer.
 
+## Features
 
 World:
 - [x] World module
@@ -24,7 +28,6 @@ World:
 - [x] World autosaving
 - [ ] Terrain generation
 - [x] Pack world into protocol-compliant gzipped byte-array
-- [ ] Multithreaded major world operations + general optimizations
 - [x] Use buffers in place of tables for worlds
 - [x] Level initialize, level data chunk and level finalize packets
 - [x] Split world data into 1024 byte chunks and send to client
@@ -52,22 +55,20 @@ Messages:
 - [x] Color code module
 - [x] Chat
 - [ ] Join/Leave messages
-- [ ] Global Chat/Join/Leave messages
 - [ ] Translation file
 
 Server Management:
 - [ ] Action cooldowns
 - [ ] Permissions/Ranks
+- [ ] Commands
 - [x] Config creation
 - [x] Config loading
 - [x] Full config usage
 - [x] Logging system
 
 Plugins:
-- [ ] Basic system
-- [ ] Full API
+- [ ] Base system 
 - [ ] Events
-- [ ] Commands
 
 Networking:
 - [x] Basic TCP server
@@ -88,5 +89,4 @@ Safety:
 - [ ] Unit tests
 
 Misc:
-- [x] Refactor to remove global types -- NOTE: Only removed where possible, may refactor codebase so all files use type files
 - [ ] GUI

@@ -5,8 +5,7 @@ local type ServerModule = require("networking.servertypes")
 local type Connection = ServerModule.Connection
 local type Entities = require("entity.types")
 local type Player = Entities.Player
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 
 global record CriteriaData
     sourcePlayer: Player -- The player related to the packet (e.g. movement), if any
@@ -17,7 +16,13 @@ global type BroadcastCriteria = function(player:Player, data:CriteriaData): bool
 global record PacketBroadcaster
     initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
     new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil): PacketBroadcaster
-    extend: function(self:PacketBroadcaster):  PacketBroadcaster
+    static: table
+    isSubclassOf: function(self: PacketBroadcaster, other:class.Class): boolean
+    include: function(self: PacketBroadcaster, ...:table): PacketBroadcaster
+    subclassed: function(self: PacketBroadcaster, other:class.Class)
+    allocate: function(self: PacketBroadcaster): table
+    isInstanceOf: function(self: PacketBroadcaster, class: class.Class): boolean
+    subclass: function(self:PacketBroadcaster,name:string):  PacketBroadcaster
     packet: string
     changeId: boolean
     criteria: BroadcastCriteria
@@ -25,7 +30,7 @@ global record PacketBroadcaster
     Broadcast: function(self:PacketBroadcaster, criteriaData:CriteriaData, ...:any)
 end
 
-local packetBroadcasterClass = Object:extend() as PacketBroadcaster
+local packetBroadcasterClass = class("PacketBroadcaster") as PacketBroadcaster
 
 function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
     self.packet = packet

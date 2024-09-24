@@ -1,7 +1,6 @@
 local require = require("customrequire")
-local core = require("core")
+local class = require("middleclass")
 local Logger = require("utility.logging")
-local Object = core.Object
 local playerRegistry = require("entity.playerregistry")
 local colorcodes = require("utility.colorcodes")
 local type Entities = require("entity.types")
@@ -9,10 +8,15 @@ local type Player = Entities.Player
 local type _ = require("messaging.criterias")
 
 global record MessagingBase
-    initialize: function(self:MessagingBase, name:string)
-    new: function(self:MessagingBase, name:string): MessagingBase
-    extend: function(self:MessagingBase): MessagingBase
-    name: string
+    initialize: function(self:MessagingBase)
+    new: function(self:MessagingBase): MessagingBase
+    static: table
+    isSubclassOf: function(self: MessagingBase, other:class.Class): boolean
+    include: function(self: MessagingBase, ...:table): MessagingBase
+    subclassed: function(self: MessagingBase, other:class.Class)
+    allocate: function(self: MessagingBase): table
+    isInstanceOf: function(self: MessagingBase, class: class.Class): boolean
+    subclass: function(self:MessagingBase,name:string): MessagingBase
     logger:Logger
     Broadcast: function(self:MessagingBase, message:string, criteria:MessageCriteria, data:MessageCriteriaData)
     Message: function(self:MessagingBase, target:Player, message:string, criteria:MessageCriteria, data:MessageCriteriaData)
@@ -20,12 +24,10 @@ global record MessagingBase
     RawSend: function(self:MessagingBase, target:Player, message:string)
 end
 
-local messagingBase = Object:extend() as MessagingBase
+local messagingBase = class("MessagingBase") as MessagingBase
 
-function messagingBase:initialize(name:string)
-    local self = self as MessagingBase
-    self.name = name
-    self.logger = Logger.new(name)
+function messagingBase:initialize()
+    --local self = self as MessagingBase
 end
 
 function messagingBase:ProcessMessage(target:Player, message:string, criteria:MessageCriteria, data:MessageCriteriaData): string|nil

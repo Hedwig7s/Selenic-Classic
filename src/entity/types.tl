@@ -8,12 +8,19 @@ local type World = Worlds.World
 local type Logger = require("utility.logging")
 local type _ = require("data.blocks")
 local type _ = require("networking.protocol.protocol")
+local type class = require("middleclass")
 
 local record Entities 
     record Entity
         initialize: function(self:Entity, name:string)
         new: function(self:Entity, name:string): Entity
-        extend: function(self:Entity):  Entity
+        static: table
+        isSubclassOf: function(self: Entity, other:class.Class): boolean
+        include: function(self: Entity, ...:table): Entity
+        subclassed: function(self: Entity, other:class.Class)
+        allocate: function(self: Entity): table
+        isInstanceOf: function(self: Entity, class: class.Class): boolean
+        subclass: function(self:Entity,name:string):  Entity
         id: integer
         worldId: integer
         logger: Logger
@@ -32,7 +39,13 @@ local record Entities
     record Player
         initialize: function(self:Player, name:string, connection:Connection)
         new: function(self:Player, name:string, connection:Connection): Player
-        extend: function(self:Player):  Player
+        static: table
+        isSubclassOf: function(self: Player, other:class.Class): boolean
+        include: function(self: Player, ...:table): Player
+        subclassed: function(self: Player, other:class.Class)
+        allocate: function(self: Player): table
+        isInstanceOf: function(self: Player, class: class.Class): boolean
+        subclass: function(self:Player,name:string):  Player
         id: integer
         name: string
         logger: Logger

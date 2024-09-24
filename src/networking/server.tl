@@ -2,8 +2,7 @@ local require = require("customrequire")
 local Logger = require("utility.logging")
 local uv = require("uv")
 local timer = require("timer")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 
 local type ServerModule = require("networking.servertypes")
 local type Server = ServerModule.Server
@@ -18,7 +17,7 @@ local protocols:{integer: Protocol|nil} = {
     [7] = require("networking.protocol.protocol7")
 }
 
-local connectionClass = Object:extend() as Connection
+local connectionClass = class("Connection") as Connection
 function connectionClass:initialize(socket:uv.Tcp)
     self.socket = socket
     self.closed = false
@@ -148,7 +147,7 @@ function connectionClass:init()
 end
 
 
-local serverClass = Object:extend() as Server
+local serverClass = class("Server") as Server
 
 function serverClass:initialize(host:string, port:integer)
     assert(self)

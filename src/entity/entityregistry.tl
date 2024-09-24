@@ -1,6 +1,5 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local Logger = require("utility.logging")
 local type Entities = require("entity.types")
 local type Entity = Entities.Entity
@@ -20,7 +19,7 @@ global record EntityRegistry
     GetEntities: function(self:EntityRegistry): {Entity}
 end
 
-local registryClass = Object:extend() as EntityRegistry
+local registryClass = class("EntityRegistry") as EntityRegistry
 function registryClass:initialize(name:string, supers: {EntityRegistry} | nil)
     local self = self as EntityRegistry
     self.entities = setmetatable({}, {

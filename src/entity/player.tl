@@ -1,6 +1,5 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local type Entities = require("entity.types")
 local type Entity = Entities.Entity
 local type Player = Entities.Player
@@ -27,7 +26,7 @@ local broadcasters = {
     positionAndOrientation = broadcasterClass:new("PositionAndOrientation", combineCriterias(criterias.sameWorld, criterias.notSelf)),
 }
 
-local playerClass = entityClass:extend() as Player
+local playerClass = entityClass:subclass("Player") as Player
 
 function playerClass:initialize(name:string, connection:Connection)
     local super = entityClass.initialize
