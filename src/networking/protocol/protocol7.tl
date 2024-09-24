@@ -43,14 +43,14 @@ protocolClass.Packets = {
             connection.logger:Debug("Supports CPE: "..tostring(CPE))
             local identPacket = connection.protocol:PacketFromName("Identification")
             if identPacket is nil then
-                connection.logger:Error("Identification packet not found")
+                error(connection.logger:FormatErr("Identification packet not found"))
                 return
             end
             identPacket.sender(connection, serverConfig:get("server.serverName"), serverConfig:get("server.motd"))
             connection.logger:Debug("Creating player")
             local disconnectPacket = connection.protocol:PacketFromName("Disconnect")
             if disconnectPacket is nil then
-                connection.logger:Error("Disconnect packet not found")
+                error(connection.logger:FormatErr("Disconnect packet not found"))
                 return
             end
             if playerRegistry:GetEntityByName(username) then
@@ -83,13 +83,13 @@ protocolClass.Packets = {
             local worldName = serverConfig:get("server.defaultWorld")
             if not (worldName is string) then
                 disconnectPacket.sender(connection, "Could not find world")
-                connection.logger:Error("Default world not set")
+                error(connection.logger:FormatErr("Default world not set"))
                 return
             end
             local world = worlds:getWorld(worldName)
             if not (world is World) then
                 disconnectPacket.sender(connection, "Could not find world")
-                connection.logger:Error("World not found")
+                error(connection.logger:FormatErr("World not found"))
                 return
             end
             player:LoadWorld(world as World)
@@ -122,7 +122,7 @@ protocolClass.Packets = {
         name = "LevelDataChunk",
         sender = function(connection:Connection, levelData:string, percentage:integer)
             if #levelData > 1024 then
-                connection.logger:Error("Level data chunk too large")
+                error(connection.logger:FormatErr("Level data chunk too large"))
                 return
             end
             local packet = protocolClass:PacketFromName("LevelDataChunk") as Packet
@@ -150,12 +150,12 @@ protocolClass.Packets = {
 
             local player = connection.player
             if not (player is Player) then
-                connection.logger:Error("Player not set")
+                error(connection.logger:FormatErr("Player not set"))
                 return
             end
             local world = player.world
             if not (world is World) then
-                connection.logger:Error("World not set")
+                error(connection.logger:FormatErr("World not set"))
                 return
             end
             if mode == 0 then
@@ -199,7 +199,7 @@ protocolClass.Packets = {
             x, y, z = packetUtility.fromFixedPoint(x as number, y as number, z as number)
             local player = connection.player
             if not (player is Player) then
-                connection.logger:Error("Player not set")
+                error(connection.logger:FormatErr("Player not set"))
                 return
             end
             player:MoveTo(EntityPosition.new(x as number, y as number, z as number, yaw as number, pitch as number))
@@ -257,7 +257,7 @@ protocolClass.Packets = {
         receiver = function(connection:Connection, data:string)
             local packet = protocolClass:PacketFromName("Message") as Packet
             if not connection.player then
-                connection.logger:Error("Player not set")
+                error(connection.logger:FormatErr("Player not set"))
                 return
             end
             local _, _, message = packetUtility.parsePacket(packet.format, data)

@@ -52,7 +52,7 @@ end
 
 function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
     if not entity is Entity then
-        self.logger:Error("Attempted to register non-entity")
+        error(self.logger:FormatErr("Attempted to register non-entity"))
         return
     end
     local function checkSupers(i:integer): boolean
@@ -75,7 +75,7 @@ function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
             self.entities[id] = entity
             return
         else
-            self.logger:Error("Failed to register entity. ID already in use")
+            error(self.logger:FormatErr("Failed to register entity. ID already in use"))
             return
         end
     end
@@ -87,7 +87,7 @@ function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
         end
     end
     if not entity.id then
-        self.logger:Error("Failed to register entity. Out of ids")
+        error(self.logger:FormatErr("Failed to register entity. Out of ids"))
         return
     end
 end

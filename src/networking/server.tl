@@ -77,7 +77,7 @@ function connectionClass:init()
 
     self.socket:read_start(function(err:string|nil, data:string|nil)
         if err then
-            self.logger:Error("Failed to read TCP data: " .. err, true)
+            self.logger:Error("Failed to read TCP data: " .. err)
             self:Close()
             return
         end
@@ -120,7 +120,7 @@ function connectionClass:init()
                 if self.protocol then
                     local packet = self.protocol.Packets[id]
                     if not packet then 
-                        self.logger:Error("Received unknown packet id: " .. id, true)
+                        self.logger:Error("Received unknown packet id: " .. id)
                         if self.player then
                             self.player:Kick("Unknown packet id: " .. id)
                         else
@@ -139,7 +139,7 @@ function connectionClass:init()
             local co = coroutine.create(process)
             local success, err = coroutine.resume(co)
             if not success then
-                self.logger:Error("Error processing packet:\n"..(err as string).."\n"..debug.traceback(co):gsub("\n", "\n\t"), true)
+                self.logger:Error("Error processing packet:\n"..(err as string).."\n"..debug.traceback(co):gsub("\n", "\n\t"))
             end
         end
     end)

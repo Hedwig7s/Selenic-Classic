@@ -170,13 +170,13 @@ function worldModule:load(path:string): World|nil
         return worlds[name]
     end
     if not fs.existsSync(path) then
-        self.logger:Error("World file not found: "..path)
+        error(self.logger:FormatErr("World file not found: "..path))
     end
     local data = fs.readFileSync(path)
     local version = parsers[filetype]:getVersion(data)
     local parser = parsers[filetype].versions[version]
     if not parser then
-        self.logger:Error("Unsupported world version: "..version)
+        error(self.logger:FormatErr("Unsupported world version version "..version))
     end
     local worldData = parser(name, data)
     worldData.autosave = true

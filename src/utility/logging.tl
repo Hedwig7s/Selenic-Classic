@@ -1,12 +1,10 @@
-local logging = require("logging")
 local ansicolors = require("ansicolors")
-logging.console = require("../../deps/logging/console")
 local globalSettings = {
     DEBUG = true,
-    DEBUG_COOLDOWN = 0.05,
+    DEBUG_COOLDOWN = 0.1,
     DEBUG_LIMIT = 10,
     DEBUG_TIMEOUT = 5,
-    COOLDOWN_TIME = 0.15,
+    COOLDOWN_TIME = 0.4,
     COOLDOWN_LIMIT = 5,
     COOLDOWN_TIMEOUT = 5
 }
@@ -16,19 +14,9 @@ global record cooldown
     lastTime: number
 end
 
-local enum logFunctions
-    "fatal"
-    "error"
-    "warn"
-    "info"
-    "debug"
-end
-
 local record Logger
     __index: Logger
-    logger: logging.Log
     new: function(name:string): Logger
-    extend: function(self:Logger):  Logger
     name: string
     cooldowns: {string: cooldown}
     globalSettings: {string: any}
@@ -48,6 +36,8 @@ local function checkCooldown(cool:cooldown, isDebug:boolean): boolean
         if cool.amount > settings.COOLDOWN_LIMIT then
             cooled = true
         end
+    else 
+        cool.amount = math.max(0, cool.amount - 1)
     end
     cool.lastTime = os.clock()
     return not cooled
@@ -71,59 +61,63 @@ function Logger:checkCooldown(message:string, isDebug:boolean|nil):boolean
     return pass
 end
 
-function Logger:sendMessage(funcName: logFunctions, message: string, isDebug:boolean|nil)
+local function makePattern(color:string, level:string): string
+    local pattern = string.gsub("%{{color}}[{name}/{level}]: {message}%{reset}\n", "{color}", color):gsub("{level}", level)
+    return ansicolors(pattern)
+end
+local enum levels 
+    "debug"
+    "info"
+    "warn"
+    "error"
+    "fatal"
+end
+local patterns: {levels:string} = {
+    debug = makePattern("bright black", "DEBUG"),
+    info = makePattern("white", "INFO"),
+    warn = makePattern("yellow", "WARN"),
+    error = makePattern("red", "ERROR"),
+    fatal = makePattern("bright dim red", "FATAL")
+}
+
+function Logger:sendMessage(level:levels, message: string, isDebug:boolean|nil)
     if self:checkCooldown(message, isDebug) then
-        self.logger[funcName](self.logger, message)
+        local pattern = patterns[level]
+        local formatted = pattern:gsub("{name}", self.name):gsub("{message}", message)
+        io.stderr:write(formatted)
     end
 end
 
-function Logger:Fatal(message: string, dontExit:boolean|nil)
-    self:sendMessage("fatal", message.."\n"..debug.traceback())
-    if not dontExit then
-        os.exit(-1)
-    end
+function Logger:Fatal(message: string)
+    self:sendMessage("fatal",message.."\n"..debug.traceback())
 end
 
-function Logger:Error(message: string, dontError:boolean|nil)
-    self:sendMessage("error", message.."\n")
-    if not dontError then
-        error(message)
-    end
+function Logger:Error(message: string)
+    self:sendMessage("error",message.."\n")
 end
 
 function Logger:Warn(message: string)
-    self:sendMessage("warn", message)
+    self:sendMessage("warn",message)
 end
 
 function Logger:Info(message: string)
-    self:sendMessage("info", message)
+    self:sendMessage("info",message)
 end
 
 function Logger:Debug(message: string)
     if globalSettings.DEBUG then
-        self:sendMessage("debug", message, true)
+        self:sendMessage("debug",message, true)
     end
 end
 
-local function makePattern(color:string, name:string): string
-    local pattern = string.gsub("%{{color}}[{name}/%level]: %message%{reset}\n", "{color}", color):gsub("{name}", name)
-    return ansicolors(pattern)
+function Logger:FormatErr(message:string): string -- For consistency when throwing with error()
+    return string.format("%s: $s", self.name, message)
 end
 
 function Logger.new(name:string): Logger
     local self:Logger = setmetatable({}, Logger)
     self.name = name
-    self.logger = logging.console({
-        logLevel = logging.DEBUG,
-        destination = "stderr",
-        logPatterns = {
-            [logging.DEBUG] = makePattern("black bright", name),
-            [logging.INFO] = makePattern("white", name),
-            [logging.WARN] = makePattern("yellow", name),
-            [logging.ERROR] = makePattern("red", name),
-            [logging.FATAL] = makePattern("red bright", name)
-        },
-    })
+
     self.cooldowns = {}
     return self
 end

@@ -65,7 +65,7 @@ function playerClass:Kick(reason:string)
     self.logger:Info("Kicking player for reason: "..reason)
     local kickPacket: Packet = self.connection.protocol:PacketFromName("Disconnect")
     if kickPacket is nil then
-        self.logger:Error("Disconnect packet not found", true)
+        self.logger:Error("Disconnect packet not found")
         self:Remove()
         return
     end
@@ -90,13 +90,13 @@ function playerClass:LoadWorld(world:World)
     local super = entityClass.LoadWorld
     super(self as Entity, world)
     if not (self.connection and self.connection.protocol) then
-        self.logger:Error("Connection or protocol not set")
+        error(self.logger:FormatErr("Connection or protocol not set"))
     end
     self.logger:Debug("Loading world")
     self.logger:Debug("Sending level initialize")
     local levelInitialize: Packet = self.connection.protocol:PacketFromName("LevelInitialize")
     if levelInitialize is nil then
-        self.logger:Error("LevelInitialize packet not found")
+        error(self.logger:FormatErr("LevelInitialize packet not found"))
         return
     end
     local initializeSender = levelInitialize.sender as PacketSenders.LevelInitialize
@@ -107,7 +107,7 @@ function playerClass:LoadWorld(world:World)
     local chunks = math.ceil(size / chunkSize)
     local levelDataChunk: Packet = self.connection.protocol:PacketFromName("LevelDataChunk")
     if levelDataChunk is nil then
-        self.logger:Error("LevelDataChunk packet not found")
+        error(self.logger:FormatErr("LevelDataChunk packet not found"))
         return
     end
     local dataChunkSender = levelDataChunk.sender as PacketSenders.LevelDataChunk
@@ -119,7 +119,7 @@ function playerClass:LoadWorld(world:World)
     self.logger:Debug("Sending level finalize")
     local levelFinalize: Packet = self.connection.protocol:PacketFromName("LevelFinalize")
     if levelFinalize is nil then
-        self.logger:Error("LevelFinalize packet not found")
+        error(self.logger:FormatErr("LevelFinalize packet not found"))
         return
     end
     local finalizeSender = levelFinalize.sender as PacketSenders.LevelFinalize

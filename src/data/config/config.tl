@@ -69,7 +69,7 @@ function config:getConfigPath(): string
 end
 function config:saveToFile()
     if not self.loaded then
-        self.logger:Error("Cannot save an unloaded config")
+        error(self.logger:FormatErr("Cannot save an unloaded config"))
         return
     end
     local copy = tableUtility.deepCopy(self.settings) as SettingsTable
@@ -79,7 +79,7 @@ function config:saveToFile()
         fs.writeFileSync(pathModule.join(pathModule.resolve("."), "config/"..self.name..".toml"), data)
         self.logger:Debug("Saved successfully")
     end, function(err)
-        self.logger:Error("Failed to save: "..(err and tostring(err)) or "Unknown error")
+        error(self.logger:FormatErr("Failed to save: "..(err and tostring(err)) or "Unknown error"))
     end)
 end
 function config:loadFromFile(reload:boolean|nil)
@@ -88,7 +88,7 @@ function config:loadFromFile(reload:boolean|nil)
         return
     end
     if not self.settings then
-        self.logger:Error("Cannot load into a nil settings table")
+        error(self.logger:FormatErr("Cannot load into a nil settings table"))
         return
     end
     local filePath = self:getConfigPath()
@@ -114,7 +114,7 @@ function config:loadFromFile(reload:boolean|nil)
         local settings = toml.decode(data)
         local version = settings.version
         if not version is integer then
-            self.logger:Error("Config file does not have a version. Using defaults", true)
+            self.logger:Error("Config file does not have a version. Using defaults")
             loadDefaults()
             return
         end

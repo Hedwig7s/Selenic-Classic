@@ -53,6 +53,7 @@ function messagingBase:Broadcast(message:string, criteria:MessageCriteria, data:
     for _, player in ipairs(playerRegistry:GetEntities()) do
         local player = player as Player
         self:Message(player, message, criteria, data)
+        self.logger:Info("Message: " .. message)
     end
 end
 
