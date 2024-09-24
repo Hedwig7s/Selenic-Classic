@@ -7,6 +7,28 @@ local heartbeat = require("networking/heartbeat")
 local worldModule = require("data/worlds/worlds")
 local Vector3 = require("datatypes/vector3")
 local timer = require("timer")
+local process = require("process").globalProcess()
+local uv = require("uv")
+local worldsLoaded = false
+
+function onExit()
+    logger:Info("Shutting down.")
+    if worldsLoaded then
+        worldModule.saveAll()
+    end
+    logger:Info("Exiting.")
+end
+
+process:on("uncaughtException", function(err)
+    logger:Fatal("Uncaught exception: " .. err)
+    pcall(onExit)
+    os.exit(-1)
+end)
+process:on("exit", onExit)
+uv.signal_start_oneshot(uv.new_signal(),"sigint", function()
+    pcall(onExit)
+    os.exit(0)
+end)
 
 logger:Info("Loading config...")
 
@@ -17,6 +39,7 @@ do
     end)
     if not success then
         logger:Fatal("Failed to load config: " .. err)
+        os.exit(-2)
     end
 end
 
@@ -25,15 +48,16 @@ logger:Info("Loading worlds...")
 do
     local success, err = pcall(function()
         worldModule:loadOrCreate(serverConfig:get("server.defaultWorld"), "hworld", Vector3.new(512, 128, 512))
-        timer.setInterval(20000, worldModule.saveAll)
+        worldsLoaded = true
+        timer.setInterval(60000, worldModule.saveAll)
     end)
     if not success then
         logger:Fatal("Failed to load worlds: " .. err)
+        os.exit(-3)
     end
 end
 
 logger:Info("Starting server...")
-
 do 
     local success, err = pcall(function()
         local server = serverClass:new(serverConfig:get("server.host"), serverConfig:get("server.port"))
@@ -41,6 +65,7 @@ do
     end)
     if not success then
         logger:Fatal("Fatal error occured while running server: " .. err)
+        os.exit(-4)
     end
 end
 
@@ -51,6 +76,6 @@ if serverConfig:get("heartbeat.enabled") then
         hb:start()
     end)
     if not success then
-        logger:Error("Fatal error occured while starting heartbeat: " .. err, true)
+        logger:Error("Error occured while starting heartbeat: " .. err)
     end
 end

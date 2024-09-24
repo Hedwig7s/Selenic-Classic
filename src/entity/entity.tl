@@ -35,7 +35,7 @@ end
 function entityClass:SetBlock(position:Vector3, block:Block)
     local world = self.world
     if world is nil then
-        self.logger:Error("Entity is not in a world")
+        error(self.logger:FormatErr("Entity is not in a world"))
         return
     end
     world:SetBlock(position, block)

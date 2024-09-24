@@ -81,7 +81,7 @@ function heartbeat:sendHeartbeat()
 
     request(url, function(res:http.response, body:string)
         if res.statusCode ~= 200 then
-            self.logger:Error("Failed to send heartbeat\n"..body, true)
+            self.logger:Error("Failed to send heartbeat\n"..body)
         end
         if self.firstHeartbeat then
             self.firstHeartbeat = false
