@@ -1,6 +1,5 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local Logger = require("utility.logging")
 local blockModule = require("data.blocks")
 local Vector3 = require("datatypes.vector3")
@@ -37,17 +36,20 @@ local function getIndex(position:Vector3, size:Vector3): integer
 end
 
 
-local worldClass = Object:extend() as World
+local worldClass = class("World") as World
 
 function worldClass:initialize(params:WorldParams)
     local self = self as World
     self.name = params.name
     self.size = params.size
     self.spawn = params.spawn
+    self.autosave = params.autosave or false
     self.blocks = params.blocks or Buffer:new(math.floor(self.size.X * self.size.Y * self.size.Z))
     self.logger = Logger.new("World "..self.name)
     worlds[self.name] = self
-    self:Save()
+    if self.autosave then
+        self:Save()
+    end
 end
 function worldClass:GetIndex(position:Vector3): integer
     return getIndex(position, self.size)
@@ -93,15 +95,11 @@ function worldClass:Save()
         fs.mkdirSync("worlds")
     end
     self.logger:Debug("Writing world to disk")
+    
     fs.writeFileSync("worlds/"..self.name..".hworld", data)
     self.logger:Info("World saved")
 end
 function worldClass:Pack(protocol:Protocol): string
-    local function compress(str:string): string
-        local level = 5
-        local windowSize = 15+16
-        return zlib.deflate(level, windowSize)(str, "finish")
-    end
     self.logger:Debug("Packing world")
     
     local totalSize = math.floor(self.size.X * self.size.Z * self.size.Y)
@@ -132,7 +130,7 @@ function worldClass:Pack(protocol:Protocol): string
     
     data = data .. blocks:toString()
     self.logger:Debug("Compressing world")
-    return compress(data)
+    return zlib.deflate(5, 31)(data, "finish")
 end
 
 local parsers: {string:WorldParser} 
@@ -140,7 +138,7 @@ parsers = {
     ["hworld"] = require("data.worlds.importers.hworld")
 }
 
-local worldModule = Object:extend() as WorldModule
+local worldModule = class("WorldModule") as WorldModule
 
 function worldModule:initialize()
     local self = self as WorldModule
@@ -154,16 +152,16 @@ function worldModule:newWorld(name:string, size:Vector3): World
         for y = 0, size.Y // 2.5  do
             for z = 0, size.Z-1 do
                 if y < 59 then
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z, true), size), stone)
+                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), stone)
                 elseif y < 63 then
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z, true), size), dirt)
+                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), dirt)
                 else
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z, true), size), grass)
+                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), grass)
                 end
             end
         end
     end
-    return worldClass:new({blocks = blocks, name = name, size = size, spawn = EntityPosition.new(0,0,0,0,0)}) as World
+    return worldClass:new({blocks = blocks, name = name, size = size, spawn = EntityPosition.new(0,0,0,0,0), autosave = true}) as World
 end
 function worldModule:load(path:string): World|nil
     local name = pathModule.basename(path):match("(.+)%..+")
@@ -180,7 +178,9 @@ function worldModule:load(path:string): World|nil
     if not parser then
         self.logger:Error("Unsupported world version: "..version)
     end
-    return worldClass:new(parser(name, data)) as World
+    local worldData = parser(name, data)
+    worldData.autosave = true
+    return worldClass:new(worldData) as World
 end
 function worldModule:loadOrCreate(name:string, filetype:string, size:Vector3): World
     local path = string.format("worlds/%s.%s", name, filetype)
@@ -194,12 +194,19 @@ function worldModule:loadOrCreate(name:string, filetype:string, size:Vector3): W
 end
 function worldModule:saveAll()
     for _, world in pairs(worlds) do
-        world:Save()
+        if world.autosave then
+            world:Save()
+        end
     end
 end
 function worldModule:getWorld(name:string): World|nil
     return worlds[name]
 end
-
+function worldModule:registerParser(filetype:string, parser:WorldParser)
+    if parsers[filetype] then
+        self.logger:Warn("Overwriting parser for filetype: "..filetype)
+    end
+    parsers[filetype] = parser
+end
 
 return worldModule:new()

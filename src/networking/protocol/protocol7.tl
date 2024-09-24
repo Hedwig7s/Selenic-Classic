@@ -1,5 +1,4 @@
 local require = require("customrequire")
-local core = require("core")
 local md5 = require("md5")
 local timer = require("timer")
 local protocolImpl = require("networking.protocol.protocol")
@@ -20,7 +19,7 @@ local type Player = Entities.Player
 local type Worlds = require("data.worlds.types")
 local type World = Worlds.World
 
-local protocolClass = protocolImpl:extend() 
+local protocolClass = protocolImpl:subclass("Protocol7") 
 protocolClass.Packets = {
     [0x00] = {
         format = ">BBc64c64B",

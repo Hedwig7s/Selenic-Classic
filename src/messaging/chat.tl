@@ -4,12 +4,13 @@ local cr = require("messaging.criterias")
 local criterias = cr.criterias
 local combineCriterias = cr.combineCriterias
 local Logger = require("utility.logging")
+local class = require("middleclass")
 
 global type Chat = MessagingBase
-global type Entities = require("entity.types")
-global type Player = Entities.Player
+local type Entities = require("entity.types")
+local type Player = Entities.Player
 
-local chatClass = base:new("Chat") as Chat
+local chatClass = class("Chat", base as class.Class) as Chat
 
 function chatClass:RawSend(target:Player, message:string)
     local packet = target.connection.protocol:PacketFromName("Message")
@@ -27,6 +28,11 @@ function chatClass:ProcessMessage(target:Player, message:string, criteria:Messag
     message = base.ProcessMessage(self, target, message, criteria, data)
 
     return message
+end
+function chatClass:initialize()
+    base.initialize(self)
+    local self = self as Chat
+    self.logger = Logger.new("Chat")
 end
 
 local cachedMessages: {string:{string}} = setmetatable({}, {
@@ -121,5 +127,4 @@ function chatClass:Message(target:Player, message:string, criteria:MessageCriter
         end
     end
 end
-
-return chatClass
+return chatClass:new() as Chat

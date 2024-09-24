@@ -17,7 +17,7 @@ end
 local data = {
     Salt = table.concat(salt),
     Software = "Selenic Classic",
-    Version = "v1.0.3-alpha",
+    Version = "v1.1.0-alpha",
     Author = "Hedwig7s",
     Source = "https://github.com/Hedwig7s/Selenic-Classic",
     FancySoftware = ""

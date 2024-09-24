@@ -1,8 +1,7 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
 local Logger = require("utility.logging")
 local tableUtility = require("utility.table")  
+local class = require("middleclass")
 local toml = require("toml")
 local fs = require("fs")
 local pathModule = require("path")
@@ -13,7 +12,13 @@ global type SettingsTable = {string: any}
 global record Config 
     initialize: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
     new: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil): Config
-    extend: function(self:Config): Config
+    static: table
+    isSubclassOf: function(self: Config, other:class.Class): boolean
+    include: function(self: Config, ...:table): Config
+    subclassed: function(self: Config, other:class.Class)
+    allocate: function(self: Config): table
+    isInstanceOf: function(self: Config, class: class.Class): boolean
+    subclass: function(self:Config,name:string): Config
     name: string
     defaults: SettingsTable
     settings: SettingsTable
@@ -48,7 +53,7 @@ local function parseKey(key:string, current:SettingsTable, currentDefault:Settin
     return current, currentDefault, subkey
 end
 
-local config = Object:extend() as Config
+local config = class("Config") as Config
 function config:initialize(name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
     local self = self as Config
     self.name = name

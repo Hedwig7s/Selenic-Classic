@@ -1,6 +1,5 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local Logger = require("utility.logging")
 local Vector3 = require("datatypes.vector3")
 local EntityPosition = require("datatypes.entityposition")
@@ -10,7 +9,7 @@ local type Entity = Entities.Entity
 local type Worlds = require("data.worlds.types")
 local type World = Worlds.World
 
-local entityClass = Object:extend() as Entity
+local entityClass = class("Entity") as Entity
 function entityClass:initialize(name:string)
     entityRegistry:RegisterEntity(self)
     self.name = name

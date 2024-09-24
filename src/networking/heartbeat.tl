@@ -1,7 +1,6 @@
 local require = require("customrequire")
 
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local Logger = require("utility.logging")
 local timer = require("timer")
 local http = require("http")
@@ -11,9 +10,15 @@ local serverConfig = require("data.config.serverconfig")
 local playerRegistry = require("entity.playerregistry")
 
 global record Heartbeat
-    extend: function(self:Heartbeat): Heartbeat
+    subclass: function(self:Heartbeat,name:string): Heartbeat
     initialize: function(self:Heartbeat)
     new: function(self:Heartbeat): Heartbeat
+    static: table
+    isSubclassOf: function(self: Heartbeat, other:class.Class): boolean
+    include: function(self: Heartbeat, ...:table): Heartbeat
+    subclassed: function(self: Heartbeat, other:class.Class)
+    allocate: function(self: Heartbeat): table
+    isInstanceOf: function(self: Heartbeat, class: class.Class): boolean
     start: function(self:Heartbeat)
     stop: function(self:Heartbeat)
     interval: integer
@@ -24,7 +29,7 @@ global record Heartbeat
     sendHeartbeat: function(self:Heartbeat)
 end
 
-local heartbeat = Object:extend() as Heartbeat
+local heartbeat = class("Heartbeat") as Heartbeat
 
 function heartbeat:initialize()
     local self = self as Heartbeat

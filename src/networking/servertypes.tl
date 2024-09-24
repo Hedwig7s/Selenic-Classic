@@ -3,6 +3,7 @@ local type uv = require("uv")
 local type Logger = require("utility.logging")
 global type Protocol
 global type Packet
+local type class = require("middleclass")
 
 global type Player
 
@@ -10,7 +11,13 @@ local record ServerModule
     record Server
         initialize: function(self:Server, host:string, port:integer)
         new: function(self:Server, host:string, port:integer): Server
-        extend: function(self:Server):  Server
+        static: table
+        isSubclassOf: function(self: Server, other:class.Class): boolean
+        include: function(self: Server, ...:table): Server
+        subclassed: function(self: Server, other:class.Class)
+        allocate: function(self: Server): table
+        isInstanceOf: function(self: Server, class: class.Class): boolean
+        subclass: function(self:Server,name:string):  Server
         host: string
         port: integer
         socket: uv.Tcp
@@ -22,7 +29,13 @@ local record ServerModule
     record Connection
         initialize: function(self:Connection, socket:uv.Tcp)
         new: function(self:Connection, socket:uv.Tcp): Connection
-        extend: function(self:Connection):  Connection
+        static: table
+        isSubclassOf: function(self: Connection, other:class.Class): boolean
+        include: function(self: Connection, ...:table): Connection
+        subclassed: function(self: Connection, other:class.Class)
+        allocate: function(self: Connection): table
+        isInstanceOf: function(self: Connection, class: class.Class): boolean
+        subclass: function(self:Connection,name:string):  Connection
         socket: uv.Tcp
         closed: boolean
         readRoutine: thread

@@ -16,18 +16,17 @@ local sharedFunctions = {
         return size, spawn
     end,
     parseBlockData = function(data:string, size:Vector3): Buffer
-        local blocks = {}
+        local blocks = Buffer:new(math.floor(size.X * size.Y * size.Z))
+        local blockI = 1
         for i = 1, #data, 5 do
             local id, count = string.unpack("<BI4", data:sub(i, i+4))
-            for _ = 1, count do
-                table.insert(blocks, id as integer)
+            for _ = 1, (count as integer) do
+                blocks:writeUInt8(blockI, id as integer)
+                blockI = blockI + 1
             end
         end
-        local blockBuffer = Buffer:new(math.floor(size.X * size.Y * size.Z))
-        for i, block in ipairs(blocks) do
-            blockBuffer:writeUInt8(i, block)
-        end
-        return blockBuffer
+
+        return blocks
     end
 }
 

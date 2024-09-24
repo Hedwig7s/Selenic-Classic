@@ -1,6 +1,5 @@
 local require = require("customrequire")
-local core = require("core")
-local Object = core.Object
+local class = require("middleclass")
 local type Vector3 = require("datatypes.vector3")
 
 local type ServerModule = require("networking.servertypes")
@@ -39,7 +38,13 @@ end
 global record Protocol
     initialize: function(self:Protocol)
     new: function(self:Protocol): Protocol
-    extend: function(self:Protocol): Protocol
+    static: table
+    isSubclassOf: function(self: Protocol, other:class.Class): boolean
+    include: function(self: Protocol, ...:table): Protocol
+    subclassed: function(self: Protocol, other:class.Class)
+    allocate: function(self: Protocol): table
+    isInstanceOf: function(self: Protocol, class: class.Class): boolean
+    subclass: function(self:Protocol,name:string): Protocol
     Packets: {integer: Packet}
     Meta: Meta
     PacketFromName: function(self:Protocol, name:string): Packet|nil
@@ -47,7 +52,7 @@ end
 
 local packetNameCache:{integer:{string:Packet}} = {}
 
-local protocolImpl = Object:extend() as Protocol
+local protocolImpl = class("Protocol") as Protocol
 function protocolImpl:initialize()
 
 end

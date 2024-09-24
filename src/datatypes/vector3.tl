@@ -1,16 +1,16 @@
 --local require = require("customrequire")
 
 local record Vector3
-    __index: Vector3
-    __add: function(self:Vector3, other:Vector3): Vector3
-    __mul: function(self:Vector3, other:Vector3|number): Vector3
-    __sub: function(self:Vector3, other:Vector3): Vector3
-    __div: function(self:Vector3, other:Vector3|number): Vector3
-    __idiv: function(self:Vector3, other:Vector3|number): Vector3
-    __mod: function(self:Vector3, other:Vector3): Vector3
-    __pow: function(self:Vector3, other:Vector3): Vector3
-    __tostring: function(self:Vector3): string
-    __eq: function(self:Vector3, other:Vector3): boolean
+    metamethod __index: metatable<Vector3>
+    metamethod __add: function(self:Vector3, other:Vector3): Vector3
+    metamethod __mul: function(self:Vector3, other:Vector3|number): Vector3
+    metamethod __sub: function(self:Vector3, other:Vector3): Vector3
+    metamethod __div: function(self:Vector3, other:Vector3|number): Vector3
+    metamethod __idiv: function(self:Vector3, other:Vector3|number): Vector3
+    metamethod __mod: function(self:Vector3, other:Vector3): Vector3
+    metamethod __pow: function(self:Vector3, other:Vector3): Vector3
+    metamethod __tostring: function(self:Vector3): string
+    metamethod __eq: function(self:Vector3, other:Vector3): boolean
     X: number
     Y: number
     Z: number
@@ -20,49 +20,51 @@ local record Vector3
     yAxis: Vector3
     zAxis: Vector3
     Magnitude: number
-    Unit: Vector3
-    new: function(x:number, y:number, z:number, skipUnit:boolean): Vector3
+    new: function(x:number, y:number, z:number): Vector3
 end
-Vector3.__index = Vector3
-Vector3.__add = function(self:Vector3, other:Vector3): Vector3
-    return Vector3.new(self.X + other.X, self.Y + other.Y, self.Z + other.Z)
-end
-Vector3.__mul = function(self:Vector3, other:Vector3|number): Vector3
-    if other is Vector3 then
-        return Vector3.new(self.X * other.X, self.Y * other.Y, self.Z * other.Z)
-    else
-        return Vector3.new(self.X * other, self.Y * other, self.Z * other)
+local Vector3MT: metatable<Vector3> 
+Vector3MT = {
+    __index = Vector3MT,
+    __add = function(self:Vector3, other:Vector3): Vector3
+        return Vector3.new(self.X + other.X, self.Y + other.Y, self.Z + other.Z)
+    end,
+    __mul = function(self:Vector3, other:Vector3|number): Vector3
+        if other is Vector3 then
+            return Vector3.new(self.X * other.X, self.Y * other.Y, self.Z * other.Z)
+        else
+            return Vector3.new(self.X * other, self.Y * other, self.Z * other)
+        end
+    end,
+    __sub = function(self:Vector3, other:Vector3): Vector3
+        return Vector3.new(self.X - other.X, self.Y - other.Y, self.Z - other.Z)
+    end,
+    __div = function(self:Vector3, other:Vector3|number): Vector3
+        if other is Vector3 then
+            return Vector3.new(self.X / other.X, self.Y / other.Y, self.Z / other.Z)
+        else
+            return Vector3.new(self.X / other, self.Y / other, self.Z / other)
+        end
+    end,
+    __idiv = function(self:Vector3, other:Vector3|number): Vector3
+        if other is Vector3 then
+            return Vector3.new(self.X // other.X, self.Y // other.Y, self.Z // other.Z)
+        else
+            return Vector3.new(self.X // other, self.Y // other, self.Z // other)
+        end
+    end,
+    __mod = function(self:Vector3, other:Vector3): Vector3
+        return Vector3.new(self.X % other.X, self.Y % other.Y, self.Z % other.Z)
+    end,
+    __pow = function(self:Vector3, other:Vector3): Vector3
+        return Vector3.new(self.X ^ other.X, self.Y ^ other.Y, self.Z ^ other.Z)
+    end,
+    __tostring = function(self:Vector3): string
+        return string.format("Vector3(%3f, %3f, %3f)", self.X, self.Y, self.Z)
+    end,
+    __eq = function(self:Vector3, other:Vector3): boolean
+        return self.X == other.X and self.Y == other.Y and self.Z == other.Z
     end
-end
-Vector3.__sub = function(self:Vector3, other:Vector3): Vector3
-    return Vector3.new(self.X - other.X, self.Y - other.Y, self.Z - other.Z)
-end
-Vector3.__div = function(self:Vector3, other:Vector3|number): Vector3
-    if other is Vector3 then
-        return Vector3.new(self.X / other.X, self.Y / other.Y, self.Z / other.Z)
-    else
-        return Vector3.new(self.X / other, self.Y / other, self.Z / other)
-    end
-end
-Vector3.__idiv = function(self:Vector3, other:Vector3|number): Vector3
-    if other is Vector3 then
-        return Vector3.new(self.X // other.X, self.Y // other.Y, self.Z // other.Z)
-    else
-        return Vector3.new(self.X // other, self.Y // other, self.Z // other)
-    end
-end
-Vector3.__mod = function(self:Vector3, other:Vector3): Vector3
-    return Vector3.new(self.X % other.X, self.Y % other.Y, self.Z % other.Z)
-end
-Vector3.__pow = function(self:Vector3, other:Vector3): Vector3
-    return Vector3.new(self.X ^ other.X, self.Y ^ other.Y, self.Z ^ other.Z)
-end
-Vector3.__tostring = function(self:Vector3): string
-    return string.format("Vector3(%3f, %3f, %3f)", self.X, self.Y, self.Z)
-end
-Vector3.__eq = function(self:Vector3, other:Vector3): boolean
-    return self.X == other.X and self.Y == other.Y and self.Z == other.Z
-end
+}
 
 function Vector3:Abs(): Vector3
     return Vector3.new(math.abs(self.X), math.abs(self.Y), math.abs(self.Z))
@@ -92,16 +94,17 @@ function Vector3:Min(other:Vector3): Vector3
     return Vector3.new(math.min(self.X, other.X), math.min(self.Y, other.Y), math.min(self.Z, other.Z))
 end
 
-function Vector3.new(x:number, y:number, z:number, skipUnit: boolean): Vector3
+function Vector3:Normalize(): Vector3
+    return Vector3.new(self.X/self.Magnitude, self.Y/self.Magnitude, self.Z/self.Magnitude)
+end
+
+function Vector3.new(x:number, y:number, z:number): Vector3
     local self:Vector3 = {}
     self.X = x
     self.Y = y
     self.Z = z
     self.Magnitude = math.sqrt(x*x + y*y + z*z)
-    if not skipUnit then
-        self.Unit = Vector3.new(x/self.Magnitude, y/self.Magnitude, z/self.Magnitude, true)
-    end
-    setmetatable(self, Vector3)
+    setmetatable(self, Vector3MT)
     return self
 end
 
