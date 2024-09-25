@@ -176,4 +176,14 @@ function serverClass:init()
     end)
     self.logger:Info("Started")
 end
+function serverClass:close()
+    for _, connection in pairs(connections) do
+        if connection.player then
+            connection.player:Kick("Server shutting down")
+        end
+        connection:Close()
+    end
+    self.socket:close()
+    self.initialized = false
+end
 return serverClass

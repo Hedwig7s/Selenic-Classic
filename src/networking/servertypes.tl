@@ -25,6 +25,7 @@ local record ServerModule
         initialized: boolean
         logger: Logger
         init: function(self:Server)
+        close: function(self:Server)
     end 
     record Connection
         initialize: function(self:Connection, socket:uv.Tcp)

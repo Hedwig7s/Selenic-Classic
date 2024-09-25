@@ -10,9 +10,13 @@ local timer = require("timer")
 local process = require("process").globalProcess()
 local uv = require("uv")
 local worldsLoaded = false
+local server
 
 function onExit()
     logger:Info("Shutting down.")
+    if server then
+        server:close()
+    end
     if worldsLoaded then
         worldManager.saveAll()
     end
@@ -60,7 +64,7 @@ end
 logger:Info("Starting server...")
 do 
     local success, err = pcall(function()
-        local server = serverClass:new(serverConfig:get("server.host"), serverConfig:get("server.port"))
+        server = serverClass:new(serverConfig:get("server.host"), serverConfig:get("server.port"))
         server:init()
     end)
     if not success then
