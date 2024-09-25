@@ -4,7 +4,7 @@ local serverConfig = require("data/config/serverconfig")
 local loggerClass = require("utility.logging")
 local logger = loggerClass.new("Main")
 local heartbeat = require("networking/heartbeat")
-local worldModule = require("data/worlds/worlds")
+local worldManager = require("data/worlds/worldmanager")
 local Vector3 = require("datatypes/vector3")
 local timer = require("timer")
 local process = require("process").globalProcess()
@@ -14,7 +14,7 @@ local worldsLoaded = false
 function onExit()
     logger:Info("Shutting down.")
     if worldsLoaded then
-        worldModule.saveAll()
+        worldManager.saveAll()
     end
     logger:Info("Exiting.")
 end
@@ -47,9 +47,9 @@ logger:Info("Loading worlds...")
 
 do
     local success, err = pcall(function()
-        worldModule:loadOrCreate(serverConfig:get("server.defaultWorld"), "hworld", Vector3.new(512, 128, 512))
+        worldManager:loadOrCreate(serverConfig:get("server.defaultWorld"), "hworld", Vector3.new(512, 128, 512))
         worldsLoaded = true
-        timer.setInterval(60000, worldModule.saveAll)
+        timer.setInterval(60000, worldManager.saveAll)
     end)
     if not success then
         logger:Fatal("Failed to load worlds: " .. err)

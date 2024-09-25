@@ -49,23 +49,24 @@ local record Worlds
         Save: function(self:World)
     end
 
-    record WorldModule
+    record WorldManager
         logger: Logger
-        initialize: function(self:WorldModule)
-        new: function(self:WorldModule): WorldModule
+        initialize: function(self:WorldManager)
+        new: function(self:WorldManager): WorldManager
         static: table
-        isSubclassOf: function(self: WorldModule, other:class.Class): boolean
-        include: function(self: WorldModule, ...:table): WorldModule
-        subclassed: function(self: WorldModule, other:class.Class)
-        allocate: function(self: WorldModule): table
-        isInstanceOf: function(self: WorldModule, class: class.Class): boolean
-        subclass: function(self:WorldModule,name:string): WorldModule
-        newWorld: function(self:WorldModule, name:string, size:Vector3): World
-        load: function(self:WorldModule, path:string): World | nil
-        loadOrCreate: function(self:WorldModule, name:string, filetype:string, size:Vector3): World
-        getWorld: function(self:WorldModule, name:string): World | nil
-        saveAll: function(self:WorldModule)
-        registerParser: function(self:WorldModule,filetype:string, parser:WorldParser)
+        isSubclassOf: function(self: WorldManager, other:class.Class): boolean
+        include: function(self: WorldManager, ...:table): WorldManager
+        subclassed: function(self: WorldManager, other:class.Class)
+        allocate: function(self: WorldManager): table
+        isInstanceOf: function(self: WorldManager, class: class.Class): boolean
+        subclass: function(self:WorldManager,name:string): WorldManager
+        newWorld: function(self:WorldManager, name:string, size:Vector3): World
+        load: function(self:WorldManager, path:string): World | nil
+        loadOrCreate: function(self:WorldManager, name:string, filetype:string, size:Vector3): World
+        getWorld: function(self:WorldManager, name:string): World | nil
+        saveAll: function(self:WorldManager)
+        registerParser: function(self:WorldManager,filetype:string, parser:WorldParser)
+        registerWorld: function(self:WorldManager, world:World)
     end
 end
 

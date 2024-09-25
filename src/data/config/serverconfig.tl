@@ -12,6 +12,7 @@ local serverConfig = configClass:new("server", 1, {
         defaultWorld = "world",
         localBypassVerification = false,
         verifyNames = true,
+        backupWorldsOnSave = true
     },
     heartbeat = {
         enabled = true,
