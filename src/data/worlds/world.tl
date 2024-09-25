@@ -3,25 +3,20 @@ local class = require("middleclass")
 local Logger = require("utility.logging")
 local blockModule = require("data.blocks")
 local Vector3 = require("datatypes.vector3")
-local EntityPosition = require("datatypes.entityposition")
 local zlib = require("zlib")
 local fs = require("fs")
-local pathModule = require("path")
 local Buffer = require("buffer").Buffer
 local pb = require("networking.packetbroadcast")
 local packetBroadcaster, criterias = pb.packetBroadcaster, pb.criterias
+local serverConfig = require("data.config.serverconfig")
 local type _ = require("networking.protocol.protocol")
 local type Worlds = require("data.worlds.types")
 local type World = Worlds.World
 local type WorldParams = Worlds.WorldParams
-local type WorldParser = Worlds.WorldParser
-local type WorldModule = Worlds.WorldModule
 local type Entities = require("entity.types")
 local type Player = Entities.Player
 
 local WORLD_VERSION = 3
-
-local worlds: {string:World} = {}
 
 local broadcasters = {
     setBlock = packetBroadcaster:new("ServerSetBlock", criterias.sameWorld),
@@ -46,7 +41,6 @@ function worldClass:initialize(params:WorldParams)
     self.autosave = params.autosave or false
     self.blocks = params.blocks or Buffer:new(math.floor(self.size.X * self.size.Y * self.size.Z))
     self.logger = Logger.new("World "..self.name)
-    worlds[self.name] = self
     if self.autosave then
         self:Save()
     end
@@ -95,8 +89,14 @@ function worldClass:Save()
         fs.mkdirSync("worlds")
     end
     self.logger:Debug("Writing world to disk")
-    
-    fs.writeFileSync("worlds/"..self.name..".hworld", data)
+    local filePath = "worlds/"..self.name..".hworld"
+    if serverConfig:get("server.backupWorldsOnSave") == true and fs.existsSync(filePath) then
+        if fs.existsSync(filePath..".bak") then
+            fs.unlinkSync(filePath..".bak")
+        end
+        fs.renameSync(filePath, filePath..".bak")
+    end 
+    fs.writeFileSync(filePath, data)
     self.logger:Info("World saved")
 end
 function worldClass:Pack(protocol:Protocol): string
@@ -133,80 +133,7 @@ function worldClass:Pack(protocol:Protocol): string
     return zlib.deflate(5, 31)(data, "finish")
 end
 
-local parsers: {string:WorldParser} 
-parsers = {
-    ["hworld"] = require("data.worlds.importers.hworld")
+return {
+    World = worldClass,
+    GetIndex = getIndex
 }
-
-local worldModule = class("WorldModule") as WorldModule
-
-function worldModule:initialize()
-    local self = self as WorldModule
-    self.logger = Logger.new("WorldModule")
-end
-
-function worldModule:newWorld(name:string, size:Vector3): World
-    local blocks = Buffer:new(math.floor(size.X * size.Y * size.Z))
-    local stone, dirt, grass = blockModule.BLOCK_IDS.STONE, blockModule.BLOCK_IDS.DIRT, blockModule.BLOCK_IDS.GRASS
-    for x = 0, size.X-1 do
-        for y = 0, size.Y // 2.5  do
-            for z = 0, size.Z-1 do
-                if y < 59 then
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), stone)
-                elseif y < 63 then
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), dirt)
-                else
-                    blocks:writeUInt8(getIndex(Vector3.new(x, y, z), size), grass)
-                end
-            end
-        end
-    end
-    return worldClass:new({blocks = blocks, name = name, size = size, spawn = EntityPosition.new(0,0,0,0,0), autosave = true}) as World
-end
-function worldModule:load(path:string): World|nil
-    local name = pathModule.basename(path):match("(.+)%..+")
-    local filetype = pathModule.basename(path):match(".+%.(.+)")
-    if worlds[name] then
-        return worlds[name]
-    end
-    if not fs.existsSync(path) then
-        error(self.logger:FormatErr("World file not found: "..path))
-    end
-    local data = fs.readFileSync(path)
-    local version = parsers[filetype]:getVersion(data)
-    local parser = parsers[filetype].versions[version]
-    if not parser then
-        error(self.logger:FormatErr("Unsupported world version version "..version))
-    end
-    local worldData = parser(name, data)
-    worldData.autosave = true
-    return worldClass:new(worldData) as World
-end
-function worldModule:loadOrCreate(name:string, filetype:string, size:Vector3): World
-    local path = string.format("worlds/%s.%s", name, filetype)
-    local world:World
-    if not fs.existsSync(path) then
-        world = self:newWorld(name, size)
-    else
-        world = self:load(path)
-    end
-    return world
-end
-function worldModule:saveAll()
-    for _, world in pairs(worlds) do
-        if world.autosave then
-            world:Save()
-        end
-    end
-end
-function worldModule:getWorld(name:string): World|nil
-    return worlds[name]
-end
-function worldModule:registerParser(filetype:string, parser:WorldParser)
-    if parsers[filetype] then
-        self.logger:Warn("Overwriting parser for filetype: "..filetype)
-    end
-    parsers[filetype] = parser
-end
-
-return worldModule:new()
