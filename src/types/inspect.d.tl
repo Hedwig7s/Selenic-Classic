@@ -1,12 +1,21 @@
 local record inspect
-    record InspectOptions
-        depth: number
-        newline: string
-        indent: string
-        process: function(item: any, path: {any}): any
+    _VERSION: string
+    _URL: string
+    _DESCRIPTION: string
+    _LICENSE: string
+    KEY: table
+    METATABLE: table
+ 
+    type ProcessFunction = function(any, {any}): any
+ 
+    record Options
+       depth: integer
+       newline: string
+       indent: string
+       process: ProcessFunction
     end
-
-    metamethod __call: function(self: inspect, value: any, options: InspectOptions): string
-end
-
+    metamethod __call: function(self:inspect, root:any, options:Options|nil): string
+    inspect: function(root:any, options:Options|nil): string
+ end
+ 
 return inspect

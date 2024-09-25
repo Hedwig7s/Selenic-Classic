@@ -1,4 +1,49 @@
 local ansicolors = require("ansicolors")
+
+local stringify: function(obj:any):string
+local write:function(...:any) do
+    local function createWrite(stringifier: (function(obj:any, ...:any):string), printer: function(str:string))
+        stringify = function(...:any):string
+            local n = select('#', ...)
+            local arguments = {...}
+            for i = 1, n do
+                local arg = arguments[i]
+                if not (arg is string) then
+                    arguments[i] = stringifier(arg)
+                end
+            end
+            return table.concat(arguments as {string}, "\t")
+        end
+        write = function(...:string)
+            printer(table.concat({...}, " "))
+        end
+    end
+    local success, prettyPrint = pcall(require,"pretty-print")
+    if success then
+        createWrite(prettyPrint.dump, function(str:string)
+            prettyPrint.stderr:write(str)
+        end)
+    else
+        local success, pprint = pcall(require,"pprint")
+        if success then
+            createWrite(pprint.pformat, function(str:string)
+                io.stderr:write(str)
+            end)
+        else
+            local success, inspect = pcall(require,"inspect")
+            if success then
+                createWrite(inspect.inspect, function(str:string)
+                    io.stderr:write(str)
+                end)
+            else
+                createWrite(tostring, function(str:string)
+                    io.stderr:write(str)
+                end)
+            end
+        end
+    end
+end
+
 local globalSettings = {
     DEBUG = true,
     DEBUG_COOLDOWN = 0.1,
@@ -84,33 +129,39 @@ function Logger:sendMessage(level:levels, message: string, isDebug:boolean|nil)
     if self:checkCooldown(message, isDebug) then
         local pattern = patterns[level]
         local formatted = pattern:gsub("{name}", self.name):gsub("{message}", message)
-        io.stderr:write(formatted)
+        write(formatted)
     end
 end
 
-function Logger:Fatal(message: string)
+function Logger:Fatal(...:any)
+    local message = stringify(...)
     self:sendMessage("fatal",message.."\n"..debug.traceback())
 end
 
-function Logger:Error(message: string)
-    self:sendMessage("error",message.."\n")
+function Logger:Error(...:any)
+    local message = stringify(...)
+    self:sendMessage("error",message.."\n"..debug.traceback())
 end
 
-function Logger:Warn(message: string)
+function Logger:Warn(...:any)
+    local message = stringify(...)
     self:sendMessage("warn",message)
 end
 
-function Logger:Info(message: string)
+function Logger:Info(...:any)
+    local message = stringify(...)
     self:sendMessage("info",message)
 end
 
-function Logger:Debug(message: string)
+function Logger:Debug(...:any)
     if globalSettings.DEBUG then
+        local message = stringify(...)
         self:sendMessage("debug",message, true)
     end
 end
 
-function Logger:FormatErr(message:string): string -- For consistency when throwing with error()
+function Logger:FormatErr(...:any): string -- For consistency when throwing with error()
+    local message = stringify(...)
     return string.format("%s: $s", self.name, message)
 end
 
