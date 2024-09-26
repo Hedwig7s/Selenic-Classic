@@ -78,7 +78,7 @@ function playerClass:Remove()
     local super = entityClass.Remove
     super(self as Entity)
     playerRegistry:UnregisterEntity(self.id)
-    self.connection:Close()
+    self.connection:close()
     self.logger:Info("Player removed")
 end
 

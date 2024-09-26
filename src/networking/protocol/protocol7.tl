@@ -274,7 +274,7 @@ protocolClass.Packets = {
             packetUtility.sendPacket(connection,packet.format, packet.id, reason)
             timer.setTimeout(500, function()
                 if connection and not connection.closed then
-                    connection:Close() -- Force disconnect
+                    connection:close() -- Force disconnect
                 end
             end)
         end,
