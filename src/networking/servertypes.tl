@@ -39,7 +39,6 @@ local record ServerModule
         subclass: function(self:Connection,name:string):  Connection
         socket: uv.Tcp
         closed: boolean
-        readRoutine: thread
         write: function(self:Connection, data:string)
         protocol: Protocol
         id: integer
@@ -48,7 +47,7 @@ local record ServerModule
         logger: Logger
         player: Player
         initialized: boolean
-        Close: function(self:Connection)
+        close: function(self:Connection)
     end
 end
 
