@@ -77,7 +77,7 @@ local record uv
       -- 
       -- @return Nothing.
       -- 
-      close:function(Handle, callback:function())
+      close:function(Handle, callback?:function())
 
       --- ### `uv.ref(handle)`
       -- 
@@ -397,7 +397,7 @@ local record uv
       -- Handle functions
       is_active:function(Timer):boolean, string
       is_closing:function(Timer):boolean, string
-      close:function(Timer, callback:function())
+      close:function(Timer, callback?:function())
       ref:function(Timer)
       unref:function(Timer)
       has_ref:function(Timer):boolean, string
@@ -423,7 +423,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(Timer, timeout:integer, rep:integer, callback:function()):integer, string
+      start:function(Timer, timeout:integer, rep:integer, callback?:function()):integer, string
 
       --- ### `uv.timer_stop(timer)`
       -- 
@@ -523,7 +523,7 @@ local record uv
       -- Handle functions
       is_active:function(Prepare):boolean, string
       is_closing:function(Prepare):boolean, string
-      close:function(Prepare, callback:function())
+      close:function(Prepare, callback?:function())
       ref:function(Prepare)
       unref:function(Prepare)
       has_ref:function(Prepare):boolean, string
@@ -543,7 +543,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(Prepare, callback:function()):integer, string
+      start:function(Prepare, callback?:function()):integer, string
 
       --- ### `uv.prepare_stop(prepare)`
       -- 
@@ -587,7 +587,7 @@ local record uv
       -- Handle functions
       is_active:function(Check):boolean, string
       is_closing:function(Check):boolean, string
-      close:function(Check, callback:function())
+      close:function(Check, callback?:function())
       ref:function(Check)
       unref:function(Check)
       has_ref:function(Check):boolean, string
@@ -607,7 +607,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(Check, callback:function()):integer, string
+      start:function(Check, callback?:function()):integer, string
 
       --- ### `uv.check_stop(check)`
       -- 
@@ -658,7 +658,7 @@ local record uv
       -- Handle functions
       is_active:function(Idle):boolean, string
       is_closing:function(Idle):boolean, string
-      close:function(Idle, callback:function())
+      close:function(Idle, callback?:function())
       ref:function(Idle)
       unref:function(Idle)
       has_ref:function(Idle):boolean, string
@@ -678,7 +678,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(Idle, callback:function()):integer, string
+      start:function(Idle, callback?:function()):integer, string
 
       --- ### `uv.idle_stop(check)`
       -- 
@@ -725,7 +725,7 @@ local record uv
       -- Handle functions
       is_active:function(Async):boolean, string
       is_closing:function(Async):boolean, string
-      close:function(Async, callback:function())
+      close:function(Async, callback?:function())
       ref:function(Async)
       unref:function(Async)
       has_ref:function(Async):boolean, string
@@ -770,7 +770,7 @@ local record uv
    -- **Note**: Unlike other handle initialization functions, this immediately starts
    -- the handle.
    -- 
-   new_async:function(callback:function()):Async, string
+   new_async:function(callback?:function()):Async, string
 
    --- ## `uv_poll_t` — Poll handle
    -- 
@@ -807,7 +807,7 @@ local record uv
       -- Handle functions
       is_active:function(Poll):boolean, string
       is_closing:function(Poll):boolean, string
-      close:function(Poll, callback:function())
+      close:function(Poll, callback?:function())
       ref:function(Poll)
       unref:function(Poll)
       has_ref:function(Poll):boolean, string
@@ -842,7 +842,7 @@ local record uv
       -- **Note** Calling `uv.poll_start()` on a handle that is already active is fine.
       -- Doing so will update the events mask that is being watched for.
       -- 
-      start:function(Poll, events:string, callback:function()):integer, string
+      start:function(Poll, events:string, callback?:function()):integer, string
 
       --- ### `uv.poll_stop(poll)`
       -- 
@@ -937,7 +937,7 @@ local record uv
       -- Handle functions
       is_active:function(Signal):boolean, string
       is_closing:function(Signal):boolean, string
-      close:function(Signal, callback:function())
+      close:function(Signal, callback?:function())
       ref:function(Signal)
       unref:function(Signal)
       has_ref:function(Signal):boolean, string
@@ -959,7 +959,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(Signal, signum:integer, callback:function()):integer, string
+      start:function(Signal, signum:integer, callback?:function()):integer, string
 
       --- ### `uv.signal_start_oneshot(signal, signum, callback)`
       -- 
@@ -974,7 +974,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start_oneshot:function(Signal, signum:integer, callback:function()):integer, string
+      start_oneshot:function(Signal, signum:integer, callback?:function()):integer, string
 
       --- ### `uv.signal_stop(signal)`
       -- 
@@ -1011,7 +1011,7 @@ local record uv
       -- Handle functions
       is_active:function(Process):boolean, string
       is_closing:function(Process):boolean, string
-      close:function(Process, callback:function())
+      close:function(Process, callback?:function())
       ref:function(Process)
       unref:function(Process)
       has_ref:function(Process):boolean, string
@@ -1207,7 +1207,7 @@ local record uv
       -- Handle functions
       is_active:function(Stream):boolean, string
       is_closing:function(Stream):boolean, string
-      close:function(Stream, callback:function())
+      close:function(Stream, callback?:function())
       ref:function(Stream)
       unref:function(Stream)
       has_ref:function(Stream):boolean, string
@@ -1229,7 +1229,7 @@ local record uv
       -- 
       -- @return `uv_shutdown_t userdata` or `fail`
       -- 
-      shutdown:function(Stream, callback:function())
+      shutdown:function(Stream, callback?:function())
 
       --- ### `uv.listen(stream, backlog, callback)`
       -- 
@@ -1246,7 +1246,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      listen:function(Stream, backlog:integer, callback:function()):integer, string
+      listen:function(Stream, backlog:integer, callback?:function()):integer, string
 
       --- ### `uv.accept(stream, client_stream)`
       -- 
@@ -1335,7 +1335,7 @@ local record uv
       -- 
       -- @return `uv_write_t userdata` or `fail`
       -- 
-      write:function(Stream, data:any, callback:function()):any, string
+      write:function(Stream, data:any, callback?:function()):any, string
 
       --- ### `uv.write2(stream, data, send_handle, [callback])`
       -- 
@@ -1356,7 +1356,7 @@ local record uv
       -- connection (listening or connected state). Bound sockets or pipes will be
       -- assumed to be servers.
       -- 
-      write2:function(Stream, data:any, send_handle:Stream, callback:function())
+      write2:function(Stream, data:any, send_handle:Stream, callback?:function())
 
       --- ### `uv.try_write(stream, data)`
       -- 
@@ -1460,7 +1460,7 @@ local record uv
       -- Handle functions
       is_active:function(Tcp):boolean, string
       is_closing:function(Tcp):boolean, string
-      close:function(Tcp, callback:function())
+      close:function(Tcp, callback?:function())
       ref:function(Tcp)
       unref:function(Tcp)
       has_ref:function(Tcp):boolean, string
@@ -1470,13 +1470,13 @@ local record uv
       get_type:function(Tcp):string, integer
 
       -- Stream functions
-      shutdown:function(Tcp, callback:function())
-      listen:function(Tcp, backlog:integer, callback:function(err:string|nil)):integer, string
+      shutdown:function(Tcp, callback?:function())
+      listen:function(Tcp, backlog:integer, callback:function(err?:string)):integer, string
       accept:function(Tcp, client_stream:Tcp):integer, string
       read_start:function(Tcp, callback:function(err:string, data:string))
       read_stop:function(Tcp)
-      write:function(Tcp, data:any, callback:function()):any, string
-      write2:function(Tcp, data:any, send_handle:Tcp, callback:function())
+      write:function(Tcp, data:any, callback?:function()):any, string
+      write2:function(Tcp, data:any, send_handle:Tcp, callback?:function())
       try_write:function(Tcp, data:any):integer, string
       try_write2:function(Tcp, data:any, send_handle:Tcp):integer, string
       is_readable:function(Tcp):boolean
@@ -1570,7 +1570,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      bind:function(Tcp, host:string, port:integer, flags:{string:any}):integer, string
+      bind:function(Tcp, host:string, port:integer, flags?:{string:any}):integer, string
 
       --- ### `uv.tcp_getpeername(tcp)`
       -- 
@@ -1623,7 +1623,7 @@ local record uv
       -- end)
       -- ```
       -- 
-      connect:function(Tcp, host:string, port:integer, callback:function()):any, string
+      connect:function(Tcp, host:string, port:integer, callback?:function()):any, string
 
       --- ### `uv.tcp_write_queue_size(tcp)`
       -- 
@@ -1647,7 +1647,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      close_reset:function(callback:function())
+      close_reset:function(callback?:function())
    end
 
    --- ### `uv.new_tcp([flags])`
@@ -1660,7 +1660,7 @@ local record uv
    -- 
    -- @return `uv_tcp_t userdata` or `fail`
    -- 
-   new_tcp:function(flags:string):Tcp
+   new_tcp:function(flags?:string):Tcp
 
    --- ### `uv.socketpair([socktype], [protocol], [flags1], [flags2])`
    -- 
@@ -1730,7 +1730,7 @@ local record uv
       -- Handle functions
       is_active:function(Pipe):boolean, string
       is_closing:function(Pipe):boolean, string
-      close:function(Pipe, callback:function())
+      close:function(Pipe, callback?:function())
       ref:function(Pipe)
       unref:function(Pipe)
       has_ref:function(Pipe):boolean, string
@@ -1740,13 +1740,13 @@ local record uv
       get_type:function(Pipe):string, integer
 
       -- Stream functions
-      shutdown:function(Pipe, callback:function())
-      listen:function(Pipe, backlog:integer, callback:function()):integer, string
+      shutdown:function(Pipe, callback?:function())
+      listen:function(Pipe, backlog:integer, callback?:function()):integer, string
       accept:function(Pipe, client_stream:Pipe):integer, string
       read_start:function(Pipe, callback:function(string, string))
       read_stop:function(Pipe)
-      write:function(Pipe, data:any, callback:function()):any, string
-      write2:function(Pipe, data:any, send_handle:Pipe, callback:function())
+      write:function(Pipe, data:any, callback?:function()):any, string
+      write2:function(Pipe, data:any, send_handle:Pipe, callback?:function())
       try_write:function(Pipe, data:any):integer, string
       try_write2:function(Pipe, data:any, send_handle:Pipe):integer, string
       is_readable:function(Pipe):boolean
@@ -1801,7 +1801,7 @@ local record uv
       -- **Note**: Paths on Unix get truncated to sizeof(sockaddr_un.sun_path) bytes,
       -- typically between 92 and 108 bytes.
       -- 
-      connect:function(Pipe, name:string, callback:function()):any, string
+      connect:function(Pipe, name:string, callback?:function()):any, string
 
       --- ### `uv.pipe_getsockname(pipe)`
       -- 
@@ -1945,7 +1945,7 @@ local record uv
       -- typically between 92 and 108 bytes.
       -- 2. New in version 1.46.0.
       -- 
-      connect2:function(Pipe, name:string, flags:any, callback:function()):any, string
+      connect2:function(Pipe, name:string, flags:any, callback?:function()):any, string
    end
 
    --- ### `uv.new_pipe([ipc])`
@@ -2025,7 +2025,7 @@ local record uv
       -- Handle functions
       is_active:function(Tty):boolean, string
       is_closing:function(Tty):boolean, string
-      close:function(Tty, callback:function())
+      close:function(Tty, callback?:function())
       ref:function(Tty)
       unref:function(Tty)
       has_ref:function(Tty):boolean, string
@@ -2035,13 +2035,13 @@ local record uv
       get_type:function(Tty):string, integer
 
       -- Stream functions
-      shutdown:function(Tty, callback:function())
-      listen:function(Tty, backlog:integer, callback:function()):integer, string
+      shutdown:function(Tty, callback?:function())
+      listen:function(Tty, backlog:integer, callback?:function()):integer, string
       accept:function(Tty, client_stream:Tty):integer, string
       read_start:function(Tty, callback:function(err:string, chunk:string))
       read_stop:function(Tty)
-      write:function(Tty, data:any, callback:function()):any, string
-      write2:function(Tty, data:any, send_handle:Tty, callback:function())
+      write:function(Tty, data:any, callback?:function()):any, string
+      write2:function(Tty, data:any, send_handle:Tty, callback?:function())
       try_write:function(Tty, data:any):integer, string
       try_write2:function(Tty, data:any, send_handle:Tty):integer, string
       is_readable:function(Tty):boolean
@@ -2158,7 +2158,7 @@ local record uv
       -- Handle functions
       is_active:function(Udp):boolean, string
       is_closing:function(Udp):boolean, string
-      close:function(Udp, callback:function())
+      close:function(Udp, callback?:function())
       ref:function(Udp)
       unref:function(Udp)
       has_ref:function(Udp):boolean, string
@@ -2380,7 +2380,7 @@ local record uv
       -- 
       -- @return `uv_udp_send_t userdata` or `fail`
       -- 
-      send:function(Udp, data:any, host:string, port:integer, callback:function()):any, string
+      send:function(Udp, data:any, host:string, port:integer, callback?:function()):any, string
 
       --- ### `uv.udp_try_send(udp, data, host, port)`
       -- 
@@ -2420,7 +2420,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      recv_start:function(Udp, callback:function()):integer, string
+      recv_start:function(Udp, callback?:function()):integer, string
 
       --- ### `uv.udp_recv_stop(udp)`
       -- 
@@ -2494,7 +2494,7 @@ local record uv
       -- Handle functions
       is_active:function(FsEvent):boolean, string
       is_closing:function(FsEvent):boolean, string
-      close:function(FsEvent, callback:function())
+      close:function(FsEvent, callback?:function())
       ref:function(FsEvent)
       unref:function(FsEvent)
       has_ref:function(FsEvent):boolean, string
@@ -2525,7 +2525,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(FsEvent, path:string, flags:any, callback:function()):integer, string
+      start:function(FsEvent, path:string, flags:any, callback?:function()):integer, string
 
       --- ### `uv.fs_event_stop()`
       -- 
@@ -2571,7 +2571,7 @@ local record uv
       -- Handle functions
       is_active:function(FsPoll):boolean, string
       is_closing:function(FsPoll):boolean, string
-      close:function(FsPoll, callback:function())
+      close:function(FsPoll, callback?:function())
       ref:function(FsPoll)
       unref:function(FsPoll)
       has_ref:function(FsPoll):boolean, string
@@ -2599,7 +2599,7 @@ local record uv
       -- 
       -- @return `0` or `fail`
       -- 
-      start:function(FsPoll, path:string, interval:integer, callback:function()):integer, string
+      start:function(FsPoll, path:string, interval:integer, callback?:function()):integer, string
 
       --- ### `uv.fs_poll_stop()`
       -- 
@@ -3438,7 +3438,7 @@ local record uv
    -- 
    -- @return `luv_work_ctx_t userdata`
    -- 
-   new_work:function(work_callback:function(), after_work_callback:function()):LworkCtx
+   new_work:function(work_callback?:function(), after_work_callback?:function()):LworkCtx
 
    --- ### `uv.queue_work(work_ctx, ...)`
    -- 

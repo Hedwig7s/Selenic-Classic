@@ -5,7 +5,7 @@ Name comes from Selene (greek personification of the moon and a pun on the fact 
 ## Setup
 Note: This is only intended for linux or other unix-like environments
 Install [Luvit](https://luvit.io/install.html)  
-Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download)   
+Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download) (NOTE: Expects a luarocks compiled against 5.1.x. [Luver](https://github.com/MunifTanjim/luver) is recommended.)
 Clone the repository or download a release source zip  
 Source set-path.sh
 Run install-dependencies.sh

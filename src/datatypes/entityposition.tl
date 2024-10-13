@@ -7,22 +7,22 @@ local record EntityPosition
     X: number
     Y: number
     Z: number
-    pitch: number
-    yaw: number
+    pitch: integer
+    yaw: integer
     new: function(x:number, y:number, z:number, yaw:number, pitch:number): EntityPosition
-    metamethod __index: metatable<EntityPosition>
+    metamethod __index: EntityPosition
     metamethod __tostring: function(self:EntityPosition): string
 end
 
 local EntityPositionMT: metatable<EntityPosition>
 EntityPositionMT = {
-    __index = EntityPositionMT,
+    __index = EntityPosition,
     __tostring = function(self:EntityPosition): string
-        return string.format("EntityPosition(%3f, %3f, %3f, %3f, %3f)",self.X, self.Y, self.Z, self.yaw, self.pitch)
+        return string.format("EntityPosition(%f, %f, %f, %d, %d)",self.X, self.Y, self.Z, self.yaw, self.pitch)
     end
 }
 
-EntityPosition.new = function(x:number, y:number, z:number, yaw:number, pitch:number): EntityPosition
+EntityPosition.new = function(x:number, y:number, z:number, yaw:integer, pitch:integer): EntityPosition
     return setmetatable({
         position = Vector3.new(x, y, z),
         X = x,

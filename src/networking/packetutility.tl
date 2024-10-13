@@ -31,7 +31,6 @@ function module.parsePacket(format:string, data:string): any...
     end
     return table.unpack(unpackedData)
 end
-
 function module.toFixedPoint(...:number):integer...
     local data = {...}
     local fixedData: {integer} = {}

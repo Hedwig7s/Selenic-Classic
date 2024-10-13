@@ -8,7 +8,7 @@ local record pprint
         show_metatable: boolean
         show_all: boolean
         use_tostring: boolean
-        filter_function: function(v:any,k:any|nil,t:table|nil):boolean
+        filter_function: function(v:any,k?:any,t?:table):boolean
         object_cache: object_cache_options | boolean
         indent_size: number
         level_width: number
@@ -18,6 +18,6 @@ local record pprint
     end
     setup: function(options:options)
     defaults: options
-    pformat: function(obj:any, options:options|nil, printer:function(...:string)|nil):string
+    pformat: function(obj:any, options?:options, printer?:function(...:string)):string
 end
 return pprint

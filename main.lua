@@ -1,3 +1,4 @@
+#!/usr/bin/env luvit
 local require = require("customrequire")
 local serverClass = require("networking/server")
 local serverConfig = require("data/config/serverconfig")

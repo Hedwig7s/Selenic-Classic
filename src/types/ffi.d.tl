@@ -24,6 +24,7 @@ local record libffi
     fill:       function(CData, integer, CData)
     abi:        function(string): boolean
     set:        function(function)
+    os:         string
 
     C: CNamespace
 end

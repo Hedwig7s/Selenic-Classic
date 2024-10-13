@@ -10,8 +10,8 @@ local pathModule = require("path")
 global type SettingsTable = {string: any}
 
 global record Config 
-    initialize: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
-    new: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil): Config
+    initialize: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters?: {integer: function(self:Config)})
+    new: function(self:Config, name:string, version:integer, defaults: {string: any}, updaters?: {integer: function(self:Config)}): Config
     static: table
     isSubclassOf: function(self: Config, other:class.Class): boolean
     include: function(self: Config, ...:table): Config
@@ -27,7 +27,7 @@ global record Config
     version: integer
     updaters: {integer: function(self:Config)}
     getConfigPath: function(self:Config): string
-    loadFromFile: function(self:Config, reload:boolean|nil)
+    loadFromFile: function(self:Config, reload?:boolean)
     saveToFile: function(self:Config)
     get: function(self:Config, key:string): any
     set: function(self:Config, key:string, value:any)
@@ -54,7 +54,7 @@ local function parseKey(key:string, current:SettingsTable, currentDefault:Settin
 end
 
 local config = class("Config") as Config
-function config:initialize(name:string, version:integer, defaults: {string: any}, updaters: {integer: function(self:Config)}|nil)
+function config:initialize(name:string, version:integer, defaults: {string: any}, updaters?: {integer: function(self:Config)})
     local self = self as Config
     self.name = name
     self.version = version
@@ -82,7 +82,7 @@ function config:saveToFile()
         error(self.logger:FormatErr("Failed to save: "..(err and tostring(err)) or "Unknown error"))
     end)
 end
-function config:loadFromFile(reload:boolean|nil)
+function config:loadFromFile(reload?:boolean)
     if self.loaded and not reload then
         self.logger:Warn("Attempted to load config when already loaded without reload")
         return

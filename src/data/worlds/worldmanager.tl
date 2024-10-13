@@ -12,9 +12,9 @@ local type Worlds = require("data.worlds.types")
 local type World = Worlds.World
 local type WorldParser = Worlds.WorldParser
 local type WorldManager = Worlds.WorldManager
-local worldNS = require("data.worlds.world")
-local getIndex = worldNS.GetIndex
-local worldClass = worldNS.World
+local worldNamespace = require("data.worlds.world")
+local getIndex = worldNamespace.GetIndex
+local worldClass = worldNamespace.World
 
 local worlds: {string:World} = {}
 

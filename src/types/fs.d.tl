@@ -8,81 +8,81 @@ end
 
 local record fs
     -- File operations
-    close: function(file:fileDescriptor, callback:function(err:string|nil))
+    close: function(file:fileDescriptor, callback:function(err?:string))
     closeSync: function(file:fileDescriptor)
-    open: function(path:string, flags:string, mode:integer, callback:function(err:string|nil, file:fileDescriptor|nil))
+    open: function(path:string, flags:string, mode:integer, callback:function(err?:string, file?:fileDescriptor))
     openSync: function(path:string, flags:string, mode:integer): fileDescriptor
-    read: function(file:fileDescriptor, size:number, offset:integer, callback:function(err:string|nil, bytesRead:integer, buffer:string))
+    read: function(file:fileDescriptor, size:number, offset:integer, callback:function(err?:string, bytesRead:integer, buffer:string))
     readSync: function(file:fileDescriptor, size:number, offset:integer): string
-    write: function(file:fileDescriptor, offset:integer|nil, data:string, callback:function(err:string|nil))
-    writeSync: function(file:fileDescriptor, offset:integer|nil, data:string)
-    unlink: function(path:string, callback:function(err:string|nil))
+    write: function(file:fileDescriptor, offset?:integer, data:string, callback:function(err?:string))
+    writeSync: function(file:fileDescriptor, offset?:integer, data:string)
+    unlink: function(path:string, callback:function(err?:string))
     unlinkSync: function(path:string)
 
     -- Directory operations
-    mkdir: function(path:string, mode:integer|nil, callback:function(err:string|nil))
-    mkdirSync: function(path:string, mode:integer|nil)
-    mkdtemp: function(template:string, callback:function(err:string|nil, folder:string|nil))
+    mkdir: function(path:string, mode?:integer, callback:function(err?:string))
+    mkdirSync: function(path:string, mode?:integer)
+    mkdtemp: function(template:string, callback:function(err?:string, folder?:string))
     mkdtempSync: function(template:string): string
-    rmdir: function(path:string, callback:function(err:string|nil))
+    rmdir: function(path:string, callback:function(err?:string))
     rmdirSync: function(path:string)
-    readdir: function(path:string, callback:function(err:string|nil, files:table))
+    readdir: function(path:string, callback:function(err?:string, files:table))
     readdirSync: function(path:string): table
-    scandir: function(path:string, callback:function(err:string|nil, iter:function():string))
+    scandir: function(path:string, callback:function(err?:string, iter:function():string))
     scandirSync: function(path:string): function():string
 
     -- Symbolic link operations
-    symlink: function(target:string, path:string, type:string|nil, callback:function(err:string|nil))
-    symlinkSync: function(target:string, path:string, type:string|nil)
-    readlink: function(path:string, callback:function(err:string|nil, link:string|nil))
+    symlink: function(target:string, path:string, type?:string, callback:function(err?:string))
+    symlinkSync: function(target:string, path:string, type?:string)
+    readlink: function(path:string, callback:function(err?:string, link?:string))
     readlinkSync: function(path:string): string
 
     -- File status operations
-    stat: function(path:string, callback:function(err:string|nil, stat:table|nil))
+    stat: function(path:string, callback:function(err?:string, stat?:table))
     statSync: function(path:string): table
-    lstat: function(path:string, callback:function(err:string|nil, stat:table|nil))
+    lstat: function(path:string, callback:function(err?:string, stat?:table))
     lstatSync: function(path:string): table
-    fstat: function(file:fileDescriptor, callback:function(err:string|nil, stat:table|nil))
+    fstat: function(file:fileDescriptor, callback:function(err?:string, stat?:table))
     fstatSync: function(file:fileDescriptor): table
 
     -- File manipulation
-    rename: function(oldPath:string, newPath:string, callback:function(err:string|nil))
+    rename: function(oldPath:string, newPath:string, callback:function(err?:string))
     renameSync: function(oldPath:string, newPath:string)
-    copyFile: function(src:string, dest:string, flags:integer|nil, callback:function(err:string|nil))
-    copyFileSync: function(src:string, dest:string, flags:integer|nil)
+    copyFile: function(src:string, dest:string, flags?:integer, callback:function(err?:string))
+    copyFileSync: function(src:string, dest:string, flags?:integer)
 
     -- File descriptor operations
-    fdatasync: function(file:fileDescriptor, callback:function(err:string|nil))
+    fdatasync: function(file:fileDescriptor, callback:function(err?:string))
     fdatasyncSync: function(file:fileDescriptor)
-    fsync: function(file:fileDescriptor, callback:function(err:string|nil))
+    fsync: function(file:fileDescriptor, callback:function(err?:string))
     fsyncSync: function(file:fileDescriptor)
 
     -- Special operations
-    truncate: function(path:string|fileDescriptor, len:integer, callback:function(err:string|nil))
+    truncate: function(path:string|fileDescriptor, len:integer, callback:function(err?:string))
     truncateSync: function(path:string|fileDescriptor, len:integer)
-    utimes: function(path:string, atime:number, mtime:number, callback:function(err:string|nil))
+    utimes: function(path:string, atime:number, mtime:number, callback:function(err?:string))
     utimesSync: function(path:string, atime:number, mtime:number)
-    futimes: function(file:fileDescriptor, atime:number, mtime:number, callback:function(err:string|nil))
+    futimes: function(file:fileDescriptor, atime:number, mtime:number, callback:function(err?:string))
     futimesSync: function(file:fileDescriptor, atime:number, mtime:number)
 
     -- File System Watcher
-    watch: function(filename:string, options:table|nil, listener:function(event:string, filename:string|nil))
-    watchFile: function(filename:string, options:table|nil, listener:function(curr:table, prev:table))
-    unwatchFile: function(filename:string, listener:function|nil)
+    watch: function(filename:string, options?:table, listener:function(event:string, filename?:string))
+    watchFile: function(filename:string, options?:table, listener:function(curr:table, prev:table))
+    unwatchFile: function(filename:string, listener?:function)
 
     -- Streams
-    createReadStream: function(path:string, options:table|nil): stream
-    createWriteStream: function(path:string, options:table|nil): stream
+    createReadStream: function(path:string, options?:table): stream
+    createWriteStream: function(path:string, options?:table): stream
 
     -- Read, Write, Append File
-    readFile: function(path:string, options:string|table|nil, callback:function(err:string|nil, data:string|nil))
-    readFileSync: function(path:string, options:string|table|nil): string
-    writeFile: function(path:string, data:string, options:table|nil, callback:function(err:string|nil))
-    writeFileSync: function(path:string, data:string, options:table|nil)
-    appendFile: function(path:string, data:string, options:table|nil, callback:function(err:string|nil))
-    appendFileSync: function(path:string, data:string, options:table|nil)
+    readFile: function(path:string, options?:string|table, callback:function(err?:string, data?:string))
+    readFileSync: function(path:string, options?:string|table): string
+    writeFile: function(path:string, data:string, options?:table, callback:function(err?:string))
+    writeFileSync: function(path:string, data:string, options?:table)
+    appendFile: function(path:string, data:string, options?:table, callback:function(err?:string))
+    appendFileSync: function(path:string, data:string, options?:table)
 
-    exists: function(path:string, callback:function(exists:boolean, err:string|nil))
+    exists: function(path:string, callback:function(exists:boolean, err?:string))
     existsSync: function(path:string): boolean, string|nil
 end
 

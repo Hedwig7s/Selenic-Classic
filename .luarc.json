@@ -1,5 +1,9 @@
 {
     "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
-    "workspace.library": ["deps"],
+    "workspace.library": [
+        "deps",
+        "~/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/luvit/module/library",
+        "~/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/luassert/module/library"
+    ],
     "runtime.version": "LuaJIT"
 }

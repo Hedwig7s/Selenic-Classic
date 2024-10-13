@@ -61,6 +61,7 @@ end
 
 local record Logger
     __index: Logger
+    metamethod __index: Logger
     new: function(name:string): Logger
     name: string
     cooldowns: {string: cooldown}
@@ -88,7 +89,7 @@ local function checkCooldown(cool:cooldown, isDebug:boolean): boolean
     return not cooled
 end
 
-function Logger:checkCooldown(message:string, isDebug:boolean|nil):boolean
+function Logger:checkCooldown(message:string, isDebug?:boolean):boolean
     local cooldownTime:number do
         if isDebug then
             cooldownTime = globalSettings.DEBUG_COOLDOWN
@@ -125,7 +126,7 @@ local patterns: {levels:string} = {
     fatal = makePattern("bright dim red", "FATAL")
 }
 
-function Logger:sendMessage(level:levels, message: string, isDebug:boolean|nil)
+function Logger:sendMessage(level:levels, message: string, isDebug?:boolean)
     if self:checkCooldown(message, isDebug) then
         local pattern = patterns[level]
         local formatted = pattern:gsub("{name}", self.name):gsub("{message}", message)
@@ -166,7 +167,7 @@ function Logger:FormatErr(...:any): string -- For consistency when throwing with
 end
 
 function Logger.new(name:string): Logger
-    local self:Logger = setmetatable({}, Logger)
+    local self:Logger = setmetatable({}, Logger as metatable<Logger>)
     self.name = name
 
     self.cooldowns = {}

@@ -5,14 +5,14 @@ local type Entities = require("entity.types")
 local type Entity = Entities.Entity
 
 global record EntityRegistry
-    initialize: function(self:EntityRegistry, name:string, supers: {EntityRegistry} | nil)
-    new: function(self:EntityRegistry, name:string, supers: {EntityRegistry} | nil): EntityRegistry
+    initialize: function(self:EntityRegistry, name:string, supers?: {EntityRegistry})
+    new: function(self:EntityRegistry, name:string, supers?: {EntityRegistry}): EntityRegistry
     extend: function(self:EntityRegistry):  EntityRegistry
     entities: {Entity}
     name: string
     logger: Logger
     supers: {EntityRegistry} | nil
-    RegisterEntity: function(self:EntityRegistry, entity:Entity, id:integer|nil)
+    RegisterEntity: function(self:EntityRegistry, entity:Entity, id?:integer)
     UnregisterEntity: function(self:EntityRegistry, entity:Entity | integer)
     GetEntity: function(self:EntityRegistry, id:integer): Entity|nil
     GetEntityByName: function(self:EntityRegistry, name:string): Entity|nil
@@ -20,7 +20,7 @@ global record EntityRegistry
 end
 
 local registryClass = class("EntityRegistry") as EntityRegistry
-function registryClass:initialize(name:string, supers: {EntityRegistry} | nil)
+function registryClass:initialize(name:string, supers?: {EntityRegistry})
     local self = self as EntityRegistry
     self.entities = setmetatable({}, {
         __len = function(t:{Entity}): integer
@@ -50,7 +50,7 @@ local function checkExists(registry:EntityRegistry, entity:Entity, id:integer): 
     
 end
 
-function registryClass:RegisterEntity(entity:Entity, id:integer|nil)
+function registryClass:RegisterEntity(entity:Entity, id?:integer)
     if not entity is Entity then
         error(self.logger:FormatErr("Attempted to register non-entity"))
         return

@@ -23,7 +23,7 @@ local record buffer
         writeUInt32BE: function(self:buffer.Buffer, offset:integer, value:integer)
         writeInt32LE: function(self:buffer.Buffer, offset:integer, value:integer)
         writeInt32BE: function(self:buffer.Buffer, offset:integer, value:integer)
-        toString: function(self:buffer.Buffer, i:integer|nil, j:integer|nil): string
+        toString: function(self:buffer.Buffer, i?:integer, j?:integer): string
         isBuffer: function(b:buffer.Buffer): boolean
     end
 end
