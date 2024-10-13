@@ -6,6 +6,7 @@ global type Packet
 local type class = require("middleclass")
 
 global type Player
+global type WorldManager
 
 local record ServerModule
     record Server
@@ -21,7 +22,8 @@ local record ServerModule
         host: string
         port: integer
         socket: uv.Tcp
-        handleConnect: function(self:Server, err: string|nil)
+        worlds: WorldManager
+        handleConnect: function(self:Server, err?: string)
         initialized: boolean
         logger: Logger
         init: function(self:Server)

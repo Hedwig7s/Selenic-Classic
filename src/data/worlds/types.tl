@@ -44,7 +44,7 @@ local record Worlds
         logger: Logger
         Pack: function(self:World, protocol:Protocol): string
         GetBlock: function(self:World, position:Vector3): Block
-        SetBlock: function(self:World, position:Vector3, block:Block, dontReplicate: boolean | nil, player:Player|nil)
+        SetBlock: function(self:World, position:Vector3, block:Block, dontReplicate?: boolean, player?:Player)
         GetIndex: function(self:World, position:Vector3): integer
         Save: function(self:World)
     end

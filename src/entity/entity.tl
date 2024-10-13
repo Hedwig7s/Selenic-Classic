@@ -18,7 +18,7 @@ function entityClass:initialize(name:string)
     self.removed = false
 end
 
-function entityClass:MoveTo(position:EntityPosition, dontReplicate: boolean | nil)
+function entityClass:MoveTo(position:EntityPosition, dontReplicate?: boolean)
     self.position = position
 end
 function entityClass:Spawn()

@@ -51,7 +51,7 @@ end
 function worldClass:GetBlock(position:Vector3): Block
     return self.blocks:readUInt8(self:GetIndex(position)) or blockModule.BLOCK_IDS.AIR
 end
-function worldClass:SetBlock(position:Vector3, block:Block, dontReplicate: boolean | nil, player:Player|nil)
+function worldClass:SetBlock(position:Vector3, block:Block, dontReplicate?: boolean, player?:Player)
     self.blocks:writeUInt8(self:GetIndex(position), block)
     if not dontReplicate then
         broadcasters.setBlock:Broadcast({sourcePlayer = player}, position, block)

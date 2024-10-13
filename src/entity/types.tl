@@ -27,7 +27,7 @@ local record Entities
         world: World | nil
         name: string
         position: EntityPosition
-        MoveTo: function(self:Entity, position:EntityPosition, dontReplicate: boolean | nil)
+        MoveTo: function(self:Entity, position:EntityPosition, dontReplicate?: boolean)
         Spawn: function(self:Entity)
         Despawn: function(self:Entity)
         SetBlock: function(self:Entity, position:Vector3, block:Block)
@@ -54,7 +54,7 @@ local record Entities
         fancyName: string
         connection: Connection
         position: EntityPosition
-        MoveTo: function(self:Player, position:EntityPosition, dontReplicate: boolean | nil, clientMovement: boolean | nil)
+        MoveTo: function(self:Player, position:EntityPosition, dontReplicate?: boolean, clientMovement?: boolean)
         Spawn: function(self:Player)
         Despawn: function(self:Player)
         SetBlock: function(self:Player, position:EntityPosition, block:Block)

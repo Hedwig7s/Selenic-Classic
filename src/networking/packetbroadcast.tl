@@ -14,8 +14,8 @@ end
 global type BroadcastCriteria = function(player:Player, data:CriteriaData): boolean
 
 global record PacketBroadcaster
-    initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
-    new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil): PacketBroadcaster
+    initialize: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId?:boolean)
+    new: function(self:PacketBroadcaster, packet:string, criteria:BroadcastCriteria, leaveId?:boolean): PacketBroadcaster
     static: table
     isSubclassOf: function(self: PacketBroadcaster, other:class.Class): boolean
     include: function(self: PacketBroadcaster, ...:table): PacketBroadcaster
@@ -32,7 +32,7 @@ end
 
 local packetBroadcasterClass = class("PacketBroadcaster") as PacketBroadcaster
 
-function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria, leaveId:boolean|nil)
+function packetBroadcasterClass:initialize(packet:string, criteria:BroadcastCriteria, leaveId?:boolean)
     self.packet = packet
     self.criteria = criteria
     self.changeId = not leaveId

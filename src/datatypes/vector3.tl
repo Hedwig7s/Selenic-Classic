@@ -1,7 +1,7 @@
 --local require = require("customrequire")
 
 local record Vector3
-    metamethod __index: metatable<Vector3>
+    metamethod __index: Vector3
     metamethod __add: function(self:Vector3, other:Vector3): Vector3
     metamethod __mul: function(self:Vector3, other:Vector3|number): Vector3
     metamethod __sub: function(self:Vector3, other:Vector3): Vector3
@@ -19,12 +19,11 @@ local record Vector3
     xAxis: Vector3
     yAxis: Vector3
     zAxis: Vector3
-    Magnitude: number
     new: function(x:number, y:number, z:number): Vector3
 end
 local Vector3MT: metatable<Vector3> 
 Vector3MT = {
-    __index = Vector3MT,
+    __index = Vector3,
     __add = function(self:Vector3, other:Vector3): Vector3
         return Vector3.new(self.X + other.X, self.Y + other.Y, self.Z + other.Z)
     end,
@@ -59,7 +58,7 @@ Vector3MT = {
         return Vector3.new(self.X ^ other.X, self.Y ^ other.Y, self.Z ^ other.Z)
     end,
     __tostring = function(self:Vector3): string
-        return string.format("Vector3(%3f, %3f, %3f)", self.X, self.Y, self.Z)
+        return string.format("Vector3(%f, %f, %f)", self.X, self.Y, self.Z)
     end,
     __eq = function(self:Vector3, other:Vector3): boolean
         return self.X == other.X and self.Y == other.Y and self.Z == other.Z
@@ -94,16 +93,20 @@ function Vector3:Min(other:Vector3): Vector3
     return Vector3.new(math.min(self.X, other.X), math.min(self.Y, other.Y), math.min(self.Z, other.Z))
 end
 
+function Vector3:Magnitude(): number
+    return math.sqrt(self.X*self.X + self.Y*self.Y + self.Z*self.Z)
+end
+
 function Vector3:Normalize(): Vector3
-    return Vector3.new(self.X/self.Magnitude, self.Y/self.Magnitude, self.Z/self.Magnitude)
+    local magnitude = self:Magnitude()
+    return Vector3.new(self.X/magnitude, self.Y/magnitude, self.Z/magnitude)
 end
 
 function Vector3.new(x:number, y:number, z:number): Vector3
-    local self:Vector3 = {}
+    local self:Vector3 = setmetatable({}, Vector3MT)
     self.X = x
     self.Y = y
     self.Z = z
-    self.Magnitude = math.sqrt(x*x + y*y + z*z)
     setmetatable(self, Vector3MT)
     return self
 end

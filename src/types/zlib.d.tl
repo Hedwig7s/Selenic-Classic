@@ -4,11 +4,11 @@ local enum flushMode
     "finish"
 end
 local type checksum_compute = function(input:string|checksum_compute): integer
-local type stream = function(input:string, mode:flushMode|nil): string
+local type stream = function(input:string, mode?:flushMode): string
 local record zlib
     version: function(): integer, integer, integer
-    deflate: function(compression_level:integer|nil, window_size:integer|nil): stream
-    inflate: function(windowBits:integer|nil): stream
+    deflate: function(compression_level?:integer, window_size?:integer): stream
+    inflate: function(windowBits?:integer): stream
     crc32: function(): checksum_compute
     adler32: function(): checksum_compute
 end

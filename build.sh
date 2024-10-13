@@ -3,7 +3,7 @@ set -e
 cyan build --prune
 
 extra_files=(
-
+  "rocks"
 )
 
 copy_files() {
@@ -15,6 +15,6 @@ copy_files() {
 
 while IFS= read -r -d '' file; do
   copy_files "$file"
-done < <(find . -type f -name "*.lua" ! -path "./build/*" ! -path "./.history/*" -print0)
+done < <(find . -type f -name "*.lua" ! -path "./build/*" ! -path "./tests/build/*" ! -path "./.history/*" -print0)
 
 copy_files "${extra_files[@]}"

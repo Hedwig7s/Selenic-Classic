@@ -39,7 +39,7 @@ function playerClass:initialize(name:string, connection:Connection)
     playerRegistry:RegisterEntity(self as Entity, self.id)
 end
 
-function playerClass:MoveTo(position:EntityPosition, dontReplicate: boolean | nil, clientMovement: boolean | nil)
+function playerClass:MoveTo(position:EntityPosition, dontReplicate?: boolean, clientMovement?: boolean)
     local super = entityClass.MoveTo
     super(self as Entity, position, true)
     if not dontReplicate then

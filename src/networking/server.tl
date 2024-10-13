@@ -58,7 +58,7 @@ function connectionClass:init()
     self.initialized = true
     self.logger:Debug("Client connected")
     local buffer:{string} = {}
-    local function read_buffer(bytes:integer, leaveData:boolean): string, integer
+    local function read_buffer(bytes:integer, leaveData?:boolean): string, integer
         local data = table.concat(buffer)
         local size = #data
         bytes = bytes or size
@@ -120,7 +120,7 @@ function connectionClass:init()
         end
         return true
     end
-    self.socket:read_start(function(err:string|nil, data:string|nil)
+    self.socket:read_start(function(err?:string, data?:string)
         if err then
             self.logger:Error("Failed to read TCP data: " .. err)
             self:close()
@@ -164,7 +164,7 @@ function serverClass:initialize(host:string, port:integer)
     self.logger = Logger.new("Server")
     self.initialized = false
 end
-function serverClass:handleConnect(err:string|nil)
+function serverClass:handleConnect(err?:string)
     assert(not err, err)
     local client = uv.new_tcp()
     self.socket:accept(client)
@@ -178,7 +178,7 @@ function serverClass:init()
     self.initialized = true
     self.socket = uv.new_tcp() 
     self.socket:bind(self.host, self.port)
-    self.socket:listen(128, function(err:string|nil)
+    self.socket:listen(128, function(err?:string)
         self:handleConnect(err)
     end)
     self.logger:Info("Started")

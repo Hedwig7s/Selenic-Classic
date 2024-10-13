@@ -14,8 +14,8 @@ local record inspect
        indent: string
        process: ProcessFunction
     end
-    metamethod __call: function(self:inspect, root:any, options:Options|nil): string
-    inspect: function(root:any, options:Options|nil): string
+    metamethod __call: function(self:inspect, root:any, options?:Options): string
+    inspect: function(root:any, options?:Options): string
  end
  
 return inspect

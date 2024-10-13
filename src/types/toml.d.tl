@@ -4,37 +4,37 @@ local record toml
 	--- @param tomlStr string: The string containing a TOML document.
 	--- @param options DecodingOptions|nil: See docs for DecodingOptions.
 	--- @return table: The decoded TOML document.
-	decode: function(tomlStr: string, options: DecodingOptions|nil): { string: any }
+	decode: function(tomlStr: string, options?:DecodingOptions): { string: any }
 	
 	--- Decodes a TOML document into a Lua table. If `tomlStr` is invalid, an error table that describes the error in the document is returned.
 	--- @param filePath string: The path to the TOML document.
 	--- @param options DecodingOptions|nil: See docs for DecodingOptions.
 	--- @return table: The decoded TOML document.
-	decodeFromFile: function(filePath: string, options: DecodingOptions|nil): { string: any }
+	decodeFromFile: function(filePath: string, options?:DecodingOptions): { string: any }
 
 	--- Encodes a Lua table into a TOML document.
 	--- @param data table: The Lua table to be encoded.
 	--- @param options FormattingOptions|nil: Options for formatting the YAML document. Pass `{}` to remove all options, or no table to use the default options.
 	--- @return string: The encoded TOML document.
-	encode: function(data: { string: any }, options: FormattingOptions|nil): string
+	encode: function(data: { string: any }, options?:FormattingOptions): string
 	
 	--- Encodes a Lua table into a TOML document, and **appends** that document to a file.
 	--- @param data table: The Lua table to be encoded.
 	--- @param file string: The file to write the document to/
 	--- @param options FormattingOptions|nil: Options for formatting the YAML document. Pass `{}` to remove all options, or no table to use the default options.
-	encodeToFile: function(data: { string: any }, fileOrOptions: string|EncodeToFileOptions, options: FormattingOptions|nil)
+	encodeToFile: function(data: { string: any }, fileOrOptions: string|EncodeToFileOptions, options?:FormattingOptions)
 	
 	--- Converts a table, or a TOML document into a JSON document.
 	--- @param toml string|{ string: any }: A string containing a TOML document, or a table.
 	--- @param options FormattingOptions|nil: Options for formatting the YAML document. Pass `{}` to remove all options, or no table to use the default options.
 	--- @return string: The converted JSON document.
-	toJSON: function(toml: string|{ string: any }, options: FormattingOptions|nil): string
+	toJSON: function(toml: string|{ string: any }, options?:FormattingOptions): string
 	
 	--- Converts a table, or a TOML document into a YAML document.
 	--- @param toml string|{ string: any }: A string containing a TOML document, or a table.
 	--- @param options FormattingOptions|nil: Options for formatting the YAML document. Pass `{}` to remove all options, or no table to use the default options.
 	--- @return string: The converted YAML document.
-	toYAML: function(toml: string|{ string: any }, options: FormattingOptions|nil): string
+	toYAML: function(toml: string|{ string: any }, options?:FormattingOptions): string
 
 	record Date
 		userdata

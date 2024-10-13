@@ -3,7 +3,7 @@ local record middleclass
     _DESCRIPTION: string
     _URL: string
     _LICENSE: string
-    record Class
+    interface Class
         name: string                          -- Class name
         super: Class | nil                    -- Superclass reference
         static: table                         -- Static namespace for class methods
@@ -16,8 +16,9 @@ local record middleclass
         allocate: function(self: Class): table           -- Allocate a new instance (low-level)
         isInstanceOf: function(self: table, class: Class): boolean -- Check if an object is an instance of a class    
     end
-    class: function(name: string, super: Class | nil): Class -- Function to create a new class
-    metamethod __call: function(self: middleclass, name: string, super: Class | nil): Class -- Function
+    class: function(name: string, super?: Class): Class -- Function to create a new class
+    metamethod __call: function(self: middleclass, name: string, super?: Class): Class -- Function
 end
+
 
 return middleclass

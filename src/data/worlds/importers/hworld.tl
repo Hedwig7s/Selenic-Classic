@@ -30,7 +30,7 @@ local sharedFunctions = {
     end
 }
 
-return {
+local ret: WorldParser = {
     versions = {
         [2] = function(name:string, data:string): WorldParams
             local size, spawn = sharedFunctions.parseHeader(data:sub(1, 18))
@@ -50,3 +50,4 @@ return {
         return string.unpack("<I4", data:sub(1,4)) as integer
     end
 }
+return ret
