@@ -3,13 +3,13 @@ A Classic server written in Lua because I hate myself
 Name comes from Selene (greek personification of the moon and a pun on the fact that Lua is Moon in Portuguese) + -ic (pertaining to) and Classic (Minecraft Classic)
 
 ## Setup
-Note: This is only intended for linux or other unix-like environments
+Note: This is only intended for linux or other unix-like environments  
 Install [Luvit](https://luvit.io/install.html)  
-Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download) (NOTE: Expects a luarocks compiled against 5.1.x. [Luver](https://github.com/MunifTanjim/luver) is recommended.)
+Install [LuaRocks](https://github.com/luarocks/luarocks/wiki/Download) (NOTE: Expects a luarocks compiled against 5.1.x. [Luver](https://github.com/MunifTanjim/luver) is recommended.)  
 Clone the repository or download a release source zip  
-Source set-path.sh
-Run install-dependencies.sh
-Run run.sh (server files will be under ./build)
+Source set-path.sh  
+Run install-dependencies.sh  
+Run run.sh (server files will be under ./build)  
 
 ## Plugins
 Requires are relative to the root of src, as such all APIs are available.
