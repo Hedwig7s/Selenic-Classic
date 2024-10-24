@@ -1,3 +1,6 @@
+# On hiatus
+Due to ongoing issues with teal, this project is on hiatus.
+
 # Selenic Classic
 A Classic server written in Lua because I hate myself  
 Name comes from Selene (greek personification of the moon and a pun on the fact that Lua is Moon in Portuguese) + -ic (pertaining to) and Classic (Minecraft Classic)
