@@ -1,5 +1,5 @@
-# On hiatus
-Due to ongoing issues with teal, this project is on hiatus.
+# Rewriting
+Come to think of it this code kinda bad will rewrite either if Teal fixes itself or when I decide to just use Lua
 
 # Selenic Classic
 A Classic server written in Lua because I hate myself  
