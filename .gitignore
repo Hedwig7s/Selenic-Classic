@@ -1,3 +1,4 @@
 .history/
-build/
-rocks/
+/rocks/
+/worlds/
+/config/

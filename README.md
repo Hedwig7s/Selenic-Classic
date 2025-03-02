@@ -1,6 +1,3 @@
-# Rewriting
-Come to think of it this code kinda bad will rewrite either if Teal fixes itself or when I decide to just use Lua
-
 # Selenic Classic
 A Classic server written in Lua because I hate myself  
 Name comes from Selene (greek personification of the moon and a pun on the fact that Lua is Moon in Portuguese) + -ic (pertaining to) and Classic (Minecraft Classic)

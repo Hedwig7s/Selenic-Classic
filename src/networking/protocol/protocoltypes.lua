@@ -1,0 +1,3 @@
+local ProtocolTypes = {}
+
+return ProtocolTypes

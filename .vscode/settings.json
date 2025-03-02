@@ -15,5 +15,7 @@
         
     ],
     "Lua.workspace.checkThirdParty": false,
-    "teal.compilerPath": "tl"
+    "workbench.colorCustomizations": {
+        "terminal.background": "#00000000"
+    },
 }
